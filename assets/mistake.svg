@@ -2,7 +2,7 @@
   <rect width="720" height="250" fill="#faf9f6"/>
   <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">what the values file looks like vs what it actually is</text>
 
-  <rect x="24" y="48" width="320" height="172" fill="#111111" stroke="#d8d2c8"/>
+  <rect x="24" y="48" width="320" height="172" fill="#ffffff" stroke="#d8d2c8"/>
   <text x="40" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">values.yaml</text>
   <text x="40" y="108" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">resources:</text>
   <text x="56" y="132" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">  requests:</text>

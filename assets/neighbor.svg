@@ -2,14 +2,14 @@
   <rect width="720" height="250" fill="#faf9f6"/>
   <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">who protects the neighbor?</text>
 
-  <rect x="24" y="52" width="330" height="170" fill="#111111" stroke="#e0c8c0"/>
+  <rect x="24" y="52" width="330" height="170" fill="#ffffff" stroke="#e0c8c0"/>
   <text x="40" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#b4482a">limit on the busy pod</text>
   <text x="40" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">only stops it using leftover</text>
   <text x="40" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU. does not help the</text>
   <text x="40" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app sitting next to it.</text>
   <text x="40" y="192" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">wrong tool</text>
 
-  <rect x="366" y="52" width="330" height="170" fill="#111111" stroke="#c5d0c5"/>
+  <rect x="366" y="52" width="330" height="170" fill="#ffffff" stroke="#c5d0c5"/>
   <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#8fbf8f">request on your app</text>
   <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">this is its reserved share</text>
   <text x="382" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">when the machine is busy.</text>
