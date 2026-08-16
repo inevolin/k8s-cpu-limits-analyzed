@@ -13,10 +13,13 @@ Kubernetes. It does not protect the pod next to you.
 ## Why
 
 Linux already shares a busy node. That sharing is called CFS
-(Completely Fair Scheduler). A request is the CPU your pod is
-guaranteed: if the other pods are idle you can use the leftover,
-and when they need CPU again those cores go back. **You do not
-need a CPU limit for any of that.**
+(Completely Fair Scheduler). A request is a weight in the
+cgroup, not a pinned core. If the node is busy, CFS splits
+time in proportion to those weights: a 16 CPU request gets
+about sixteen times the CPU of a 1 CPU request. If the other
+pods are idle you can use the leftover, and when they need
+CPU again those cores go back. **You do not need a CPU limit
+for any of that.**
 
 ![cfs live](assets/cfs-live.svg)
 
@@ -24,9 +27,11 @@ A limit is a separate cap, also enforced by CFS. Every 100 ms
 the kernel gives your pod a budget of CPU time, and every
 thread in the pod shares that budget. When it is gone, the
 pod is throttled until the next 100 ms. The node can be idle
-and you still wait. Four threads working at once burn a 500m
-budget in about 12 milliseconds, then sit idle for the rest
-of the window.
+and you still wait. A 1 CPU limit on a 32-core node can still
+run on all 32 cores for a few milliseconds, then sit out the
+rest of the window. Four threads working at once burn a 500m
+budget in about 12 milliseconds. It is an average, not a
+reserved core.
 
 ![limit live](assets/limit-live.svg)
 
@@ -36,9 +41,12 @@ of the window.
 
 People put a limit on because they are afraid some other app
 will starve their pod. That is what the request is for. **The
-app you care about is protected by its own request.** If teams
-can deploy with no request at all, give them a default request
-instead of putting a CPU limit on whoever looks greedy.
+app you care about is protected by its own request.** A
+runaway next door can use leftover CPU, but it cannot take
+the share you reserved. If leftover on the node is huge, the
+requests are too small. If teams can deploy with no request
+at all, give them a default request instead of putting a CPU
+limit on whoever looks greedy.
 
 ![neighbor](assets/neighbor.svg)
 
@@ -77,7 +85,7 @@ not a packed production node. It only shows the direction:
 **the request was enough.**
 
 More numbers and charts: [results/run.md](results/run.md).
-A bit more on .NET: [notes.md](notes.md).
+.NET, HPA, and questions that come up: [notes.md](notes.md).
 
 ## Conclusion
 
