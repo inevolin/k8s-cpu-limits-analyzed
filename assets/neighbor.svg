@@ -1,18 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="250" viewBox="0 0 720 250">
-  <rect width="720" height="250" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">who protects the neighbor?</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="280" viewBox="0 0 720 280">
+  <rect width="720" height="280" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">who protects your pod?</text>
 
-  <rect x="24" y="52" width="330" height="170" fill="#ffffff" stroke="#e0c8c0"/>
-  <text x="40" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#e07a6c">limit on the busy pod</text>
-  <text x="40" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">only stops it using leftover</text>
-  <text x="40" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU. does not help the</text>
-  <text x="40" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app sitting next to it.</text>
-  <text x="40" y="192" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">wrong tool</text>
+  <rect x="24" y="48" width="330" height="150" fill="#e9eff4" stroke="#4878a8"/>
+  <text x="40" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#4878a8">limit on the busy pod</text>
+  <text x="40" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">only stops it using leftover</text>
+  <text x="40" y="126" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU. does nothing for the</text>
+  <text x="40" y="148" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">pod sitting next to it.</text>
+  <text x="40" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#4878a8">✕ wrong tool for that job</text>
 
-  <rect x="366" y="52" width="330" height="170" fill="#ffffff" stroke="#c5d0c5"/>
-  <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#8fbf8f">request on your app</text>
-  <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">this is its reserved share</text>
-  <text x="382" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">when the machine is busy.</text>
-  <text x="382" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CFS already enforces that.</text>
-  <text x="382" y="192" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">this is the protection</text>
+  <rect x="366" y="48" width="330" height="150" fill="#faf1e4" stroke="#e49444"/>
+  <text x="382" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#e49444">request on your own pod</text>
+  <text x="382" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">this is your reserved share,</text>
+  <text x="382" y="126" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">held for you when the node</text>
+  <text x="382" y="148" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">is busy. CFS enforces it.</text>
+  <text x="382" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#e49444">✓ this is the protection</text>
+
+  <!-- mini node diagram: a 4-core bar split between neighbor (capped, still can't be squeezed further) and your reserved share -->
+  <text x="24" y="222" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#666666">4-core node, node busy</text>
+
+  <rect x="24" y="232" width="672" height="28" fill="#ffffff" stroke="#b8b2a8"/>
+  <rect x="24" y="232" width="336" height="28" fill="#e9eff4"/>
+  <rect x="360" y="232" width="336" height="28" fill="#faf1e4"/>
+  <line x1="360" y1="232" x2="360" y2="260" stroke="#b8b2a8"/>
+  <text x="34" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#4878a8">busy pod, capped at its limit either way</text>
+  <text x="370" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#e49444">your pod, share held by your request</text>
+
+  <text x="24" y="276" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#666666">removing the neighbor's limit does not shrink your share above</text>
 </svg>

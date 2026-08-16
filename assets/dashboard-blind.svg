@@ -1,63 +1,85 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
-  <rect width="720" height="300" fill="#faf9f6"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="330" viewBox="0 0 800 330">
+  <rect width="800" height="330" fill="#faf9f6"/>
   <text x="20" y="26" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111">Same 30 seconds. Two stories.</text>
 
-  <!-- plot -->
-  <text x="14" y="130" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111" transform="rotate(-90 14 130)">CPU</text>
-  <line x1="40" y1="52" x2="500" y2="52" stroke="#e07a6c" stroke-dasharray="5 4" stroke-width="1.5"/>
-  <line x1="40" y1="188" x2="500" y2="188" stroke="#111" stroke-width="1"/>
+  <!-- ============ PANEL A: dashboard average CPU ============ -->
+  <text x="50" y="48" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">dashboard: average CPU</text>
 
+  <!-- gridlines aligned to time ticks -->
+  <line x1="50" y1="60" x2="50" y2="230" stroke="#e5e2da" stroke-width="1"/>
+  <line x1="157" y1="60" x2="157" y2="230" stroke="#e5e2da" stroke-width="1"/>
+  <line x1="263" y1="60" x2="263" y2="230" stroke="#e5e2da" stroke-width="1"/>
+  <line x1="370" y1="60" x2="370" y2="230" stroke="#e5e2da" stroke-width="1"/>
+
+  <!-- CPU limit (dashed) -->
+  <line x1="50" y1="72" x2="370" y2="72" stroke="#e07a6c" stroke-dasharray="5 4" stroke-width="1.5"/>
+  <!-- baseline -->
+  <line x1="50" y1="230" x2="370" y2="230" stroke="#111" stroke-width="1"/>
+
+  <!-- flat, boring average CPU line: well under the limit, barely moves -->
+  <polyline points="50,196 66,198 82,194 98,199 114,195 130,197 146,193 162,198 178,196 194,199 210,195 226,197 242,194 258,198 274,196 290,199 306,195 322,197 338,194 354,198 370,196"
+    fill="none" stroke="#111" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <text x="376" y="76" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e07a6c">limit</text>
+  <text x="50" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">0s</text>
+  <text x="356" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">30s</text>
+  <text x="20" y="145" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111" transform="rotate(-90 20 145)">CPU</text>
+
+  <text x="50" y="272" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111">Looks flat. Looks fine.</text>
+
+  <!-- divider -->
+  <line x1="405" y1="40" x2="405" y2="290" stroke="#ccc7ba" stroke-width="1"/>
+
+  <!-- ============ PANEL B: throttled periods ============ -->
+  <text x="430" y="48" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">container_cpu_cfs_throttled_periods_total</text>
+
+  <line x1="430" y1="60" x2="430" y2="230" stroke="#e5e2da" stroke-width="1"/>
+  <line x1="537" y1="60" x2="537" y2="230" stroke="#e5e2da" stroke-width="1"/>
+  <line x1="643" y1="60" x2="643" y2="230" stroke="#e5e2da" stroke-width="1"/>
+  <line x1="750" y1="60" x2="750" y2="230" stroke="#e5e2da" stroke-width="1"/>
+
+  <line x1="430" y1="230" x2="750" y2="230" stroke="#111" stroke-width="1"/>
+
+  <!-- 30 one-second bars: pod is throttled hard and often, severe + spiky -->
   <g>
-    <rect x="44" y="118" width="16" height="70" fill="#8fbf8f"/>
-    <rect x="62" y="98" width="16" height="90" fill="#8fbf8f"/>
-    <rect x="80" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="98" y="136" width="16" height="52" fill="#8fbf8f"/>
-    <rect x="116" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="134" y="108" width="16" height="80" fill="#8fbf8f"/>
-    <rect x="152" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="170" y="148" width="16" height="40" fill="#8fbf8f"/>
-    <rect x="188" y="94" width="16" height="94" fill="#8fbf8f"/>
-    <rect x="206" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="224" y="126" width="16" height="62" fill="#8fbf8f"/>
-    <rect x="242" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="260" y="104" width="16" height="84" fill="#8fbf8f"/>
-    <rect x="278" y="140" width="16" height="48" fill="#8fbf8f"/>
-    <rect x="296" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="314" y="116" width="16" height="72" fill="#8fbf8f"/>
-    <rect x="332" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="350" y="132" width="16" height="56" fill="#8fbf8f"/>
-    <rect x="368" y="96" width="16" height="92" fill="#8fbf8f"/>
-    <rect x="386" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="404" y="144" width="16" height="44" fill="#8fbf8f"/>
-    <rect x="422" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="440" y="112" width="16" height="76" fill="#8fbf8f"/>
-    <rect x="458" y="52" width="16" height="136" fill="#e07a6c"/>
-    <rect x="476" y="128" width="16" height="60" fill="#8fbf8f"/>
+    <rect x="432" y="70"  width="8" height="160" fill="#e07a6c"/>
+    <rect x="443" y="180" width="8" height="50"  fill="#d9d4c7"/>
+    <rect x="454" y="64"  width="8" height="166" fill="#e07a6c"/>
+    <rect x="465" y="76"  width="8" height="154" fill="#e07a6c"/>
+    <rect x="476" y="190" width="8" height="40"  fill="#d9d4c7"/>
+    <rect x="487" y="60"  width="8" height="170" fill="#e07a6c"/>
+    <rect x="498" y="70"  width="8" height="160" fill="#e07a6c"/>
+    <rect x="509" y="82"  width="8" height="148" fill="#e07a6c"/>
+    <rect x="520" y="184" width="8" height="46"  fill="#d9d4c7"/>
+    <rect x="531" y="66"  width="8" height="164" fill="#e07a6c"/>
+    <rect x="542" y="72"  width="8" height="158" fill="#e07a6c"/>
+    <rect x="553" y="188" width="8" height="42"  fill="#d9d4c7"/>
+    <rect x="564" y="62"  width="8" height="168" fill="#e07a6c"/>
+    <rect x="575" y="78"  width="8" height="152" fill="#e07a6c"/>
+    <rect x="586" y="68"  width="8" height="162" fill="#e07a6c"/>
+    <rect x="597" y="182" width="8" height="48"  fill="#d9d4c7"/>
+    <rect x="608" y="60"  width="8" height="170" fill="#e07a6c"/>
+    <rect x="619" y="74"  width="8" height="156" fill="#e07a6c"/>
+    <rect x="630" y="186" width="8" height="44"  fill="#d9d4c7"/>
+    <rect x="641" y="64"  width="8" height="166" fill="#e07a6c"/>
+    <rect x="652" y="80"  width="8" height="150" fill="#e07a6c"/>
+    <rect x="663" y="70"  width="8" height="160" fill="#e07a6c"/>
+    <rect x="674" y="192" width="8" height="38"  fill="#d9d4c7"/>
+    <rect x="685" y="62"  width="8" height="168" fill="#e07a6c"/>
+    <rect x="696" y="76"  width="8" height="154" fill="#e07a6c"/>
+    <rect x="707" y="184" width="8" height="46"  fill="#d9d4c7"/>
+    <rect x="718" y="66"  width="8" height="164" fill="#e07a6c"/>
+    <rect x="729" y="72"  width="8" height="158" fill="#e07a6c"/>
+    <rect x="740" y="60"  width="8" height="170" fill="#e07a6c"/>
+    <rect x="751" y="188" width="8" height="42"  fill="#d9d4c7"/>
   </g>
 
-  <line x1="40" y1="128" x2="500" y2="128" stroke="#111" stroke-width="2.5"/>
-  <text x="40" y="208" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">0s</text>
-  <text x="468" y="208" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">30s</text>
+  <text x="430" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">0s</text>
+  <text x="736" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">30s</text>
+  <text x="400" y="145" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111" transform="rotate(-90 400 145)">throttled</text>
 
-  <!-- KEY -->
-  <rect x="520" y="48" width="180" height="164" fill="#ffffff" stroke="#111"/>
-  <text x="536" y="72" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111">Key</text>
+  <text x="430" y="272" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#e07a6c">Throttled almost every window.</text>
 
-  <rect x="536" y="88" width="16" height="16" fill="#8fbf8f" stroke="#111" stroke-width="0.6"/>
-  <text x="560" y="101" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">under the limit</text>
-
-  <rect x="536" y="114" width="16" height="16" fill="#e07a6c" stroke="#111" stroke-width="0.6"/>
-  <text x="560" y="123" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">hit the limit</text>
-  <text x="560" y="137" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">CPU throttling</text>
-
-  <line x1="536" y1="170" x2="560" y2="170" stroke="#111" stroke-width="2.5"/>
-  <text x="568" y="174" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">dashboard</text>
-  <text x="568" y="188" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">average</text>
-
-  <line x1="536" y1="204" x2="560" y2="204" stroke="#e07a6c" stroke-dasharray="4 3" stroke-width="1.5"/>
-  <text x="568" y="208" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111">CPU limit</text>
-
-  <text x="20" y="240" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111">The black line is what people watch. It never reaches the limit.</text>
-  <text x="20" y="260" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111">The red bars are CPU throttling. They happen every other second.</text>
-  <text x="20" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111">Watch container_cpu_cfs_throttled_periods_total, not this graph.</text>
+  <!-- ============ caption ============ -->
+  <text x="20" y="308" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111">Same pod, same 30 seconds. The average never reaches the limit. The kernel throttled it anyway.</text>
 </svg>

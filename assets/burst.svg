@@ -1,23 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="280" viewBox="0 0 720 280">
-  <rect width="720" height="280" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">same burst, under the cap (~400m offered, 500m limit)</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <rect width="720" height="360" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">same burst, ~400m average &#8212; under the 500m cap</text>
+  <text x="24" y="46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555555">but the burst blows the 50ms/100ms budget, so the limited pod still gets throttled</text>
 
-  <!-- scale: 0-120ms, 4px per ms, origin x=200 y=220 -->
-  <text x="24" y="92" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">500m limit</text>
-  <rect x="200" y="68" width="348" height="22" fill="#e07a6c"/>
-  <text x="208" y="83" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p50  87 ms</text>
-  <rect x="200" y="96" width="408" height="22" fill="#e89488"/>
-  <text x="208" y="111" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p99  102 ms     throttled half the time</text>
+  <!-- scale: 0-120ms, 4px per ms, origin x=200 y=240 -->
+  <text x="24" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">500m limit</text>
+  <rect x="200" y="88" width="348" height="22" fill="#4878a8"/>
+  <text x="208" y="103" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#faf9f6">p50  87 ms</text>
+  <rect x="200" y="116" width="408" height="22" fill="#7ba3c7"/>
+  <text x="208" y="131" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p99  102 ms</text>
+  <text x="528" y="154" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#c0392b">throttled 254/509 (50%)</text>
 
-  <text x="24" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">no limit</text>
-  <rect x="200" y="144" width="91" height="22" fill="#8fbf8f"/>
-  <text x="208" y="159" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p50  23 ms</text>
-  <rect x="200" y="172" width="175" height="22" fill="#a8cfa8"/>
-  <text x="208" y="187" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p99  44 ms     never throttled</text>
+  <text x="24" y="188" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">no limit</text>
+  <rect x="200" y="164" width="91" height="22" fill="#e49444"/>
+  <text x="208" y="179" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#faf9f6">p50  23 ms</text>
+  <rect x="200" y="192" width="175" height="22" fill="#eab476"/>
+  <text x="208" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p99  44 ms</text>
+  <text x="382" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#888888">never throttled</text>
 
-  <line x1="200" y1="220" x2="680" y2="220" stroke="#222" stroke-width="1"/>
-  <text x="200" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">0</text>
-  <text x="360" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">40 ms</text>
-  <text x="520" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">80 ms</text>
-  <text x="650" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">120 ms</text>
+  <line x1="200" y1="240" x2="680" y2="240" stroke="#222" stroke-width="1"/>
+  <text x="200" y="258" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">0</text>
+  <text x="352" y="258" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">40 ms</text>
+  <text x="512" y="258" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">80 ms</text>
+  <text x="656" y="258" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">120 ms</text>
+
+  <!-- why: one 100ms CFS window, demand spikes over the 500m/50ms budget -->
+  <text x="24" y="278" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">why: inside one 100ms window</text>
+
+  <defs>
+    <clipPath id="overBudget">
+      <rect x="200" y="296" width="480" height="19"/>
+    </clipPath>
+  </defs>
+
+  <rect x="200" y="296" width="480" height="50" fill="none" stroke="#cccccc" stroke-width="1"/>
+  <line x1="200" y1="315" x2="680" y2="315" stroke="#4878a8" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="204" y="292" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#4878a8">500m limit (50ms budget)</text>
+
+  <polyline points="200,325 230,324 240,300 250,325 310,325 320,300 330,325 390,325 400,300 410,325 470,325 480,300 490,325 550,325 560,300 570,325 630,325 640,300 650,325 680,325"
+            fill="none" stroke="#e49444" stroke-width="2"/>
+  <polyline points="200,325 230,324 240,300 250,325 310,325 320,300 330,325 390,325 400,300 410,325 470,325 480,300 490,325 550,325 560,300 570,325 630,325 640,300 650,325 680,325"
+            fill="none" stroke="#c0392b" stroke-width="2" clip-path="url(#overBudget)"/>
+
+  <text x="200" y="334" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888">demand, ~400m avg</text>
+  <text x="483" y="292" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#c0392b">spikes over budget &#8594; throttled</text>
 </svg>

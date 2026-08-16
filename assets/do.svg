@@ -1,21 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220">
-  <rect width="720" height="220" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">what to set</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
+  <rect width="720" height="300" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">what to set &#8212; values.yaml</text>
 
-  <rect x="24" y="52" width="216" height="140" fill="#eef2ee" stroke="#c5d0c5"/>
-  <text x="40" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#8fbf8f">keep</text>
-  <text x="40" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU request</text>
-  <text x="40" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">reserved CPU</text>
+  <rect x="24" y="48" width="672" height="224" fill="#f7f3ea" stroke="#b8b2a8"/>
+  <text x="40" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">values.yaml</text>
 
-  <rect x="252" y="52" width="216" height="140" fill="#eef2ee" stroke="#c5d0c5"/>
-  <text x="268" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#8fbf8f">keep</text>
-  <text x="268" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">memory limit</text>
-  <text x="268" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">or a leak takes the node</text>
+  <text x="40" y="108" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#111111">resources:</text>
+  <text x="40" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#111111" xml:space="preserve">  requests:</text>
+  <text x="40" y="160" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#111111" xml:space="preserve">    cpu: 250m</text>
+  <text x="40" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#111111" xml:space="preserve">  limits:</text>
+  <text x="40" y="212" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#111111" xml:space="preserve">    memory: 512Mi</text>
+  <text x="40" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#7a756c" xml:space="preserve">    cpu: 500m</text>
+  <line x1="74" y1="233" x2="150" y2="233" stroke="#c0685a" stroke-width="1.5"/>
 
-  <rect x="480" y="52" width="216" height="140" fill="#f6eeea" stroke="#e0c8c0"/>
-  <text x="496" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#e07a6c">drop</text>
-  <text x="496" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU limit</text>
-  <text x="496" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">set only if you</text>
-  <text x="496" y="164" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">really know what</text>
-  <text x="496" y="182" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">you are doing</text>
+  <text x="340" y="160" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep &#8212; reserves your share</text>
+  <text x="340" y="212" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep &#8212; or a leak takes the node</text>
+  <text x="340" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#c0685a">&#10007; drop &#8212; unless you really know why</text>
+
+  <text x="40" y="266" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#8a8578">no cpu limit line &#8594; no throttling on this pod</text>
 </svg>

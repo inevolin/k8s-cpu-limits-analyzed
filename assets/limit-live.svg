@@ -7,6 +7,8 @@
     .tiny { font-size: 11px; fill: #111111; }
     .ink { font-size: 11px; fill: #111111; }
     .wait { font-size: 11px; fill: #c4473a; }
+    .limitctx { font-size: 10px; fill: #4878a8; }
+    .openctx { font-size: 12px; fill: #b8712a; }
     .lane { fill: #ffffff; stroke: #c8c2b8; }
     #play { animation: play 4s linear infinite; }
     #run4 { animation: run4 4s linear infinite; }
@@ -19,12 +21,17 @@
     @keyframes play {
       0% { x: 80; } 50% { x: 677; } 50.01% { x: 80; } 100% { x: 677; }
     }
+    /* 4 threads x 125m each burn the 50 ms budget in 50/4 = 12.5 ms of
+       wall-clock time, i.e. 12.5% of the 100 ms window = 6.25% of this
+       4s loop (the window itself spans 0-50% / 50-100%). */
     @keyframes run4 {
       0% { width: 0; }
-      12.5%, 50% { width: 75px; }
+      6.25%, 50% { width: 75px; }
       50.01% { width: 0; }
-      62.5%, 100% { width: 75px; }
+      56.25%, 100% { width: 75px; }
     }
+    /* 1 thread at 500m burns the 50 ms budget in 50 ms of wall-clock
+       time, i.e. 50% of the window = 25% of this loop. */
     @keyframes run1 {
       0% { width: 0; }
       25%, 50% { width: 300px; }
@@ -38,51 +45,56 @@
       100% { width: 600px; }
     }
     @keyframes tagRun {
-      0%, 12% { opacity: 1; } 13%, 49% { opacity: 0; }
-      50%, 62% { opacity: 1; } 63%, 100% { opacity: 0; }
+      0%, 6.2% { opacity: 1; } 6.3%, 49.9% { opacity: 0; }
+      50%, 56.2% { opacity: 1; } 56.3%, 100% { opacity: 0; }
     }
     @keyframes tagPause {
-      0%, 12% { opacity: 0; } 13%, 49% { opacity: 1; }
-      50%, 62% { opacity: 0; } 63%, 100% { opacity: 1; }
+      0%, 6.2% { opacity: 0; } 6.3%, 49.9% { opacity: 1; }
+      50%, 56.2% { opacity: 0; } 56.3%, 100% { opacity: 1; }
     }
     @keyframes tagRun1 {
-      0%, 24% { opacity: 1; } 25%, 49% { opacity: 0; }
-      50%, 74% { opacity: 1; } 75%, 100% { opacity: 0; }
+      0%, 24.9% { opacity: 1; } 25%, 49.9% { opacity: 0; }
+      50%, 74.9% { opacity: 1; } 75%, 100% { opacity: 0; }
     }
     @keyframes tagPause1 {
-      0%, 24% { opacity: 0; } 25%, 49% { opacity: 1; }
-      50%, 74% { opacity: 0; } 75%, 100% { opacity: 1; }
+      0%, 24.9% { opacity: 0; } 25%, 49.9% { opacity: 1; }
+      50%, 74.9% { opacity: 0; } 75%, 100% { opacity: 1; }
     }
   </style>
   <rect width="720" height="380" fill="#faf9f6"/>
   <text class="title" x="24" y="30">One 100 ms window, slowed down so you can see it</text>
-  <text class="sub" x="24" y="50">500m limit = 50 ms of CPU, then the pod is throttled.</text>
+  <text class="sub" x="24" y="50">500m limit = 50 ms of CPU time, shared by every thread in the pod.</text>
 
   <rect x="80" y="68" width="600" height="14" rx="2" fill="#e8e4dc"/>
   <rect id="play" x="80" y="64" width="3" height="22" fill="#111111"/>
+  <line x1="380" y1="68" x2="380" y2="82" stroke="#c8c2b8" stroke-width="1"/>
   <text class="tiny" x="80" y="100">0 ms</text>
-  <text class="tiny" x="348" y="100">50 ms  (budget gone)</text>
-  <text class="tiny" x="640" y="100">100</text>
+  <text class="tiny" x="357" y="100">50 ms</text>
+  <text class="tiny" x="634" y="100">100 ms</text>
 
   <text class="sub" x="24" y="128">4 threads, 500m limit</text>
   <rect class="lane" x="80" y="138" width="600" height="28" rx="3"/>
-  <rect x="80" y="142" width="600" height="20" fill="#efe8dc"/>
+  <rect x="80" y="142" width="600" height="20" fill="#e9eef4"/>
   <rect id="run4" x="80" y="142" width="0" height="20" fill="#8fbf8f"/>
+  <line x1="155" y1="134" x2="155" y2="170" stroke="#4878a8" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="limitctx" x="214" y="132">budget gone ~12 ms</text>
   <text id="tagRun" class="ink" x="90" y="156">running</text>
-  <text id="tagPause" class="wait" x="168" y="156">throttled</text>
-  <text class="tiny" x="80" y="184">Used up the 50 ms too fast. Then throttled.</text>
+  <text id="tagPause" class="wait" x="163" y="156">throttled</text>
+  <text class="tiny" x="80" y="184">4 threads split the 50 ms budget, so it's gone in ~12 ms.</text>
 
   <text class="sub" x="24" y="214">1 thread, 500m limit</text>
   <rect class="lane" x="80" y="224" width="600" height="28" rx="3"/>
-  <rect x="80" y="228" width="600" height="20" fill="#efe8dc"/>
+  <rect x="80" y="228" width="600" height="20" fill="#e9eef4"/>
   <rect id="run1" x="80" y="228" width="0" height="20" fill="#8fbf8f"/>
+  <line x1="380" y1="220" x2="380" y2="256" stroke="#4878a8" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="limitctx" x="384" y="218">budget gone 50 ms</text>
   <text id="tagRun1" class="ink" x="90" y="242">running</text>
   <text id="tagPause1" class="wait" x="390" y="242">throttled</text>
-  <text class="tiny" x="80" y="270">Uses the whole 50 ms, then throttled.</text>
+  <text class="tiny" x="80" y="270">One thread alone takes the full 50 ms to spend the budget.</text>
 
-  <text class="sub" x="24" y="298">no limit</text>
+  <text class="sub openctx" x="24" y="298">no limit</text>
   <rect class="lane" x="80" y="308" width="600" height="28" rx="3"/>
-  <rect x="80" y="312" width="600" height="20" fill="#efe8dc"/>
+  <rect x="80" y="312" width="600" height="20" fill="#faf1e6"/>
   <rect id="runOpen" x="80" y="312" width="0" height="20" fill="#8fbf8f"/>
-  <text class="tiny" x="80" y="354">Keeps going. Leftover cores are allowed.</text>
+  <text class="tiny openctx" x="80" y="354">No budget to run out of. Keeps going all 100 ms on leftover cores.</text>
 </svg>

@@ -10,6 +10,7 @@
     #useLimit { animation: useL 6s ease-in-out infinite; }
     #useOpen { animation: useO 6s ease-in-out infinite; }
     #burstTag { animation: burstT 6s ease-in-out infinite; }
+    #wallMark, #wallLabel, #throttledLabel { animation: burstT 6s ease-in-out infinite; }
     /* 4 cores = 600px. request 1 core = 150px. limit 1.5 = 225px. */
     @keyframes useL {
       0%, 18% { width: 90px; }
@@ -30,21 +31,24 @@
   <text class="sub" x="24" y="50">Node has 4 cores. App asked for 1. Burst wants leftover CPU.</text>
   <text id="burstTag" class="sub" x="520" y="50" fill="#e07a6c">burst</text>
 
-  <text class="sub" x="24" y="88">with a 1.5 core limit</text>
+  <rect x="24" y="79" width="10" height="10" fill="#4878a8"/>
+  <text class="sub" x="42" y="88">with a 1.5 core limit</text>
   <rect class="lane" x="80" y="98" width="600" height="28" rx="3"/>
-  <rect x="80" y="98" width="150" height="28" fill="#8fbf8f"/>
-  <rect id="useLimit" x="80" y="98" width="90" height="28" fill="#c5ddc5" opacity="0.95"/>
-  <rect x="304" y="96" width="3" height="32" fill="#e07a6c"/>
-  <text class="on" x="88" y="116">request</text>
-  <text class="tiny" x="314" y="116" fill="#c4473a">wall</text>
-  <text class="tiny" x="360" y="116" fill="#111111">throttled</text>
+  <rect x="80" y="98" width="150" height="28" fill="#4878a8"/>
+  <rect id="useLimit" x="80" y="98" width="90" height="28" fill="#a9c4da" opacity="0.95"/>
+  <rect id="wallMark" x="304" y="96" width="3" height="32" fill="#e07a6c"/>
+  <text class="on" x="88" y="116" fill="#faf9f6">request</text>
+  <text id="wallLabel" class="tiny" x="314" y="116" fill="#c4473a">wall</text>
+  <text id="throttledLabel" class="tiny" x="360" y="116" fill="#111111">throttled</text>
 
-  <text class="sub" x="24" y="168">no limit</text>
+  <rect x="24" y="159" width="10" height="10" fill="#e49444"/>
+  <text class="sub" x="42" y="168">no limit</text>
   <rect class="lane" x="80" y="178" width="600" height="28" rx="3"/>
-  <rect x="80" y="178" width="150" height="28" fill="#8fbf8f"/>
-  <rect id="useOpen" x="80" y="178" width="90" height="28" fill="#c5ddc5" opacity="0.95"/>
-  <text class="on" x="88" y="196">request</text>
+  <rect x="80" y="178" width="150" height="28" fill="#e49444"/>
+  <rect id="useOpen" x="80" y="178" width="90" height="28" fill="#f2cd9c" opacity="0.95"/>
+  <text class="on" x="88" y="196" fill="#faf9f6">request</text>
   <text class="tiny" x="250" y="168" fill="#111111">borrows leftover CPU during the burst</text>
+
 
   <text class="tiny" x="80" y="236">0</text>
   <text class="tiny" x="220" y="236">1</text>
