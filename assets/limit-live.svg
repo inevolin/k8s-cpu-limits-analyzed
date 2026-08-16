@@ -14,6 +14,8 @@
     #runOpen { animation: runOpen 4s linear infinite; }
     #tagRun { animation: tagRun 4s linear infinite; }
     #tagPause { animation: tagPause 4s linear infinite; }
+    #tagRun1 { animation: tagRun1 4s linear infinite; }
+    #tagPause1 { animation: tagPause1 4s linear infinite; }
     @keyframes play {
       0% { x: 80; } 50% { x: 677; } 50.01% { x: 80; } 100% { x: 677; }
     }
@@ -43,6 +45,14 @@
       0%, 12% { opacity: 0; } 13%, 49% { opacity: 1; }
       50%, 62% { opacity: 0; } 63%, 100% { opacity: 1; }
     }
+    @keyframes tagRun1 {
+      0%, 24% { opacity: 1; } 25%, 49% { opacity: 0; }
+      50%, 74% { opacity: 1; } 75%, 100% { opacity: 0; }
+    }
+    @keyframes tagPause1 {
+      0%, 24% { opacity: 0; } 25%, 49% { opacity: 1; }
+      50%, 74% { opacity: 0; } 75%, 100% { opacity: 1; }
+    }
   </style>
   <rect width="720" height="380" fill="#faf9f6"/>
   <text class="title" x="24" y="30">One 100 ms window, slowed down so you can see it</text>
@@ -66,6 +76,8 @@
   <rect class="lane" x="80" y="224" width="600" height="28" rx="3"/>
   <rect x="80" y="228" width="600" height="20" fill="#efe8dc"/>
   <rect id="run1" x="80" y="228" width="0" height="20" fill="#8fbf8f"/>
+  <text id="tagRun1" class="ink" x="90" y="242">running</text>
+  <text id="tagPause1" class="wait" x="390" y="242">pod paused until next window</text>
   <text class="tiny" x="80" y="270">Uses the whole 50 ms. Then: pod paused until next window.</text>
 
   <text class="sub" x="24" y="298">no limit</text>
