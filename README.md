@@ -9,7 +9,7 @@ is sitting there idle." That second one does not protect the app
 next to you. It just means: **pod paused until next window.** Over
 and over, ten times a second.
 
-![mistake](assets/mistake.svg)
+![values file](assets/values-file.svg)
 
 ## Why
 
