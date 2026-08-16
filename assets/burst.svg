@@ -4,9 +4,9 @@
 
   <!-- scale: 0-120ms, 4px per ms, origin x=200 y=220 -->
   <text x="24" y="92" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">500m limit</text>
-  <rect x="200" y="68" width="348" height="22" fill="#b4482a"/>
+  <rect x="200" y="68" width="348" height="22" fill="#e07a6c"/>
   <text x="208" y="83" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p50  87 ms</text>
-  <rect x="200" y="96" width="408" height="22" fill="#c46a50"/>
+  <rect x="200" y="96" width="408" height="22" fill="#e89488"/>
   <text x="208" y="111" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">p99  102 ms     pod paused until next window (half the time)</text>
 
   <text x="24" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">no limit</text>

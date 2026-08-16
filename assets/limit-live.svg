@@ -6,7 +6,7 @@
     .sub { font-size: 12px; fill: #111111; }
     .tiny { font-size: 11px; fill: #111111; }
     .ink { font-size: 11px; fill: #111111; }
-    .wait { font-size: 11px; fill: #8a2f18; }
+    .wait { font-size: 11px; fill: #c4473a; }
     .lane { fill: #ffffff; stroke: #c8c2b8; }
     #play { animation: play 4s linear infinite; }
     #run4 { animation: run4 4s linear infinite; }

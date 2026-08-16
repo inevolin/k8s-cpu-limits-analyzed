@@ -28,15 +28,15 @@
   <rect width="720" height="300" fill="#faf9f6"/>
   <text class="title" x="24" y="30">A traffic burst. Same request. Only the limit changes.</text>
   <text class="sub" x="24" y="50">Node has 4 cores. App asked for 1. Burst wants leftover CPU.</text>
-  <text id="burstTag" class="sub" x="520" y="50" fill="#b4482a">burst</text>
+  <text id="burstTag" class="sub" x="520" y="50" fill="#e07a6c">burst</text>
 
   <text class="sub" x="24" y="88">with a 1.5 core limit</text>
   <rect class="lane" x="80" y="98" width="600" height="28" rx="3"/>
   <rect x="80" y="98" width="150" height="28" fill="#8fbf8f"/>
   <rect id="useLimit" x="80" y="98" width="90" height="28" fill="#c5ddc5" opacity="0.95"/>
-  <rect x="304" y="96" width="3" height="32" fill="#b4482a"/>
+  <rect x="304" y="96" width="3" height="32" fill="#e07a6c"/>
   <text class="on" x="88" y="116">request</text>
-  <text class="tiny" x="314" y="116" fill="#8a2f18">wall</text>
+  <text class="tiny" x="314" y="116" fill="#c4473a">wall</text>
   <text class="tiny" x="360" y="116" fill="#111111">idle, blocked</text>
 
   <text class="sub" x="24" y="168">no limit</text>

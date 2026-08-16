@@ -8,7 +8,7 @@
   <text x="40" y="144" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">drop the limit, keep the request</text>
 
   <rect x="366" y="48" width="330" height="128" fill="#f6eeea" stroke="#e0c8c0"/>
-  <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#b4482a">memory</text>
+  <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#e07a6c">memory</text>
   <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app dies (OOM kill)</text>
   <text x="382" y="144" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">keep the limit</text>
 </svg>

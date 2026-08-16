@@ -13,7 +13,7 @@
   <text x="268" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">or a leak takes the node</text>
 
   <rect x="480" y="52" width="216" height="140" fill="#f6eeea" stroke="#e0c8c0"/>
-  <text x="496" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#b4482a">drop</text>
+  <text x="496" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#e07a6c">drop</text>
   <text x="496" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU limit</text>
   <text x="496" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">except untrusted</text>
   <text x="496" y="164" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">code, benches,</text>
