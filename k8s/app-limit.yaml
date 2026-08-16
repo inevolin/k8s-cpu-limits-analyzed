@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-limit
+  labels:
+    app.kubernetes.io/part-of: cpu-lab
+    app: app-limit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-limit
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: cpu-lab
+        app: app-limit
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: app
+          image: mcr.microsoft.com/dotnet/sdk:10.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - -lc
+            - mkdir -p /tmp/run && cp /src/app.cs /tmp/run/ && cd /tmp/run && dotnet run app.cs
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DOTNET_CLI_TELEMETRY_OPTOUT
+              value: "1"
+            - name: DOTNET_NOLOGO
+              value: "1"
+            - name: ASPNETCORE_URLS
+              value: http://0.0.0.0:8080
+            # same on both pods so the only YAML delta is limits.cpu
+            - name: DOTNET_PROCESSOR_COUNT
+              value: "4"
+          volumeMounts:
+            - name: src
+              mountPath: /src
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 2
+            failureThreshold: 300
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 2
+      volumes:
+        - name: src
+          configMap:
+            name: src
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-limit
+  labels:
+    app.kubernetes.io/part-of: cpu-lab
+    app: app-limit
+spec:
+  selector:
+    app: app-limit
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

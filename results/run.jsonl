@@ -1,0 +1,14 @@
+{"kind":"startup","app":"app-limit","i":1,"seconds":35}
+{"kind":"startup","app":"app-limit","i":2,"seconds":36}
+{"kind":"startup","app":"app-limit","i":3,"seconds":40}
+{"kind":"startup","app":"app-open","i":1,"seconds":32}
+{"kind":"startup","app":"app-open","i":2,"seconds":28}
+{"kind":"startup","app":"app-open","i":3,"seconds":47}
+{"kind":"leg","job":"burst-limit","app":"app-limit","throttlePct":49.90,"cgPeriods":509,"cgThrottled":254,"url":"http://app-limit/burst?threads=4&ms=20","rps":5.0,"durationSec":45.0,"sent":226,"ok":226,"errors":0,"timeouts":0,"p50":86.9,"p95":89.5,"p99":101.6,"max":103.9}
+{"kind":"leg","job":"burst-open","app":"app-open","throttlePct":0.00,"cgPeriods":0,"cgThrottled":0,"url":"http://app-open/burst?threads=4&ms=20","rps":5.0,"durationSec":45.0,"sent":226,"ok":226,"errors":0,"timeouts":0,"p50":22.7,"p95":26.1,"p99":43.7,"max":112.0}
+{"kind":"leg","job":"spike-base-limit","app":"app-limit","throttlePct":0.39,"cgPeriods":258,"cgThrottled":1,"url":"http://app-limit/mixed?cpuMs=15&ioMs=30","rps":5.0,"durationSec":20.0,"sent":101,"ok":101,"errors":0,"timeouts":0,"p50":48.3,"p95":51.2,"p99":57.4,"max":77.6}
+{"kind":"leg","job":"spike-limit","app":"app-limit","throttlePct":93.85,"cgPeriods":260,"cgThrottled":244,"url":"http://app-limit/mixed?cpuMs=15&ioMs=30","rps":40.0,"durationSec":20.0,"sent":801,"ok":801,"errors":0,"timeouts":0,"p50":47.0,"p95":68.4,"p99":87.8,"max":145.2}
+{"kind":"leg","job":"spike-base-open","app":"app-open","throttlePct":0.00,"cgPeriods":0,"cgThrottled":0,"url":"http://app-open/mixed?cpuMs=15&ioMs=30","rps":5.0,"durationSec":20.0,"sent":101,"ok":101,"errors":0,"timeouts":0,"p50":48.5,"p95":51.1,"p99":52.0,"max":52.4}
+{"kind":"leg","job":"spike-open","app":"app-open","throttlePct":0.00,"cgPeriods":0,"cgThrottled":0,"url":"http://app-open/mixed?cpuMs=15&ioMs=30","rps":40.0,"durationSec":20.0,"sent":801,"ok":801,"errors":0,"timeouts":0,"p50":46.6,"p95":48.1,"p99":58.8,"max":117.6}
+{"kind":"leg","job":"hog-off","app":"app-open","throttlePct":0.00,"cgPeriods":0,"cgThrottled":0,"url":"http://app-open/mixed?cpuMs=15&ioMs=30","rps":20.0,"durationSec":30.0,"sent":601,"ok":601,"errors":0,"timeouts":0,"p50":46.7,"p95":49.1,"p99":52.9,"max":68.4}
+{"kind":"leg","job":"hog-on","app":"app-open","throttlePct":0.00,"cgPeriods":0,"cgThrottled":0,"url":"http://app-open/mixed?cpuMs=15&ioMs=30","rps":20.0,"durationSec":30.0,"sent":601,"ok":601,"errors":0,"timeouts":0,"p50":46.6,"p95":47.8,"p99":49.2,"max":76.1}

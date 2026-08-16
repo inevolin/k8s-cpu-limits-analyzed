@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hog
+  labels:
+    app.kubernetes.io/part-of: cpu-lab
+    app: hog
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: hog
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: cpu-lab
+        app: hog
+    spec:
+      containers:
+        - name: hog
+          image: alpine:3.20
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "for i in 1 2 3 4; do (while :; do :; done) & done; wait"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 32Mi
+            limits:
+              memory: 64Mi

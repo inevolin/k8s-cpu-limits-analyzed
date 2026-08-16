@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB_NAME}
+  labels:
+    app.kubernetes.io/part-of: cpu-lab
+    app: load
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: cpu-lab
+        app: load
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: load
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - /src/load.py
+            - --url
+            - "${TARGET_URL}"
+            - --rps
+            - "${RPS}"
+            - --duration
+            - "${DURATION}"
+            - --timeout
+            - "${TIMEOUT}"
+          volumeMounts:
+            - name: src
+              mountPath: /src
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: src
+          configMap:
+            name: src
