@@ -20,5 +20,5 @@
   <rect x="400" y="152" width="296" height="94" fill="#f6eeea" stroke="#d0a090"/>
   <text x="416" y="178" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c4473a">limit</text>
   <text x="416" y="200" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">the most it may use.</text>
-  <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">pod paused until next window</text>
+  <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">pod gets throttled</text>
 </svg>
