@@ -3,14 +3,14 @@
   <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111" >how often: CPU throttling  ·  cgroup nr_throttled / nr_periods</text>
   <text x="24" y="50" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >burst  (limit pod, under the cap)</text>
   <rect x="24.0" y="60.0" width="670.0" height="22.0" fill="#e4ddd2"/>
-  <rect x="24.0" y="60.0" width="334.3" height="22.0" fill="#4878a8"/>
+  <rect x="24.0" y="60.0" width="334.3" height="22.0" fill="#c4473a"/>
   <text x="36" y="75" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111" >254/509  49.9%</text>
   <text x="24" y="106" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >burst  (open pod, no cap)</text>
   <rect x="24.0" y="116.0" width="670.0" height="22.0" fill="#e4ddd2"/>
   <text x="36" y="131" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111" >0/0  0%</text>
   <text x="24" y="162" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >spike  (limit pod, over the cap)</text>
   <rect x="24.0" y="172.0" width="670.0" height="22.0" fill="#e4ddd2"/>
-  <rect x="24.0" y="172.0" width="628.8" height="22.0" fill="#4878a8"/>
+  <rect x="24.0" y="172.0" width="628.8" height="22.0" fill="#c4473a"/>
   <text x="36" y="187" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111" >244/260  93.85%</text>
   <text x="24" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >spike  (open pod, no cap)</text>
   <rect x="24.0" y="228.0" width="670.0" height="22.0" fill="#e4ddd2"/>

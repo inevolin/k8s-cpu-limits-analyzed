@@ -7,8 +7,8 @@
     .tiny { font-size: 11px; fill: #111111; }
     .ink { font-size: 11px; fill: #111111; }
     .wait { font-size: 11px; fill: #c4473a; }
-    .limitctx { font-size: 10px; fill: #4878a8; }
-    .openctx { font-size: 12px; fill: #b8712a; }
+    .limitctx { font-size: 10px; fill: #c4473a; }
+    .openctx { font-size: 12px; fill: #5a9a5a; }
     .lane { fill: #ffffff; stroke: #c8c2b8; }
     #play { animation: play 4s linear infinite; }
     #run4 { animation: run4 4s linear infinite; }
@@ -74,9 +74,9 @@
 
   <text class="sub" x="24" y="128">4 threads, 500m limit</text>
   <rect class="lane" x="80" y="138" width="600" height="28" rx="3"/>
-  <rect x="80" y="142" width="600" height="20" fill="#e9eef4"/>
+  <rect x="80" y="142" width="600" height="20" fill="#f6eeea"/>
   <rect id="run4" x="80" y="142" width="0" height="20" fill="#8fbf8f"/>
-  <line x1="155" y1="134" x2="155" y2="170" stroke="#4878a8" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="155" y1="134" x2="155" y2="170" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
   <text class="limitctx" x="214" y="132">budget gone ~12 ms</text>
   <text id="tagRun" class="ink" x="90" y="156">running</text>
   <text id="tagPause" class="wait" x="163" y="156">throttled</text>
@@ -84,9 +84,9 @@
 
   <text class="sub" x="24" y="214">1 thread, 500m limit</text>
   <rect class="lane" x="80" y="224" width="600" height="28" rx="3"/>
-  <rect x="80" y="228" width="600" height="20" fill="#e9eef4"/>
+  <rect x="80" y="228" width="600" height="20" fill="#f6eeea"/>
   <rect id="run1" x="80" y="228" width="0" height="20" fill="#8fbf8f"/>
-  <line x1="380" y1="220" x2="380" y2="256" stroke="#4878a8" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="380" y1="220" x2="380" y2="256" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
   <text class="limitctx" x="384" y="218">budget gone 50 ms</text>
   <text id="tagRun1" class="ink" x="90" y="242">running</text>
   <text id="tagPause1" class="wait" x="390" y="242">throttled</text>
@@ -94,7 +94,7 @@
 
   <text class="sub openctx" x="24" y="298">no limit</text>
   <rect class="lane" x="80" y="308" width="600" height="28" rx="3"/>
-  <rect x="80" y="312" width="600" height="20" fill="#faf1e6"/>
+  <rect x="80" y="312" width="600" height="20" fill="#eef4ee"/>
   <rect id="runOpen" x="80" y="312" width="0" height="20" fill="#8fbf8f"/>
   <text class="tiny openctx" x="80" y="354">No budget to run out of. Keeps going all 100 ms on leftover cores.</text>
 </svg>

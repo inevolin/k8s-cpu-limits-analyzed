@@ -13,8 +13,8 @@
   <line x1="80" y1="50.0" x2="680" y2="50.0" stroke="#eeeeee" />
   <text x="58" y="54.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >60</text>
   <text x="20" y="125.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888" transform="rotate(-90 20 125.0)">ms</text>
-  <rect x="190.0" y="67.8" width="80.0" height="132.2" fill="#e49444"/>
-  <text x="190.0" y="59.75" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#e49444" >52.9 ms</text>
+  <rect x="190.0" y="67.8" width="80.0" height="132.2" fill="#5a9a5a"/>
+  <text x="190.0" y="59.75" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#5a9a5a" >52.9 ms</text>
   <text x="210.8" y="224" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >no hog</text>
   <rect x="490.0" y="77.0" width="80.0" height="123.0" fill="#c98a3f"/>
   <text x="490.0" y="68.99999999999999" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c98a3f" >49.2 ms</text>

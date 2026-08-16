@@ -22,9 +22,9 @@ TICK = "#cccccc"
 MUTED = "#888888"
 TRACK = "#e4ddd2"
 
-# colorblind-safe pair, replacing the old red/green
-LIMIT_COLOR = "#4878a8"  # blue: 500m limit
-OPEN_COLOR = "#e49444"  # orange: no limit
+# limit = red/danger, no-limit/request = green
+LIMIT_COLOR = "#c4473a"  # red: 500m limit
+OPEN_COLOR = "#5a9a5a"  # green: no limit
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULTS = os.path.join(ROOT, "results", "run.jsonl")

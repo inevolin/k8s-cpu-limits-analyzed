@@ -18,8 +18,8 @@
       0%, 47% { opacity: 0; } 50%, 100% { opacity: 1; }
     }
     @keyframes borrow {
-      0%, 47% { fill: #e49444; }
-      50%, 100% { fill: #8fbf8f; }
+      0%, 47% { fill: #a3cfa3; }
+      50%, 100% { fill: #6aa96a; }
     }
   </style>
   <rect width="720" height="280" fill="#faf9f6"/>
@@ -28,25 +28,25 @@
   <text id="capBusy" class="sub" x="24" y="54">Both busy. Each gets its request. No CPU limit.</text>
   <text id="capIdle" class="sub" x="24" y="54">Pod B went idle. Pod A uses the leftover cores.</text>
 
-  <rect class="core" x="40" y="80" width="140" height="120" fill="#8fbf8f"/>
+  <rect class="core" x="40" y="80" width="140" height="120" fill="#6aa96a"/>
   <text class="tiny" x="97" y="136" text-anchor="middle">pod A</text>
   <text class="tiny" x="110" y="158" text-anchor="middle">1 core, reserved</text>
 
-  <rect id="c2" class="core" x="200" y="80" width="140" height="120" fill="#e49444"/>
+  <rect id="c2" class="core" x="200" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text id="labB2" class="tiny" x="270" y="148" text-anchor="middle">pod B</text>
   <text id="labA2" class="tiny" x="270" y="148" text-anchor="middle">A: leftover</text>
 
-  <rect id="c3" class="core" x="360" y="80" width="140" height="120" fill="#e49444"/>
+  <rect id="c3" class="core" x="360" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text id="labB3" class="tiny" x="430" y="148" text-anchor="middle">pod B</text>
   <text id="labA3" class="tiny" x="430" y="148" text-anchor="middle">A: leftover</text>
 
-  <rect id="c4" class="core" x="520" y="80" width="140" height="120" fill="#e49444"/>
+  <rect id="c4" class="core" x="520" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text id="labB4" class="tiny" x="590" y="148" text-anchor="middle">pod B</text>
   <text id="labA4" class="tiny" x="590" y="148" text-anchor="middle">A: leftover</text>
 
-  <rect x="40" y="220" width="16" height="16" fill="#8fbf8f" stroke="#111"/>
+  <rect x="40" y="220" width="16" height="16" fill="#6aa96a" stroke="#111"/>
   <text class="tiny" x="64" y="233">pod A request (1 core)</text>
-  <rect x="300" y="220" width="16" height="16" fill="#e49444" stroke="#111"/>
+  <rect x="300" y="220" width="16" height="16" fill="#a3cfa3" stroke="#111"/>
   <text class="tiny" x="324" y="233">pod B request (3 cores)</text>
 
   <text class="tiny" x="24" y="262">When pod B needs CPU again, those cores go back. No limit was ever set.</text>

@@ -6,19 +6,19 @@
   <text x="40" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">values.yaml</text>
   <text x="40" y="108" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">resources:</text>
   <text x="56" y="132" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">  requests:</text>
-  <text x="72" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#e49444">    cpu: 250m</text>
+  <text x="72" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#5a9a5a">    cpu: 250m</text>
   <text x="56" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">  limits:</text>
-  <text x="72" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#4878a8">    cpu: 500m</text>
+  <text x="72" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#c4473a">    cpu: 500m</text>
 
   <text x="360" y="151" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" fill="#111111">→</text>
 
-  <rect x="400" y="48" width="296" height="92" fill="#faf1e4" stroke="#e49444"/>
-  <text x="416" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#e49444">request</text>
+  <rect x="400" y="48" width="296" height="92" fill="#e8f0e8" stroke="#5a9a5a"/>
+  <text x="416" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#5a9a5a">request</text>
   <text x="416" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">CPU reserved for you,</text>
   <text x="416" y="114" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">plus leftover if idle</text>
 
-  <rect x="400" y="152" width="296" height="94" fill="#e9eff4" stroke="#4878a8"/>
-  <text x="416" y="178" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#4878a8">limit</text>
+  <rect x="400" y="152" width="296" height="94" fill="#f6eeea" stroke="#c4473a"/>
+  <text x="416" y="178" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c4473a">limit</text>
   <text x="416" y="200" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hard cap on CPU use</text>
   <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hit it and you throttle</text>
 </svg>
