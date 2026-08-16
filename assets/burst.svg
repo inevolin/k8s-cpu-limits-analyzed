@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="280" viewBox="0 0 720 280">
-  <rect width="720" height="280" fill="#ffffff"/>
+  <rect width="720" height="280" fill="#faf9f6"/>
   <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">same burst, under the cap (~400m offered, 500m limit)</text>
 
   <!-- scale: 0-120ms, 4px per ms, origin x=200 y=220 -->
