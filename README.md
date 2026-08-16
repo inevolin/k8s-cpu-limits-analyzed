@@ -15,10 +15,12 @@ and over, ten times a second.
 
 That sharing is already built into Linux. It is called CFS
 (Completely Fair Scheduler). It runs on every node. Kubernetes
-turns your CPU request into a weight. When the machine is full,
-CFS splits time by those weights. If another app is idle, you
-can use the leftover. When it wakes up, it gets its share back.
-**You do not need a CPU limit for any of that.**
+turns your CPU request into a weight. CFS does not cut the CPU
+into three pieces at once. It gives the CPU to one pod for a
+tiny slice, then the next, and so on. A bigger request just
+means more turns. If another app is idle, its turns go to
+whoever is still working. When it wakes up, it gets those
+turns back. **You do not need a CPU limit for any of that.**
 
 ![cfs live](assets/cfs-live.svg)
 

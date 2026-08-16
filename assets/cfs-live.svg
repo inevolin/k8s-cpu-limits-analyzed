@@ -1,90 +1,130 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="340" viewBox="0 0 720 340">
-  <title>CFS sharing a node by request size</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <title>CFS picks who runs, one slice at a time</title>
   <style>
-    .bg { fill: #faf9f6; }
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .title { font-size: 14px; fill: #111111; }
-    .sub { font-size: 12px; fill: #111111; }
-    .tiny { font-size: 11px; }
-    .on { fill: #111111; }
-    .muted { fill: #111111; }
-    .lane { fill: #ffffff; stroke: #d8d2c8; }
-    .tick { fill: none; stroke: #ddd; }
-    #phase-busy { animation: fadeBusy 12s infinite; }
-    #phase-idle { animation: fadeIdle 12s infinite; }
-    #barA { animation: aW 12s infinite; }
-    #barB { animation: bX 12s infinite; }
-    #barC { animation: cW 12s infinite; }
-    #labA { animation: aLab 12s infinite; }
-    #labB { animation: bLab 12s infinite; }
-    #labC { animation: cLab 12s infinite; }
-    #cIdleTag { animation: cTag 12s infinite; }
-    @keyframes fadeBusy {
-      0%, 32% { opacity: 1; } 38%, 82% { opacity: 0; } 88%, 100% { opacity: 1; }
+    .title { font-size: 14px; fill: #111; }
+    .sub { font-size: 12px; fill: #111; }
+    .tiny { font-size: 11px; fill: #111; }
+    .box { stroke: #c8c2b8; stroke-width: 1; }
+    .a { fill: #b8d8b8; }
+    .b { fill: #8fbf8f; }
+    .c { fill: #6aa86a; }
+    #now { animation: now 7s linear infinite; }
+    #phaseBusy { animation: pB 14s linear infinite; }
+    #phaseIdle { animation: pI 14s linear infinite; }
+    #rowBusy { animation: rB 14s linear infinite; }
+    #rowIdle { animation: rI 14s linear infinite; }
+    #lampA { animation: lampA 14s linear infinite; }
+    #lampB { animation: lampB 14s linear infinite; }
+    #lampC { animation: lampC 14s linear infinite; }
+    @keyframes now {
+      0% { x: 168; }
+      9.9% { x: 168; } 10% { x: 220; }
+      19.9% { x: 220; } 20% { x: 272; }
+      29.9% { x: 272; } 30% { x: 324; }
+      39.9% { x: 324; } 40% { x: 376; }
+      49.9% { x: 376; } 50% { x: 428; }
+      59.9% { x: 428; } 60% { x: 480; }
+      69.9% { x: 480; } 70% { x: 532; }
+      79.9% { x: 532; } 80% { x: 584; }
+      89.9% { x: 584; } 90% { x: 636; }
+      99.9% { x: 636; } 100% { x: 168; }
     }
-    @keyframes fadeIdle {
-      0%, 32% { opacity: 0; } 38%, 82% { opacity: 1; } 88%, 100% { opacity: 0; }
+    @keyframes pB {
+      0%, 48% { opacity: 1; } 52%, 98% { opacity: 0; } 100% { opacity: 1; }
     }
-    /* track 40..680 = 640px. busy: A64 B128 C448. idle: A213 B427 C0 */
-    @keyframes aW {
-      0%, 30% { width: 64px; } 40%, 80% { width: 213px; } 90%, 100% { width: 64px; }
+    @keyframes pI {
+      0%, 48% { opacity: 0; } 52%, 98% { opacity: 1; } 100% { opacity: 0; }
     }
-    @keyframes bX {
-      0%, 30% { x: 104px; width: 128px; } 40%, 80% { x: 253px; width: 427px; } 90%, 100% { x: 104px; width: 128px; }
+    @keyframes rB {
+      0%, 48% { opacity: 1; } 52%, 100% { opacity: 0.22; }
     }
-    @keyframes cW {
-      0%, 30% { x: 232px; width: 448px; opacity: 1; }
-      40%, 80% { x: 680px; width: 0; opacity: 0.25; }
-      90%, 100% { x: 232px; width: 448px; opacity: 1; }
+    @keyframes rI {
+      0%, 48% { opacity: 0.22; } 52%, 100% { opacity: 1; }
     }
-    @keyframes aLab {
-      0%, 30% { x: 52px; } 40%, 80% { x: 120px; } 90%, 100% { x: 52px; }
+    @keyframes lampA {
+      0%, 5% { opacity: 1; }
+      5.1%, 49.9% { opacity: 0.18; }
+      50%, 55% { opacity: 1; }
+      55.1%, 64.9% { opacity: 0.18; }
+      65%, 70% { opacity: 1; }
+      70.1%, 79.9% { opacity: 0.18; }
+      80%, 85% { opacity: 1; }
+      85.1%, 100% { opacity: 0.18; }
     }
-    @keyframes bLab {
-      0%, 30% { x: 140px; } 40%, 80% { x: 430px; } 90%, 100% { x: 140px; }
+    @keyframes lampB {
+      0%, 4.9% { opacity: 0.18; }
+      5%, 15% { opacity: 1; }
+      15.1%, 54.9% { opacity: 0.18; }
+      55%, 65% { opacity: 1; }
+      65.1%, 69.9% { opacity: 0.18; }
+      70%, 80% { opacity: 1; }
+      80.1%, 84.9% { opacity: 0.18; }
+      85%, 100% { opacity: 1; }
     }
-    @keyframes cLab {
-      0%, 30% { x: 420px; opacity: 1; } 40%, 80% { x: 420px; opacity: 0; } 90%, 100% { x: 420px; opacity: 1; }
-    }
-    @keyframes cTag {
-      0%, 32% { opacity: 0; } 40%, 80% { opacity: 1; } 88%, 100% { opacity: 0; }
+    @keyframes lampC {
+      0%, 14.9% { opacity: 0.18; }
+      15%, 50% { opacity: 1; }
+      50.1%, 100% { opacity: 0.12; }
     }
   </style>
-  <rect class="bg" width="720" height="340"/>
-  <text class="title" x="24" y="30">CFS, live. Three apps, one node.</text>
-  <text class="sub" x="24" y="50">Requests: A 100m · B 200m · C 700m. No CPU limits.</text>
+  <rect width="720" height="360" fill="#faf9f6"/>
+  <text class="title" x="24" y="28">CFS does not split the CPU into three pieces at once.</text>
+  <text class="sub" x="24" y="48">It picks one pod, runs it for a tiny slice, then picks again. More request = more turns.</text>
 
-  <text id="phase-busy" class="sub" x="24" y="82">Everyone wants CPU. CFS splits 10 / 20 / 70.</text>
-  <text id="phase-idle" class="sub" x="24" y="82">C goes idle. A and B split the leftover, still 1:2.</text>
+  <rect x="24" y="68" width="128" height="68" class="box" fill="#fff"/>
+  <rect id="lampA" x="24" y="68" width="8" height="68" fill="#6aa86a"/>
+  <text class="tiny" x="42" y="90">pod A</text>
+  <text class="tiny" x="42" y="108">request 100m</text>
+  <text class="tiny" x="42" y="126">1 turn in 10</text>
 
-  <rect class="lane" x="40" y="108" width="640" height="56" rx="4"/>
-  <rect id="barA" x="40" y="116" width="64" height="40" fill="#a8cfa8"/>
-  <rect id="barB" x="104" y="116" width="128" height="40" fill="#8fbf8f"/>
-  <rect id="barC" x="232" y="116" width="448" height="40" fill="#7aaa7a"/>
-  <text id="labA" class="tiny on" x="52" y="140">A</text>
-  <text id="labB" class="tiny on" x="140" y="140">B</text>
-  <text id="labC" class="tiny on" x="420" y="140">C</text>
-  <text id="cIdleTag" class="tiny muted" x="560" y="140">C idle</text>
+  <rect x="24" y="148" width="128" height="68" class="box" fill="#fff"/>
+  <rect id="lampB" x="24" y="148" width="8" height="68" fill="#6aa86a"/>
+  <text class="tiny" x="42" y="170">pod B</text>
+  <text class="tiny" x="42" y="188">request 200m</text>
+  <text class="tiny" x="42" y="206">2 turns in 10</text>
 
-  <text class="tiny muted" x="40" y="190">0%</text>
-  <text class="tiny muted" x="340" y="190">50%</text>
-  <text class="tiny muted" x="640" y="190">100% of the node</text>
+  <rect x="24" y="228" width="128" height="68" class="box" fill="#fff"/>
+  <rect id="lampC" x="24" y="228" width="8" height="68" fill="#6aa86a"/>
+  <text class="tiny" x="42" y="250">pod C</text>
+  <text class="tiny" x="42" y="268">request 700m</text>
+  <text class="tiny" x="42" y="286">7 turns in 10</text>
 
-  <rect class="lane" x="40" y="214" width="200" height="92" rx="4"/>
-  <text class="tiny" fill="#7aaa7a" x="54" y="238">A  ·  request 100m</text>
-  <text class="tiny muted" x="54" y="258">busy: 10% of the node</text>
-  <text class="tiny muted" x="54" y="276">C idle: 33%</text>
-  <text class="tiny muted" x="54" y="294">C back: 10% again</text>
+  <text id="phaseBusy" class="sub" x="172" y="80">Everyone wants CPU. Ten turns, split 1 / 2 / 7.</text>
+  <text id="phaseIdle" class="sub" x="172" y="80">C is idle. Those 7 turns go to A and B, still 1:2.</text>
 
-  <rect class="lane" x="256" y="214" width="200" height="92" rx="4"/>
-  <text class="tiny" fill="#8fbf8f" x="270" y="238">B  ·  request 200m</text>
-  <text class="tiny muted" x="270" y="258">busy: 20%</text>
-  <text class="tiny muted" x="270" y="276">C idle: 67%</text>
-  <text class="tiny muted" x="270" y="294">C back: 20% again</text>
+  <g id="rowBusy">
+    <text class="tiny" x="172" y="106">this round</text>
+    <rect x="168" y="116" width="48" height="36" class="box a"/><text class="tiny" x="184" y="138">A</text>
+    <rect x="220" y="116" width="48" height="36" class="box b"/><text class="tiny" x="236" y="138">B</text>
+    <rect x="272" y="116" width="48" height="36" class="box b"/><text class="tiny" x="288" y="138">B</text>
+    <rect x="324" y="116" width="48" height="36" class="box c"/><text class="tiny" x="340" y="138">C</text>
+    <rect x="376" y="116" width="48" height="36" class="box c"/><text class="tiny" x="392" y="138">C</text>
+    <rect x="428" y="116" width="48" height="36" class="box c"/><text class="tiny" x="444" y="138">C</text>
+    <rect x="480" y="116" width="48" height="36" class="box c"/><text class="tiny" x="496" y="138">C</text>
+    <rect x="532" y="116" width="48" height="36" class="box c"/><text class="tiny" x="548" y="138">C</text>
+    <rect x="584" y="116" width="48" height="36" class="box c"/><text class="tiny" x="600" y="138">C</text>
+    <rect x="636" y="116" width="48" height="36" class="box c"/><text class="tiny" x="652" y="138">C</text>
+  </g>
 
-  <rect class="lane" x="472" y="214" width="208" height="92" rx="4"/>
-  <text class="tiny" fill="#7aaa7a" x="486" y="238">C  ·  request 700m</text>
-  <text class="tiny muted" x="486" y="258">busy: 70%</text>
-  <text class="tiny muted" x="486" y="276">idle: 0, leftover loaned out</text>
-  <text class="tiny muted" x="486" y="294">wakes: 70% back at once</text>
+  <g id="rowIdle">
+    <text class="tiny" x="172" y="186">C idle</text>
+    <rect x="168" y="196" width="48" height="36" class="box a"/><text class="tiny" x="184" y="218">A</text>
+    <rect x="220" y="196" width="48" height="36" class="box b"/><text class="tiny" x="236" y="218">B</text>
+    <rect x="272" y="196" width="48" height="36" class="box b"/><text class="tiny" x="288" y="218">B</text>
+    <rect x="324" y="196" width="48" height="36" class="box a"/><text class="tiny" x="340" y="218">A</text>
+    <rect x="376" y="196" width="48" height="36" class="box b"/><text class="tiny" x="392" y="218">B</text>
+    <rect x="428" y="196" width="48" height="36" class="box b"/><text class="tiny" x="444" y="218">B</text>
+    <rect x="480" y="196" width="48" height="36" class="box a"/><text class="tiny" x="496" y="218">A</text>
+    <rect x="532" y="196" width="48" height="36" class="box b"/><text class="tiny" x="548" y="218">B</text>
+    <rect x="584" y="196" width="48" height="36" class="box b"/><text class="tiny" x="600" y="218">B</text>
+    <rect x="636" y="196" width="48" height="36" class="box b"/><text class="tiny" x="652" y="218">B</text>
+  </g>
+
+  <rect id="now" x="168" y="112" width="48" height="124" fill="none" stroke="#111" stroke-width="2.5"/>
+
+  <text class="tiny" x="172" y="262">time →   each box is one turn on the CPU. nobody has a CPU limit here.</text>
+  <text class="tiny" x="172" y="284">When C wants CPU again it takes its 7 turns back. A and B get fewer.</text>
+  <text class="tiny" x="172" y="306">A CPU limit would not change this sharing. It would only throw leftover turns away.</text>
+  <text class="tiny" x="172" y="336">The green strip on the left lights up when that pod is the one running.</text>
 </svg>
