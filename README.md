@@ -121,7 +121,13 @@ a 16-core node:
 A tight CPU limit can also look like a memory problem. The
 garbage collector needs CPU to free memory, and if it is
 throttled most of the time, memory grows and the pod gets
-killed. Check `container_cpu_cfs_throttled_periods_total`
+killed as an OOM even though nothing leaked. Others have hit
+the same wall: [Fairwinds lists throttling as an indirect
+cause of OOMKilled](https://www.fairwinds.com/blog/5-ways-you-can-diagnose-and-prevent-oomkilled-errors-in-kubernetes)
+("slowing garbage collection or other memory-reclaiming
+work"), and [this JVM-on-Kubernetes writeup](https://rasztabiga.me/blog/jvm-in-kubernetes)
+shows how a GC burst over the limit turns into throttling and
+longer pauses. Check `container_cpu_cfs_throttled_periods_total`
 before you raise the memory limit.
 
 ## Conclusion
@@ -140,11 +146,11 @@ the limit line by itself does not free any nodes.
 **Leave `limits.memory`.** If CPU is short, the app waits. If
 memory is short, the app (or the node) dies.
 
-I would still set a CPU limit on code you do not trust, on a
-benchmark that needs a hard ceiling, and on pods that pin
-whole cores (request and limit set equal on purpose). For
-normal services, drop `limits.cpu`, keep a request that is
-roughly right, and watch node CPU.
+I would still set a CPU limit on a benchmark that needs a
+hard ceiling, and on pods that pin whole cores (request and
+limit set equal on purpose). For everything else, drop
+`limits.cpu`, keep a request that is roughly right, and
+watch node CPU.
 
 Autoscaling on CPU compares use to the *request*, not the
 limit. Removing the limit does not change that formula. Use
@@ -164,7 +170,7 @@ gets about half the machine. Nothing else is required.
 stops that pod from using leftover CPU. It does not give
 CPU to anyone else. The neighbor is protected by *its*
 request. If leftover is huge, requests on that node are too
-small. A limit still makes sense on code you do not trust.
+small.
 
 **Don't Go / Java / .NET need the limit to size the thread
 pool?** They often read the quota and treat it as the CPU
