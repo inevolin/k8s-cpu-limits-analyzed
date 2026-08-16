@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="250" viewBox="0 0 720 250">
+  <rect width="720" height="250" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">who protects the neighbor?</text>
+
+  <rect x="24" y="52" width="330" height="170" fill="#fff" stroke="#e0c8c0"/>
+  <text x="40" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#b4482a">limit on the hog</text>
+  <text x="40" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">stops the hog from using</text>
+  <text x="40" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">idle CPU. does nothing</text>
+  <text x="40" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">for the victim's share.</text>
+  <text x="40" y="192" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#6a6258">wrong tool</text>
+
+  <rect x="366" y="52" width="330" height="170" fill="#fff" stroke="#c5d0c5"/>
+  <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#3d5a3d">request on the victim</text>
+  <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">sets the victim's weight.</text>
+  <text x="382" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">CFS keeps that share</text>
+  <text x="382" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">when the node is busy.</text>
+  <text x="382" y="192" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#6a6258">this is the isolation</text>
+</svg>

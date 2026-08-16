@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="260" viewBox="0 0 720 260">
+  <rect width="720" height="260" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">same minute. per-second use vs the 1-minute average</text>
+
+  <!-- limit line -->
+  <line x1="80" y1="70" x2="680" y2="70" stroke="#b4482a" stroke-dasharray="4 3" stroke-width="1"/>
+  <text x="686" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#b4482a">limit</text>
+
+  <!-- per-second bars: some hit the limit (orange), some don't -->
+  <g fill="#3d5a3d">
+    <rect x="80" y="110" width="14" height="70"/>
+    <rect x="100" y="90" width="14" height="90"/>
+    <rect x="120" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="140" y="128" width="14" height="52"/>
+    <rect x="160" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="180" y="100" width="14" height="80"/>
+    <rect x="200" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="220" y="140" width="14" height="40"/>
+    <rect x="240" y="86" width="14" height="94"/>
+    <rect x="260" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="280" y="118" width="14" height="62"/>
+    <rect x="300" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="320" y="96" width="14" height="84"/>
+    <rect x="340" y="132" width="14" height="48"/>
+    <rect x="360" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="380" y="108" width="14" height="72"/>
+    <rect x="400" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="420" y="124" width="14" height="56"/>
+    <rect x="440" y="88" width="14" height="92"/>
+    <rect x="460" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="480" y="136" width="14" height="44"/>
+    <rect x="500" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="520" y="104" width="14" height="76"/>
+    <rect x="540" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="560" y="120" width="14" height="60"/>
+    <rect x="580" y="92" width="14" height="88"/>
+    <rect x="600" y="70" width="14" height="110" fill="#b4482a"/>
+    <rect x="620" y="130" width="14" height="50"/>
+    <rect x="640" y="100" width="14" height="80"/>
+    <rect x="660" y="70" width="14" height="110" fill="#b4482a"/>
+  </g>
+
+  <!-- 1-minute average -->
+  <line x1="80" y1="124" x2="674" y2="124" stroke="#222" stroke-width="2"/>
+  <text x="80" y="210" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">rust = that second hit the limit and the cgroup froze</text>
+  <text x="80" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#222">black line = 1-minute average. looks healthy. it is not.</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220">
+  <rect width="720" height="220" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">what to set</text>
+
+  <rect x="24" y="52" width="216" height="140" fill="#eef2ee" stroke="#c5d0c5"/>
+  <text x="40" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#3d5a3d">keep</text>
+  <text x="40" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">CPU request</text>
+  <text x="40" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">share + scheduling</text>
+
+  <rect x="252" y="52" width="216" height="140" fill="#eef2ee" stroke="#c5d0c5"/>
+  <text x="268" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#3d5a3d">keep</text>
+  <text x="268" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">memory limit</text>
+  <text x="268" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">or a leak takes the node</text>
+
+  <rect x="480" y="52" width="216" height="140" fill="#f6eeea" stroke="#e0c8c0"/>
+  <text x="496" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#b4482a">drop</text>
+  <text x="496" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">CPU limit</text>
+  <text x="496" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">except untrusted / bench / pins</text>
+</svg>
