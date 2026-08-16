@@ -1,42 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
   <rect width="720" height="300" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">burst latency  ·  ~400m offered, 500m cap</text>
-
-  <!-- y axis 0-120ms, plot top 50, bottom 230, height 180 → 1.5 px/ms -->
-  <line x1="80" y1="50" x2="80" y2="230" stroke="#ccc"/>
-  <line x1="80" y1="230" x2="680" y2="230" stroke="#222"/>
-  <text x="48" y="234" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">0</text>
-  <text x="40" y="174" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">40</text>
-  <line x1="80" y1="170" x2="680" y2="170" stroke="#eee"/>
-  <text x="40" y="114" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">80</text>
-  <line x1="80" y1="110" x2="680" y2="110" stroke="#eee"/>
-  <text x="34" y="54" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">120</text>
-  <text x="16" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888" transform="rotate(-90 16 150)">ms</text>
-
-  <!-- groups: p50, p95, p99. each pair of bars -->
-  <!-- p50: limit 86.9 → h=130.35, y=230-130=100; open 22.7 → h=34.05, y=196 -->
-  <rect x="130" y="100" width="48" height="130" fill="#e07a6c"/>
-  <rect x="186" y="196" width="48" height="34" fill="#8fbf8f"/>
-  <text x="148" y="94" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e07a6c">87</text>
-  <text x="196" y="190" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#8fbf8f">23</text>
-  <text x="158" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">p50</text>
-
-  <!-- p95: 89.5 → 134.25 y=96; 26.1 → 39.15 y=191 -->
-  <rect x="310" y="96" width="48" height="134" fill="#e07a6c"/>
-  <rect x="366" y="191" width="48" height="39" fill="#8fbf8f"/>
-  <text x="328" y="90" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e07a6c">90</text>
-  <text x="376" y="185" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#8fbf8f">26</text>
-  <text x="338" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">p95</text>
-
-  <!-- p99: 101.6 → 152.4 y=78; 43.7 → 65.55 y=164 -->
-  <rect x="490" y="78" width="48" height="152" fill="#e07a6c"/>
-  <rect x="546" y="164" width="48" height="66" fill="#8fbf8f"/>
-  <text x="504" y="72" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e07a6c">102</text>
-  <text x="556" y="158" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#8fbf8f">44</text>
-  <text x="518" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">p99</text>
-
-  <rect x="80" y="272" width="12" height="12" fill="#e07a6c"/>
-  <text x="98" y="282" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">500m limit</text>
-  <rect x="200" y="272" width="12" height="12" fill="#8fbf8f"/>
-  <text x="218" y="282" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">no limit</text>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111" >burst latency  ·  ~400m offered, 500m cap</text>
+  <line x1="80" y1="50" x2="80" y2="230" stroke="#cccccc" />
+  <line x1="80" y1="230" x2="680" y2="230" stroke="#222222" />
+  <text x="56" y="234" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >0</text>
+  <line x1="80" y1="170.0" x2="680" y2="170.0" stroke="#eeeeee" />
+  <text x="58" y="174.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >40</text>
+  <line x1="80" y1="110.0" x2="680" y2="110.0" stroke="#eeeeee" />
+  <text x="58" y="114.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >80</text>
+  <line x1="80" y1="50.0" x2="680" y2="50.0" stroke="#eeeeee" />
+  <text x="52" y="54.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >120</text>
+  <text x="20" y="140.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888" transform="rotate(-90 20 140.0)">ms</text>
+  <rect x="132.0" y="99.6" width="48.0" height="130.4" fill="#4878a8"/>
+  <rect x="188.0" y="195.9" width="48.0" height="34.0" fill="#e49444"/>
+  <text x="136.0" y="93.64999999999998" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#4878a8" >86.9</text>
+  <text x="192.0" y="189.95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e49444" >22.7</text>
+  <text x="146.0" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >p50</text>
+  <rect x="332.0" y="95.8" width="48.0" height="134.2" fill="#4878a8"/>
+  <rect x="388.0" y="190.8" width="48.0" height="39.1" fill="#e49444"/>
+  <text x="336.0" y="89.75" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#4878a8" >89.5</text>
+  <text x="392.0" y="184.85" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e49444" >26.1</text>
+  <text x="346.0" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >p95</text>
+  <rect x="532.0" y="77.6" width="48.0" height="152.4" fill="#4878a8"/>
+  <rect x="588.0" y="164.4" width="48.0" height="65.6" fill="#e49444"/>
+  <text x="536.0" y="71.60000000000002" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#4878a8" >101.6</text>
+  <text x="592.0" y="158.45" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#e49444" >43.7</text>
+  <text x="546.0" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >p99</text>
+  <text x="80" y="270" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888" >x-axis: latency percentile  ·  y-axis: latency (ms)</text>
+  <rect x="80.0" y="272.0" width="12.0" height="12.0" fill="#4878a8"/>
+  <text x="98" y="282" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111" >500m limit</text>
+  <rect x="204.0" y="272.0" width="12.0" height="12.0" fill="#e49444"/>
+  <text x="222" y="282" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111" >no limit</text>
 </svg>

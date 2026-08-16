@@ -119,6 +119,7 @@ def main() -> int:
     p95 = f1(percentile(oks, 0.95))
     p99 = f1(percentile(oks, 0.99))
     mx = f1(oks[-1] if oks else 0.0)
+    latencies = [f1(v) for v in oks]
 
     print(f"sent={sent} ok={len(oks)} errors={errors} timeouts={timeouts}")
     print(f"latency ms: p50={p50} p95={p95} p99={p99} max={mx}")
@@ -134,6 +135,7 @@ def main() -> int:
         "p95": p95,
         "p99": p99,
         "max": mx,
+        "latencies": latencies,
     }
     print("RESULT_JSON: " + json.dumps(result, separators=(",", ":")))
     return 0

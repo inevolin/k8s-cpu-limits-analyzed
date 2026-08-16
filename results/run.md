@@ -14,14 +14,14 @@ Same work on both apps: four threads spinning for 20 ms,
 average, so it stays under the 500m limit, but it still
 uses up the limit's budget inside each short slice.
 
-![burst latency](../assets/results-burst.svg)
+![Bar chart of burst latency: the 500m-limit pod at 87 ms versus the no-limit pod at 23 ms](../assets/results-burst.svg)
 
-![CPU throttling](../assets/results-throttle.svg)
+![Bar chart of how often each pod was throttled during the burst and spike tests: the 500m-limit pod at 50% and 94%, the no-limit pod at 0% in both](../assets/results-throttle.svg)
 
-| | typical (p50) | p95 | slowest 1% (p99) | throttled |
+| pod | typical (p50, ms) | p95 (ms) | slowest 1% (p99, ms) | throttled |
 |---|---|---|---|---|
-| 500m limit | 86.9 ms | 89.5 | 101.6 | half the time (254 / 509) |
-| no limit | 22.7 ms | 26.1 | 43.7 | never |
+| 500m limit | 86.9 | 89.5 | 101.6 | 254 / 509 windows (50%) |
+| no limit | 22.7 | 26.1 | 43.7 | 0 / 0 windows (never throttled) |
 
 No failed requests.
 
@@ -33,12 +33,12 @@ over the 500m cap. Typical time barely moves because most of
 the work is sleep. The slow requests and the throttling are
 where it shows.
 
-![spike](../assets/results-spike.svg)
+![Bar chart of spike latency, quiet then a 40 rps burst: the 500m-limit pod at 57 ms versus the no-limit pod at 52 ms](../assets/results-spike.svg)
 
-| | slow requests, quiet | typical during spike | slow requests during spike | throttled |
+| pod | slow requests, quiet (ms) | typical during spike (ms) | slow requests during spike (ms) | throttled |
 |---|---|---|---|---|
-| 500m limit | 57.4 ms | 47.0 | 87.8 | almost always (244 / 260) |
-| no limit | 52.0 ms | 46.6 | 58.8 | never |
+| 500m limit | 57.4 | 47.0 | 87.8 | 244 / 260 windows (94%) |
+| no limit | 52.0 | 46.6 | 58.8 | 0 / 0 windows (never throttled) |
 
 ## a pod that just burns CPU
 
@@ -50,12 +50,12 @@ The machine still had spare cores (8 CPUs, one busy pod), so
 nothing really had to fight and the unlimited app did not get
 slower. This is not a packed production node.
 
-![busy pod](../assets/results-hog.svg)
+![Bar chart comparing the no-limit app's slowest requests with and without a CPU-burning neighbor pod on the same node: 53 ms alone versus 49 ms with the neighbor](../assets/results-hog.svg)
 
-| | slowest 1% | throttled |
+| pod | slowest 1% (ms) | throttled |
 |---|---|---|
-| no busy pod | 52.9 ms | never |
-| busy pod on the node | 49.2 ms | never |
+| no busy pod | 52.9 | 0 / 0 windows (never throttled) |
+| busy pod on the node | 49.2 | 0 / 0 windows (never throttled) |
 
 ```
 app-limit-64bdf458f-gmkc2   minikube
@@ -74,7 +74,7 @@ hog-5b894989-vks8q          minikube
 
 `dotnet run` compiles on every start. Times overlapped.
 
-| | runs (s) | median |
+| pod | runs (s) | median (s) |
 |---|---|---|
 | 500m limit | 35, 36, 40 | 36 |
 | no limit | 32, 28, 47 | 32 |

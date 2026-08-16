@@ -6,9 +6,13 @@ The **request** is how much CPU is reserved for your pod if
 it needs it. The **limit** is a hard cap. Hit it and the
 kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. It does not protect the pod next to you.
+Kubernetes. It does not protect the pod next to you. In the
+burst test below, adding a CPU limit took typical latency
+from 23 ms to 87 ms, about 4x, with the limited pod throttled
+in half of all CFS windows, and the average CPU graph looked
+fine the whole time.
 
-![values file](assets/values-file.svg)
+![Sample values.yaml showing a requests.cpu of 250m and a limits.cpu of 500m, with an arrow pointing out that the limit is the dangerous one](assets/values-file.svg)
 
 ## Why
 
@@ -21,7 +25,7 @@ pods are idle you can use the leftover, and when they need
 CPU again those cores go back. **You do not need a CPU limit
 for any of that.**
 
-![cfs live](assets/cfs-live.svg)
+![Diagram of a 4-core node with pod A requesting 1 core and pod B requesting 3, both busy and getting their share, then pod B going idle and pod A using the leftover cores, with no CPU limit involved](assets/cfs-live.svg)
 
 A limit is a separate cap, also enforced by CFS. Every 100 ms
 the kernel gives your pod a budget of CPU time, and every
@@ -33,11 +37,11 @@ rest of the window. Four threads working at once burn a 500m
 budget in about 12 milliseconds. It is an average, not a
 reserved core.
 
-![limit live](assets/limit-live.svg)
+![Timeline of a single 100 ms CFS window for a pod with a 500m limit and 4 threads: the 50 ms budget burns in the first slice, then the pod sits throttled for the rest of the window](assets/limit-live.svg)
 
-![borrow live](assets/borrow-live.svg)
+![Diagram of a traffic burst on a 4-core node where a pod requests 1 core: with no limit it borrows the leftover cores for the burst, with a 1.5-core limit it gets throttled instead](assets/borrow-live.svg)
 
-![cpu vs memory](assets/cpu-vs-memory.svg)
+![Side-by-side comparison of running out of CPU versus running out of memory: CPU means the app waits and catches up, so drop the limit and keep the request; memory means the app gets OOM-killed, so keep the memory limit](assets/cpu-vs-memory.svg)
 
 People put a limit on because they are afraid some other app
 will starve their pod. That is what the request is for. **The
@@ -48,7 +52,7 @@ requests are too small. If teams can deploy with no request
 at all, give them a default request instead of putting a CPU
 limit on whoever looks greedy.
 
-![neighbor](assets/neighbor.svg)
+![Diagram showing a CPU limit on the busy pod only stops it using leftover CPU and does not help the neighbor, while a request on your own pod is what actually reserves its share](assets/neighbor.svg)
 
 ## What average CPU hides
 
@@ -57,7 +61,7 @@ lasts a tenth of a second. So **the graph can look fine while
 the app is being throttled all the time.** Watch
 `container_cpu_cfs_throttled_periods_total`, not average CPU.
 
-![dashboard](assets/dashboard-blind.svg)
+![Two views of the same 30 seconds: an average CPU graph that looks flat and fine, next to a CPU throttling graph on the same window showing the pod repeatedly hitting its limit](assets/dashboard-blind.svg)
 
 ## Proof
 
@@ -74,7 +78,7 @@ time went up about **4x**, and the limited pod was throttled
 about half the time. There were no errors, and a normal CPU
 graph would have looked fine.
 
-![burst](assets/burst.svg)
+![Chart comparing the burst test on both pods: the 500m-limit pod has a p50 of 87 ms and a p99 of 102 ms, throttled half the time, while the no-limit pod has a p50 of 23 ms and a p99 of 44 ms, never throttled](assets/burst.svg)
 
 I also sent a short traffic spike that *did* go over the cap,
 and the limited pod was throttled on almost every window. Then
@@ -112,7 +116,11 @@ before you raise the memory limit.
 
 ## Conclusion
 
-![do](assets/do.svg)
+![Table of what to set: keep the CPU request, keep the memory limit, drop the CPU limit unless you really know what you are doing](assets/do.svg)
+
+- keep `requests.cpu`: it reserves your share
+- keep `limits.memory`: or a leak takes the node
+- drop `limits.cpu`: set it only if you really know what you are doing
 
 After you drop CPU limits, look at that throttling metric and
 at node CPU. Later you can shrink requests to what the apps
@@ -184,6 +192,33 @@ kubectl config use-context minikube
 ./scripts/cleanup.sh
 ```
 
-Needs `kubectl` and `python3`. First run downloads a large
-.NET image. `NS` and `KCTX` change the namespace and cluster
-if you need to.
+Needs `kubectl` and `python3`. First run downloads the .NET
+SDK image, which is multi-GB, so give it a minute. After that
+the whole thing takes roughly 5-10 minutes. `NS` and `KCTX`
+change the namespace and cluster if you need to. The run
+ends with a saturate leg that scales the hog until the node
+is actually full, then measures the unlimited app again, and
+it regenerates the results charts from the fresh numbers.
+
+Expect output like this as it runs:
+
+```
+[14:02:11] target context=minikube ns=cpu-lab
+[14:03:47] waiting for app-limit
+[14:09:02] === burst  ~400m average, 5 rps, 45s ===
+[14:09:52] load job=burst-limit rps=5 45s -> http://app-limit/burst?threads=4&ms=20
+```
+
+## Repo layout
+
+- `app/` - the .NET test app (burst, mixed, and info endpoints)
+- `k8s/` - manifests for the two pods, the load job, and the hog
+- `scripts/` - `run.sh` drives the lab, `lib.sh` holds shared helpers
+- `results/` - output of the last run, including `run.md` and raw JSONL
+- `assets/` - diagrams and charts used in this README
+
+## Further reading
+
+- [Kubernetes docs: resource requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) - how requests, limits, and CFS quota fit together.
+- Dave Chiluk, ["Throttling: New Developments in Application Performance with CPU Limits"](https://www.youtube.com/watch?v=UE7QX98-kO0) (KubeCon NA 2019) - the CFS throttling bug and why limits hurt more than the naive model suggests.
+- The kernel's CFS bandwidth burst feature (`cpu.max.burst`) lets a cgroup borrow a little unused budget from past periods, softening some of this without removing the limit.

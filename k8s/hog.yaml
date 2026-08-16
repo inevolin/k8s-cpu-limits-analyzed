@@ -20,7 +20,14 @@ spec:
         - name: hog
           image: alpine:3.20
           imagePullPolicy: IfNotPresent
-          command: ["sh", "-c", "for i in 1 2 3 4; do (while :; do :; done) & done; wait"]
+          # HOG_LOOPS busy loops per pod. Gentle leg: default 4 loops, replicas=1.
+          # Saturate leg: run.sh scales replicas so total loops across the
+          # deployment >= node CPUs, so the hog actually fills the node
+          # instead of just adding a few busy cores next to idle capacity.
+          command: ["sh", "-c", "n=\"${HOG_LOOPS:-4}\"; i=0; while [ \"$i\" -lt \"$n\" ]; do (while :; do :; done) & i=$((i+1)); done; wait"]
+          env:
+            - name: HOG_LOOPS
+              value: "4"
           resources:
             requests:
               cpu: 100m

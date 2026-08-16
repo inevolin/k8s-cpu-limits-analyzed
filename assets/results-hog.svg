@@ -1,20 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="240" viewBox="0 0 720 240">
-  <rect width="720" height="240" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">a pod burning CPU next door  ·  app has no CPU limit</text>
-
-  <!-- 0-80ms, 50-200 = 150px → 1.875 px/ms -->
-  <line x1="80" y1="50" x2="80" y2="200" stroke="#ccc"/>
-  <line x1="80" y1="200" x2="680" y2="200" stroke="#222"/>
-  <text x="48" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">0</text>
-  <text x="40" y="129" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">40</text>
-  <line x1="80" y1="125" x2="680" y2="125" stroke="#eee"/>
-  <text x="40" y="54" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111">80</text>
-
-  <!-- 52.9 → 99 y=101; 49.2 → 92 y=108 -->
-  <rect x="180" y="101" width="80" height="99" fill="#8fbf8f"/>
-  <rect x="400" y="108" width="80" height="92" fill="#a8cfa8"/>
-  <text x="200" y="95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#8fbf8f">53 ms</text>
-  <text x="420" y="102" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#8fbf8f">49 ms</text>
-  <text x="168" y="220" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">slow requests, alone</text>
-  <text x="384" y="220" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">slow requests, busy neighbor</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="260" viewBox="0 0 720 260">
+  <rect width="720" height="260" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111" >a pod burning CPU next door  ·  app has no CPU limit</text>
+  <line x1="80" y1="50" x2="80" y2="200" stroke="#cccccc" />
+  <line x1="80" y1="200" x2="680" y2="200" stroke="#222222" />
+  <text x="56" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >0</text>
+  <line x1="80" y1="162.5" x2="680" y2="162.5" stroke="#eeeeee" />
+  <text x="58" y="166.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >15</text>
+  <line x1="80" y1="125.0" x2="680" y2="125.0" stroke="#eeeeee" />
+  <text x="58" y="129.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >30</text>
+  <line x1="80" y1="87.5" x2="680" y2="87.5" stroke="#eeeeee" />
+  <text x="58" y="91.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >45</text>
+  <line x1="80" y1="50.0" x2="680" y2="50.0" stroke="#eeeeee" />
+  <text x="58" y="54.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#111111" >60</text>
+  <text x="20" y="125.0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888" transform="rotate(-90 20 125.0)">ms</text>
+  <rect x="190.0" y="67.8" width="80.0" height="132.2" fill="#e49444"/>
+  <text x="190.0" y="59.75" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#e49444" >52.9 ms</text>
+  <text x="210.8" y="224" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >no hog</text>
+  <rect x="490.0" y="77.0" width="80.0" height="123.0" fill="#c98a3f"/>
+  <text x="490.0" y="68.99999999999999" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c98a3f" >49.2 ms</text>
+  <text x="498.0" y="224" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111" >gentle hog</text>
+  <text x="80" y="252" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888" >x-axis: scenario  ·  y-axis: p99 latency (ms)</text>
+  <text x="80" y="44" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#888888" >(saturate leg not present in run.jsonl yet — needs a cluster run)</text>
 </svg>

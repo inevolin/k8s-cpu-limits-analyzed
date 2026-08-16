@@ -11,6 +11,9 @@
 #   BASE_RPS / BASE_SEC  default 5 / 20
 #   SPIKE_RPS / SPIKE_SEC default 40 / 20
 #   HOG_RPS / HOG_SEC    default 20 / 30
+#   SAT_RPS / SAT_SEC    default 20 / 30
+#     saturate leg: scale hog replicas so total hog busy-loops >= node CPUs
+#     (node is 8 CPUs, each hog pod runs HOG_LOOPS=4 loops -> 2 replicas)
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
@@ -25,6 +28,8 @@ SPIKE_RPS="${SPIKE_RPS:-40}"
 SPIKE_SEC="${SPIKE_SEC:-20}"
 HOG_RPS="${HOG_RPS:-20}"
 HOG_SEC="${HOG_SEC:-30}"
+SAT_RPS="${SAT_RPS:-20}"
+SAT_SEC="${SAT_SEC:-30}"
 CPU_MS="${CPU_MS:-15}"
 IO_MS="${IO_MS:-30}"
 
@@ -143,6 +148,28 @@ log "placement:"$'\n'"${PLACEMENT}"
 leg hog-on "http://app-open${MIX_PATH}" "$HOG_RPS" "$HOG_SEC" app-open
 HN_P99="$LEG_P99"; HN_THR="$LEG_THR"
 
+# --- saturate (node actually full, not just a noisy neighbor) -------------
+# gentle hog above is 4 busy loops on 1 replica: enough to be a neighbor,
+# not enough to fill an 8-CPU node. Scale hog replicas so total loops (each
+# pod runs HOG_LOOPS=4, set in k8s/hog.yaml) meet/exceed node CPUs, so the
+# node is actually saturated and the "request protects you" claim gets a
+# real test.
+NODE_CPUS_NUM="$(kubectl --context "$KCTX" get nodes -o jsonpath='{.items[0].status.allocatable.cpu}' 2>/dev/null | sed 's/[^0-9]*//g')"
+NODE_CPUS_NUM="${NODE_CPUS_NUM:-8}"
+HOG_LOOPS_PER_POD=4
+SAT_REPLICAS=$(( (NODE_CPUS_NUM + HOG_LOOPS_PER_POD - 1) / HOG_LOOPS_PER_POD ))
+[ "$SAT_REPLICAS" -ge 1 ] || SAT_REPLICAS=1
+log "=== saturate  victim=app-open, ${SAT_RPS} rps ${SAT_SEC}s, hog replicas=${SAT_REPLICAS} (~$((SAT_REPLICAS * HOG_LOOPS_PER_POD)) busy loops on an ${NODE_CPUS_NUM}-CPU node) ==="
+kc scale deployment/hog --replicas="$SAT_REPLICAS" >/dev/null
+kc rollout status deployment/hog --timeout=90s --request-timeout=120s >&2
+PLACEMENT_SAT="$(kc get pods -l 'app in (app-limit,app-open,hog)' \
+  -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName --no-headers || true)"
+log "placement (saturate):"$'\n'"${PLACEMENT_SAT}"
+leg saturate "http://app-open${MIX_PATH}" "$SAT_RPS" "$SAT_SEC" app-open
+SAT_P99="$LEG_P99"; SAT_THR="$LEG_THR"
+kc scale deployment/hog --replicas=0 >/dev/null
+log "scaled hog back down"
+
 # --- report ---------------------------------------------------------------
 NODE_CPU="$(kubectl --context "$KCTX" get nodes -o jsonpath='{.items[0].status.allocatable.cpu}' 2>/dev/null || echo '?')"
 NODE_NAME="$(kubectl --context "$KCTX" get nodes -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo '?')"
@@ -206,4 +233,8 @@ Raw lines: \`results/run.jsonl\`.
 EOF
 
 log "wrote ${RESULTS}/run.md"
+
+log "regenerating charts"
+python3 "${ROOT}/scripts/plot.py"
+
 log "done. scripts/cleanup.sh when you want the namespace gone."
