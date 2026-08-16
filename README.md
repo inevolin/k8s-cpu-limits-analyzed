@@ -5,7 +5,7 @@ them like the same setting with a bit of headroom. **They are not.**
 
 The **request** is how much CPU your pod is promised.
 The **limit** is a hard cap. Hit it, and the **pod is paused
-until the next window** — up to ten times a second. That does
+until the next window**, up to ten times a second. That does
 not protect the pod next to you.
 
 ![values file](assets/values-file.svg)
