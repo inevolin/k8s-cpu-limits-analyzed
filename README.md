@@ -6,7 +6,7 @@ The **request** is how much CPU is reserved for your pod if
 it needs it. The **limit** is a hard cap. Hit it and the
 kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. It does not protect the pod next to you. In the
+Kubernetes. **It does not protect the pod next to you.** In the
 burst test below, adding a CPU limit took typical latency
 from 23 ms to 87 ms, about 4x, with the limited pod throttled
 in half of all CFS windows, and the average CPU graph looked
@@ -34,8 +34,8 @@ pod is throttled until the next 100 ms. The node can be idle
 and you still wait. A 1 CPU limit on a 32-core node can still
 run on all 32 cores for a few milliseconds, then sit out the
 rest of the window. Four threads working at once burn a 500m
-budget in about 12 milliseconds. It is an average, not a
-reserved core.
+budget in about 12 milliseconds. **It is an average, not a
+reserved core.**
 
 ![Timeline of a single 100 ms CFS window for a pod with a 500m limit and 4 threads: the 50 ms budget burns in the first slice, then the pod sits throttled for the rest of the window](assets/limit-live.svg)
 
@@ -67,9 +67,9 @@ The same blindness poisons right-sizing. Usage recorded under
 a CPU limit can never go above the limit: the cap clips every
 burst, so the history shows what the kernel allowed, not what
 the app wanted. Size a request from that history and you copy
-the cap's distortion into the request. Drop the limit first,
+the cap's distortion into the request. **Drop the limit first,
 let the app run for a while, then measure and set requests
-from numbers that were free to move.
+from numbers that were free to move.**
 
 ## Proof
 
