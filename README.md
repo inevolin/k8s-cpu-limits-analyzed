@@ -12,15 +12,21 @@ next to you. It just pauses *your* app, over and over.
 
 ## Why
 
-When the node is full, Linux shares CPU based on requests. If the
-other apps are idle, you can use the leftover. That is already the
-protection.
+That sharing is already built into Linux. It is called CFS
+(Completely Fair Scheduler). It runs on every node. Kubernetes
+turns your CPU request into a weight. When the machine is full,
+CFS splits time by those weights. If another app is idle, you
+can use the leftover. When it wakes up, it gets its share back.
+You do not need a CPU limit for any of that.
 
-A limit is a separate budget. Every tenth of a second the kernel
-gives your container a slice of CPU time. All of its threads share
-that slice. When it is used up, the kernel does not slow them
-down. It stops them until the next slice. Four threads working at
-once burn a 500m budget in about 12 milliseconds, then wait.
+![cfs](assets/cfs.svg)
+
+A limit is a separate budget, also enforced by CFS. Every
+tenth of a second the kernel gives your container a slice of
+CPU time. All of its threads share that slice. When it is
+used up, the kernel does not slow them down. It stops them
+until the next slice. Four threads working at once burn a
+500m budget in about 12 milliseconds, then wait.
 
 ![quota](assets/quota.svg)
 

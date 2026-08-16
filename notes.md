@@ -7,9 +7,11 @@ every 100 milliseconds. 500m means 50 ms of CPU time per slice,
 shared by every thread. When the budget is gone, the kernel
 stops the whole container until the next slice.
 
-A CPU request is a share. It only matters when the node is
-actually busy. Then Linux splits CPU in proportion to requests.
-Idle leftover is free unless a limit is in the way.
+A CPU request is a share. Linux CFS (Completely Fair Scheduler)
+turns it into a weight. That only matters when the node is
+actually busy: CFS splits CPU in proportion to those weights.
+Idle leftover is free unless a limit is in the way. The same
+CFS is also what pauses you when a limit's budget runs out.
 
 The app next to you is protected by *its* request, not by your
 limit. Your limit only stops *you* from using idle CPU.

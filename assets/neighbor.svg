@@ -13,6 +13,6 @@
   <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#3d5a3d">request on your app</text>
   <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">this is its reserved share</text>
   <text x="382" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">when the machine is busy.</text>
-  <text x="382" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">Linux already enforces that.</text>
+  <text x="382" y="156" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">CFS already enforces that.</text>
   <text x="382" y="192" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#6a6258">this is the protection</text>
 </svg>
