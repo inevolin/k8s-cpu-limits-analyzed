@@ -2,16 +2,18 @@
 
 ## What request and limit actually become
 
-A CPU limit is a budget: how much CPU time the container may
-use every 100 milliseconds. 500m means 50 ms of CPU time per
-slice, shared by every thread. When the budget is gone, the
-pod is **throttled** until the next window.
+A CPU limit is a hard cap: how much CPU time the container
+may use every 100 milliseconds. 500m means 50 ms of CPU time
+per window, shared by every thread. When the budget is gone,
+the pod is **throttled** until the next window, even if the
+node is idle.
 
-A CPU request is a share. Linux CFS (Completely Fair Scheduler)
-turns it into a weight, and that only matters when the node is
-actually busy: CFS splits CPU in proportion to those weights.
-Idle leftover is free unless a limit is in the way. The same
-CFS is also what throttles you when a limit's budget runs out.
+A CPU request is a reservation. Linux CFS (Completely Fair
+Scheduler) turns it into a weight, and that only matters when
+the node is actually busy: CFS splits CPU in proportion to
+those weights. Idle leftover is free unless a limit is in the
+way. The same CFS is also what throttles you when a limit's
+budget runs out.
 
 **The app next to you is protected by its request, not by your
 limit.** Your limit only stops *you* from using idle CPU.
