@@ -10,7 +10,7 @@ kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
 Kubernetes. **It does not protect the neighboring pods.** In the
 burst test below, adding a CPU limit took typical latency
-from 23 ms to 87 ms, about 4x, with the limited pod throttled
+from 23 ms to 87 ms (making it ~4x slower), with the limited pod throttled
 in half of all CFS windows, and the average CPU graph looked
 fine the whole time.
 
