@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220">
+  <rect width="720" height="220" fill="#faf9f6"/>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">windows frozen</text>
+
+  <text x="24" y="70" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">burst  (under the cap)</text>
+  <rect x="24" y="80" width="670" height="22" fill="#e4ddd2"/>
+  <rect x="24" y="80" width="334" height="22" fill="#b4482a"/>
+  <text x="36" y="95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#faf9f6">limit  254 / 509   50%</text>
+  <text x="370" y="95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#6a6258">open  0%</text>
+
+  <text x="24" y="140" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">spike  (over the cap)</text>
+  <rect x="24" y="150" width="670" height="22" fill="#e4ddd2"/>
+  <rect x="24" y="150" width="629" height="22" fill="#b4482a"/>
+  <text x="36" y="165" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#faf9f6">limit  244 / 260   94%</text>
+  <text x="24" y="200" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">open spike: 0% frozen</text>
+</svg>
