@@ -179,8 +179,9 @@ small.
 the spare CPU?** You do not have to. Spare CPU is borrowed,
 not taken: the moment another pod wants CPU, CFS pulls those
 cores back within milliseconds and splits time by request
-weights again. The "monopoly" is free work on cycles nobody
-else wanted.
+weights again. The neighbor is only using CPU that would
+otherwise sit idle, and it gives that CPU back the moment
+someone else needs it.
 
 **Don't Go / Java / .NET need the limit to size the thread
 pool?** They often read the quota and treat it as the CPU
