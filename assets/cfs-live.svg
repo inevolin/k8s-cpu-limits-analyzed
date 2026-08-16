@@ -6,8 +6,8 @@
     .title { font-size: 14px; fill: #222; }
     .sub { font-size: 12px; fill: #555; }
     .tiny { font-size: 11px; }
-    .on { fill: #faf9f6; }
-    .muted { fill: #6a6258; }
+    .on { fill: #fff; }
+    .muted { fill: #333; }
     .lane { fill: #fff; stroke: #d8d2c8; }
     .tick { fill: none; stroke: #ddd; }
     #phase-busy { animation: fadeBusy 12s infinite; }
@@ -71,7 +71,7 @@
   <text class="tiny muted" x="640" y="190">100% of the node</text>
 
   <rect class="lane" x="40" y="214" width="200" height="92" rx="4"/>
-  <text class="tiny" fill="#6a8a6a" x="54" y="238">A  ·  request 100m</text>
+  <text class="tiny" fill="#2a4a2a" x="54" y="238">A  ·  request 100m</text>
   <text class="tiny muted" x="54" y="258">busy: 10% of the node</text>
   <text class="tiny muted" x="54" y="276">C idle: 33%</text>
   <text class="tiny muted" x="54" y="294">C back: 10% again</text>
