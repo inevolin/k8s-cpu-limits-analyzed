@@ -1,68 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
-  <title>Two pods take turns on one CPU</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="280" viewBox="0 0 720 280">
+  <title>Four cores. You reserved one. They reserved three.</title>
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .title { font-size: 14px; fill: #111; }
     .sub { font-size: 13px; fill: #111; }
     .tiny { font-size: 12px; fill: #111; }
-    .who { font-size: 28px; fill: #111; }
-    .card { fill: #f7f3ea; stroke: #b8b2a8; }
-    #whoA { animation: whoA 16s steps(1) infinite; }
-    #whoB { animation: whoB 16s steps(1) infinite; }
-    #cpu { animation: cpu 16s steps(1) infinite; }
-    #capBoth { animation: onFirst 16s steps(1) infinite; }
-    #capIdle { animation: onSecond 16s steps(1) infinite; }
-    #podB { animation: podB 16s steps(1) infinite; }
-    /* 16s: 0-50% both busy A,BBB,A,BBB. 50-100% B idle, always A. */
-    @keyframes whoA {
-      0%, 6.2% { opacity: 1; }
-      6.3%, 24.9% { opacity: 0; }
-      25%, 31.2% { opacity: 1; }
-      31.3%, 49.9% { opacity: 0; }
-      50%, 100% { opacity: 1; }
-    }
-    @keyframes whoB {
-      0%, 6.2% { opacity: 0; }
-      6.3%, 24.9% { opacity: 1; }
-      25%, 31.2% { opacity: 0; }
-      31.3%, 49.9% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-    @keyframes onFirst {
+    .core { stroke: #111; stroke-width: 1.2; }
+    #capBusy { animation: first 10s steps(1) infinite; }
+    #capIdle { animation: second 10s steps(1) infinite; }
+    #c2, #c3, #c4 { animation: borrow 10s steps(1) infinite; }
+    #labThem2, #labThem3, #labThem4 { animation: first 10s steps(1) infinite; }
+    #labYou2, #labYou3, #labYou4 { animation: second 10s steps(1) infinite; }
+    @keyframes first {
       0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; }
     }
-    @keyframes onSecond {
+    @keyframes second {
       0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; }
     }
-    @keyframes podB {
-      0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0.3; }
-    }
-    @keyframes cpu {
-      0%, 49.9% { fill: #8fbf8f; } 50%, 100% { fill: #c5ddc5; }
+    @keyframes borrow {
+      0%, 49.9% { fill: #b7c4d4; }
+      50%, 100% { fill: #8fbf8f; }
     }
   </style>
-  <rect width="720" height="300" fill="#faf9f6"/>
-  <text class="title" x="24" y="30">One machine. Two pods. They take turns.</text>
+  <rect width="720" height="280" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">A node with 4 cores. You asked for 1. They asked for 3.</text>
+  <text id="capBusy" class="sub" x="24" y="54">Both busy. Each gets what they asked for. No CPU limit.</text>
+  <text id="capIdle" class="sub" x="24" y="54">They went idle. You can use the leftover cores.</text>
 
-  <text id="capBoth" class="sub" x="24" y="54">Both want the CPU. B asked for more, so B gets more turns.</text>
-  <text id="capIdle" class="sub" x="24" y="54">B stepped away. A gets the leftover. No CPU limit anywhere.</text>
+  <rect class="core" x="40" y="80" width="140" height="120" fill="#8fbf8f"/>
+  <text class="tiny" x="88" y="136">you</text>
+  <text class="tiny" x="72" y="158">always yours</text>
 
-  <rect class="card" x="24" y="80" width="180" height="120"/>
-  <text class="tiny" x="40" y="112">your app</text>
-  <text class="sub" x="40" y="140">request 250m</text>
-  <text class="tiny" x="40" y="168">1 turn out of 4</text>
+  <rect id="c2" class="core" x="200" y="80" width="140" height="120" fill="#b7c4d4"/>
+  <text id="labThem2" class="tiny" x="244" y="148">them</text>
+  <text id="labYou2" class="tiny" x="228" y="148">you, leftover</text>
 
-  <rect id="cpu" x="248" y="80" width="224" height="120" fill="#8fbf8f" stroke="#6a906a"/>
-  <text class="tiny" x="268" y="108">the CPU, right now</text>
-  <text id="whoA" class="who" x="332" y="162">A</text>
-  <text id="whoB" class="who" x="332" y="162">B</text>
+  <rect id="c3" class="core" x="360" y="80" width="140" height="120" fill="#b7c4d4"/>
+  <text id="labThem3" class="tiny" x="404" y="148">them</text>
+  <text id="labYou3" class="tiny" x="388" y="148">you, leftover</text>
 
-  <rect id="podB" class="card" x="516" y="80" width="180" height="120"/>
-  <text class="tiny" x="532" y="112">the other app</text>
-  <text class="sub" x="532" y="140">request 750m</text>
-  <text class="tiny" x="532" y="168">3 turns out of 4</text>
+  <rect id="c4" class="core" x="520" y="80" width="140" height="120" fill="#b7c4d4"/>
+  <text id="labThem4" class="tiny" x="564" y="148">them</text>
+  <text id="labYou4" class="tiny" x="548" y="148">you, leftover</text>
 
-  <text class="tiny" x="24" y="232">Only one pod can use the CPU at a time. Like one microphone.</text>
-  <text class="tiny" x="24" y="254">A paid for a quarter of the time, B paid for three quarters.</text>
-  <text class="tiny" x="24" y="276">When B is quiet, A can talk. When B comes back, they share again. That is CFS.</text>
+  <rect x="40" y="220" width="16" height="16" fill="#8fbf8f" stroke="#111"/>
+  <text class="tiny" x="64" y="233">your request (1 core)</text>
+  <rect x="280" y="220" width="16" height="16" fill="#b7c4d4" stroke="#111"/>
+  <text class="tiny" x="304" y="233">their request (3 cores)</text>
+
+  <text class="tiny" x="24" y="262">When they need CPU again, those 3 cores go back to them. That is CFS.</text>
 </svg>

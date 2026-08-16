@@ -14,11 +14,10 @@ and over, ten times a second.
 ## Why
 
 That sharing is already built into Linux. It is called CFS
-(Completely Fair Scheduler). Think of one microphone. Only
-one pod talks at a time. A bigger request just means more
-turns at the mic. If the other pod is quiet, you can talk.
-When it comes back, you share again. **You do not need a
-CPU limit for any of that.**
+(Completely Fair Scheduler). A request is how many cores you
+are guaranteed. If the other pods are idle, you can use the
+leftover. When they need CPU again, they get those cores
+back. **You do not need a CPU limit for any of that.**
 
 ![cfs live](assets/cfs-live.svg)
 
