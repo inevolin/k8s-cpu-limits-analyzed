@@ -176,15 +176,11 @@ request. If leftover is huge, requests on that node are too
 small.
 
 **So how do you prevent a nosy neighbor from monopolizing
-the spare CPU?** You do not have to. Spare CPU is not taken,
-it is borrowed. The moment any other pod wants CPU, CFS
-pulls those cores back within milliseconds and splits time
-by request weights again. A neighbor at 100% of the node's
-idle capacity costs the other pods nothing, because they
-were not asking. What actually hurts a pod is having a small
-request while the node is busy, and no limit on the neighbor
-fixes that. Set the requests right and the "monopoly" is
-just free work done on cycles nobody else wanted.
+the spare CPU?** You do not have to. Spare CPU is borrowed,
+not taken: the moment another pod wants CPU, CFS pulls those
+cores back within milliseconds and splits time by request
+weights again. The "monopoly" is free work on cycles nobody
+else wanted.
 
 **Don't Go / Java / .NET need the limit to size the thread
 pool?** They often read the quota and treat it as the CPU
