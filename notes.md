@@ -2,15 +2,16 @@
 
 ## What request and limit actually become
 
-A CPU limit is a budget: how much CPU time the container may use
-every 100 milliseconds. 500m means 50 ms of CPU time per slice,
-shared by every thread. When the budget is gone: **pod paused until next window.**
+A CPU limit is a budget: how much CPU time the container may
+use every 100 milliseconds. 500m means 50 ms of CPU time per
+slice, shared by every thread. When the budget is gone, the
+pod is **throttled** until the next window.
 
 A CPU request is a share. Linux CFS (Completely Fair Scheduler)
-turns it into a weight. That only matters when the node is
+turns it into a weight, and that only matters when the node is
 actually busy: CFS splits CPU in proportion to those weights.
 Idle leftover is free unless a limit is in the way. The same
-CFS is also what pauses you when a limit's budget runs out.
+CFS is also what throttles you when a limit's budget runs out.
 
 **The app next to you is protected by its request, not by your
 limit.** Your limit only stops *you* from using idle CPU.
@@ -24,8 +25,8 @@ Leave those alone.
 
 If you do not set `DOTNET_PROCESSOR_COUNT`, .NET counts CPUs
 from the limit. A 500m limit (or the common 100m default)
-shows up as 1 CPU. The thread pool and garbage collector
-follow that. You start with one worker thread.
+shows up as 1 CPU, so the thread pool and garbage collector
+follow that and you start with one worker thread.
 
 This lab sets `DOTNET_PROCESSOR_COUNT=4` on both pods so the
 test is about the limit, not about .NET shrinking itself. In
@@ -39,10 +40,10 @@ a 16-core node:
 ```
 
 A tight CPU limit can also look like a memory problem. The
-garbage collector needs CPU to free memory. If it is paused
-most of the time, memory grows and the pod gets killed. Check
-`container_cpu_cfs_throttled_periods_total` before you raise
-the memory limit.
+garbage collector needs CPU to free memory, and if it is
+throttled most of the time, memory grows and the pod gets
+killed. Check `container_cpu_cfs_throttled_periods_total`
+before you raise the memory limit.
 
 ## Memory limits stay
 
@@ -62,4 +63,4 @@ that with a CPU limit.
 
 Autoscaling on CPU compares use to the *request*. Removing
 the limit does not change that formula. Use can go higher,
-so you may get more replicas. That is usually fine.
+so you may get more replicas, which is usually fine.

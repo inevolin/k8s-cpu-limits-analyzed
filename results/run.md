@@ -11,14 +11,14 @@ I would not quote them. Everything else is one pass.
 
 Same work on both apps: four threads spinning for 20 ms,
 5 times a second, for 45 seconds. That is about 400m on
-average, so it stays under the 500m limit. It still uses
-up the limit's budget inside each short slice.
+average, so it stays under the 500m limit, but it still
+uses up the limit's budget inside each short slice.
 
 ![burst latency](../assets/results-burst.svg)
 
 ![windows frozen](../assets/results-throttle.svg)
 
-| | typical (p50) | p95 | slowest 1% (p99) | pod paused until next window |
+| | typical (p50) | p95 | slowest 1% (p99) | throttled |
 |---|---|---|---|---|
 | 500m limit | 86.9 ms | 89.5 | 101.6 | half the time (254 / 509) |
 | no limit | 22.7 ms | 26.1 | 43.7 | never |
@@ -30,12 +30,12 @@ No failed requests.
 A quieter endpoint (a bit of CPU, then a 30 ms sleep). First
 a slow trickle, then a short burst of traffic that *does* go
 over the 500m cap. Typical time barely moves because most of
-the work is sleep. The slow requests and the pauses are where
-it shows.
+the work is sleep. The slow requests and the throttling are
+where it shows.
 
 ![spike](../assets/results-spike.svg)
 
-| | slow requests, quiet | typical during spike | slow requests during spike | paused |
+| | slow requests, quiet | typical during spike | slow requests during spike | throttled |
 |---|---|---|---|---|
 | 500m limit | 57.4 ms | 47.0 | 87.8 | almost always (244 / 260) |
 | no limit | 52.0 ms | 46.6 | 58.8 | never |
@@ -46,13 +46,13 @@ I started a fourth-ish workload on the same machine: a small
 pod with 4 tight loops, a tiny 100m request, and no CPU
 limit. Then I hit the *unlimited* app again.
 
-The machine still had spare cores (8 CPUs, one busy pod).
-Nothing really had to fight. The unlimited app did not get
+The machine still had spare cores (8 CPUs, one busy pod), so
+nothing really had to fight and the unlimited app did not get
 slower. This is not a packed production node.
 
 ![busy pod](../assets/results-hog.svg)
 
-| | slowest 1% | paused |
+| | slowest 1% | throttled |
 |---|---|---|
 | no busy pod | 52.9 ms | never |
 | busy pod on the node | 49.2 ms | never |
