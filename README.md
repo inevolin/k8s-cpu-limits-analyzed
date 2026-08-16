@@ -181,7 +181,9 @@ not taken: the moment another pod wants CPU, CFS pulls those
 cores back within milliseconds and splits time by request
 weights again. The neighbor is only using CPU that would
 otherwise sit idle, and it gives that CPU back the moment
-someone else needs it.
+someone else needs it. If several pods burst at once, the
+leftover is not first come first served: CFS divides it
+between them in proportion to their requests.
 
 **Don't Go / Java / .NET need the limit to size the thread
 pool?** They often read the quota and treat it as the CPU
