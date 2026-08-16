@@ -3,11 +3,11 @@
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .title { font-size: 14px; fill: #1a1a1a; }
-    .sub { font-size: 12px; fill: #333; }
-    .tiny { font-size: 11px; fill: #333; }
-    .ink { font-size: 11px; fill: #fff; }
+    .sub { font-size: 12px; fill: #111111; }
+    .tiny { font-size: 11px; fill: #111111; }
+    .ink { font-size: 11px; fill: #111111; }
     .wait { font-size: 11px; fill: #8a2f18; }
-    .lane { fill: #fff; stroke: #c8c2b8; }
+    .lane { fill: #ffffff; stroke: #c8c2b8; }
     #play { animation: play 4s linear infinite; }
     #run4 { animation: run4 4s linear infinite; }
     #run1 { animation: run1 4s linear infinite; }
@@ -49,7 +49,7 @@
   <text class="sub" x="24" y="50">500m limit = 50 ms of CPU time, then the kernel pauses everything.</text>
 
   <rect x="80" y="68" width="600" height="14" rx="2" fill="#e8e4dc"/>
-  <rect id="play" x="80" y="64" width="3" height="22" fill="#1a1a1a"/>
+  <rect id="play" x="80" y="64" width="3" height="22" fill="#111111"/>
   <text class="tiny" x="80" y="100">0 ms</text>
   <text class="tiny" x="348" y="100">50 ms  (budget gone)</text>
   <text class="tiny" x="640" y="100">100</text>
@@ -57,7 +57,7 @@
   <text class="sub" x="24" y="128">4 threads, 500m limit</text>
   <rect class="lane" x="80" y="138" width="600" height="28" rx="3"/>
   <rect x="80" y="142" width="600" height="20" fill="#efe8dc"/>
-  <rect id="run4" x="80" y="142" width="0" height="20" fill="#2f4a2f"/>
+  <rect id="run4" x="80" y="142" width="0" height="20" fill="#8fbf8f"/>
   <text id="tagRun" class="ink" x="90" y="156">running</text>
   <text id="tagPause" class="wait" x="168" y="156">paused until the next window</text>
   <text class="tiny" x="80" y="184">Burns the 50 ms budget in ~12 ms, then sits.</text>
@@ -65,12 +65,12 @@
   <text class="sub" x="24" y="214">1 thread, 500m limit</text>
   <rect class="lane" x="80" y="224" width="600" height="28" rx="3"/>
   <rect x="80" y="228" width="600" height="20" fill="#efe8dc"/>
-  <rect id="run1" x="80" y="228" width="0" height="20" fill="#2f4a2f"/>
+  <rect id="run1" x="80" y="228" width="0" height="20" fill="#8fbf8f"/>
   <text class="tiny" x="80" y="270">Uses the whole 50 ms, then waits. Same pause, later.</text>
 
   <text class="sub" x="24" y="298">no limit</text>
   <rect class="lane" x="80" y="308" width="600" height="28" rx="3"/>
   <rect x="80" y="312" width="600" height="20" fill="#efe8dc"/>
-  <rect id="runOpen" x="80" y="312" width="0" height="20" fill="#2f4a2f"/>
+  <rect id="runOpen" x="80" y="312" width="0" height="20" fill="#8fbf8f"/>
   <text class="tiny" x="80" y="354">Keeps going. Leftover cores are allowed.</text>
 </svg>

@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="260" viewBox="0 0 720 260">
   <rect width="720" height="260" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">same minute. per-second use vs the 1-minute average</text>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">same minute. per-second use vs the 1-minute average</text>
 
   <!-- limit line -->
   <line x1="80" y1="70" x2="680" y2="70" stroke="#b4482a" stroke-dasharray="4 3" stroke-width="1"/>
   <text x="686" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#b4482a">limit</text>
 
   <!-- per-second bars: some hit the limit (orange), some don't -->
-  <g fill="#3d5a3d">
+  <g fill="#8fbf8f">
     <rect x="80" y="110" width="14" height="70"/>
     <rect x="100" y="90" width="14" height="90"/>
     <rect x="120" y="70" width="14" height="110" fill="#b4482a"/>
@@ -42,6 +42,6 @@
 
   <!-- 1-minute average -->
   <line x1="80" y1="124" x2="674" y2="124" stroke="#222" stroke-width="2"/>
-  <text x="80" y="210" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">rust = that second hit the limit and the kernel paused the app</text>
-  <text x="80" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#222">black line = 1-minute average. looks healthy. it is not.</text>
+  <text x="80" y="210" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">rust = that second hit the limit and the kernel paused the app</text>
+  <text x="80" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">black line = 1-minute average. looks healthy. it is not.</text>
 </svg>

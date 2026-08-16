@@ -1,26 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220">
   <rect width="720" height="220" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">4-core node, app requested 1 core</text>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">4-core node, app requested 1 core</text>
 
-  <text x="24" y="68" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">with a limit</text>
-  <rect x="160" y="52" width="125" height="22" fill="#3d5a3d"/>
-  <rect x="285" y="52" width="62" height="22" fill="#9aaa9a"/>
+  <text x="24" y="68" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">with a limit</text>
+  <rect x="160" y="52" width="125" height="22" fill="#8fbf8f"/>
+  <rect x="285" y="52" width="62" height="22" fill="#c5ddc5"/>
   <rect x="347" y="50" width="3" height="26" fill="#b4482a"/>
   <rect x="350" y="52" width="310" height="22" fill="#e4ddd2"/>
-  <text x="168" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#faf9f6">request</text>
-  <text x="360" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#6a6258">idle, blocked by the limit</text>
+  <text x="168" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">request</text>
+  <text x="360" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">idle, blocked by the limit</text>
 
-  <text x="24" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">no limit</text>
-  <rect x="160" y="102" width="125" height="22" fill="#3d5a3d"/>
-  <rect x="285" y="102" width="375" height="22" fill="#9aaa9a"/>
-  <text x="168" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#faf9f6">request</text>
-  <text x="293" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2a3a2a">idle CPU, free to borrow</text>
+  <text x="24" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">no limit</text>
+  <rect x="160" y="102" width="125" height="22" fill="#8fbf8f"/>
+  <rect x="285" y="102" width="375" height="22" fill="#c5ddc5"/>
+  <text x="168" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">request</text>
+  <text x="293" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#7aaa7a">idle CPU, free to borrow</text>
 
   <line x1="160" y1="150" x2="660" y2="150" stroke="#222" stroke-width="1"/>
-  <text x="160" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">0</text>
-  <text x="276" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">1</text>
-  <text x="400" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">2</text>
-  <text x="525" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">3</text>
-  <text x="650" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555">4</text>
+  <text x="160" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">0</text>
+  <text x="276" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">1</text>
+  <text x="400" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">2</text>
+  <text x="525" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">3</text>
+  <text x="650" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">4</text>
 
 </svg>

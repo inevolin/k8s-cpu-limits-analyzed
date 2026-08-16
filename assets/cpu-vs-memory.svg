@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="200" viewBox="0 0 720 200">
   <rect width="720" height="200" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">not enough of it means…</text>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">not enough of it means…</text>
 
   <rect x="24" y="48" width="330" height="128" fill="#eef2ee" stroke="#c5d0c5"/>
-  <text x="40" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#3d5a3d">CPU</text>
-  <text x="40" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">app waits, then catches up</text>
-  <text x="40" y="144" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">drop the limit, keep the request</text>
+  <text x="40" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#8fbf8f">CPU</text>
+  <text x="40" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app waits, then catches up</text>
+  <text x="40" y="144" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">drop the limit, keep the request</text>
 
   <rect x="366" y="48" width="330" height="128" fill="#f6eeea" stroke="#e0c8c0"/>
   <text x="382" y="80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#b4482a">memory</text>
-  <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#222">app dies (OOM kill)</text>
-  <text x="382" y="144" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555">keep the limit</text>
+  <text x="382" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app dies (OOM kill)</text>
+  <text x="382" y="144" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">keep the limit</text>
 </svg>

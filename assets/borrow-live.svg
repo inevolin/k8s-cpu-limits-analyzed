@@ -2,10 +2,10 @@
   <title>A burst with a limit vs without</title>
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .title { font-size: 14px; fill: #222; }
-    .sub { font-size: 12px; fill: #555; }
-    .tiny { font-size: 11px; fill: #333; }
-    .on { font-size: 11px; fill: #fff; }
+    .title { font-size: 14px; fill: #111111; }
+    .sub { font-size: 12px; fill: #111111; }
+    .tiny { font-size: 11px; fill: #111111; }
+    .on { font-size: 11px; fill: #111111; }
     .lane { fill: #eee; }
     #useLimit { animation: useL 6s ease-in-out infinite; }
     #useOpen { animation: useO 6s ease-in-out infinite; }
@@ -32,19 +32,19 @@
 
   <text class="sub" x="24" y="88">with a 1.5 core limit</text>
   <rect class="lane" x="80" y="98" width="600" height="28" rx="3"/>
-  <rect x="80" y="98" width="150" height="28" fill="#3d5a3d"/>
-  <rect id="useLimit" x="80" y="98" width="90" height="28" fill="#9aaa9a" opacity="0.95"/>
+  <rect x="80" y="98" width="150" height="28" fill="#8fbf8f"/>
+  <rect id="useLimit" x="80" y="98" width="90" height="28" fill="#c5ddc5" opacity="0.95"/>
   <rect x="304" y="96" width="3" height="32" fill="#b4482a"/>
   <text class="on" x="88" y="116">request</text>
   <text class="tiny" x="314" y="116" fill="#8a2f18">wall</text>
-  <text class="tiny" x="360" y="116" fill="#333">idle, blocked</text>
+  <text class="tiny" x="360" y="116" fill="#111111">idle, blocked</text>
 
   <text class="sub" x="24" y="168">no limit</text>
   <rect class="lane" x="80" y="178" width="600" height="28" rx="3"/>
-  <rect x="80" y="178" width="150" height="28" fill="#3d5a3d"/>
-  <rect id="useOpen" x="80" y="178" width="90" height="28" fill="#9aaa9a" opacity="0.95"/>
+  <rect x="80" y="178" width="150" height="28" fill="#8fbf8f"/>
+  <rect id="useOpen" x="80" y="178" width="90" height="28" fill="#c5ddc5" opacity="0.95"/>
   <text class="on" x="88" y="196">request</text>
-  <text class="tiny" x="250" y="168" fill="#1a1a1a">borrows leftover CPU during the burst</text>
+  <text class="tiny" x="250" y="168" fill="#111111">borrows leftover CPU during the burst</text>
 
   <text class="tiny" x="80" y="236">0</text>
   <text class="tiny" x="220" y="236">1</text>

@@ -3,12 +3,12 @@
   <style>
     .bg { fill: #faf9f6; }
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .title { font-size: 14px; fill: #222; }
-    .sub { font-size: 12px; fill: #555; }
+    .title { font-size: 14px; fill: #111111; }
+    .sub { font-size: 12px; fill: #111111; }
     .tiny { font-size: 11px; }
-    .on { fill: #fff; }
-    .muted { fill: #333; }
-    .lane { fill: #fff; stroke: #d8d2c8; }
+    .on { fill: #111111; }
+    .muted { fill: #111111; }
+    .lane { fill: #ffffff; stroke: #d8d2c8; }
     .tick { fill: none; stroke: #ddd; }
     #phase-busy { animation: fadeBusy 12s infinite; }
     #phase-idle { animation: fadeIdle 12s infinite; }
@@ -58,9 +58,9 @@
   <text id="phase-idle" class="sub" x="24" y="82">C goes idle. A and B split the leftover, still 1:2.</text>
 
   <rect class="lane" x="40" y="108" width="640" height="56" rx="4"/>
-  <rect id="barA" x="40" y="116" width="64" height="40" fill="#6a8a6a"/>
-  <rect id="barB" x="104" y="116" width="128" height="40" fill="#3d5a3d"/>
-  <rect id="barC" x="232" y="116" width="448" height="40" fill="#2a3a2a"/>
+  <rect id="barA" x="40" y="116" width="64" height="40" fill="#a8cfa8"/>
+  <rect id="barB" x="104" y="116" width="128" height="40" fill="#8fbf8f"/>
+  <rect id="barC" x="232" y="116" width="448" height="40" fill="#7aaa7a"/>
   <text id="labA" class="tiny on" x="52" y="140">A</text>
   <text id="labB" class="tiny on" x="140" y="140">B</text>
   <text id="labC" class="tiny on" x="420" y="140">C</text>
@@ -71,19 +71,19 @@
   <text class="tiny muted" x="640" y="190">100% of the node</text>
 
   <rect class="lane" x="40" y="214" width="200" height="92" rx="4"/>
-  <text class="tiny" fill="#2a4a2a" x="54" y="238">A  ·  request 100m</text>
+  <text class="tiny" fill="#7aaa7a" x="54" y="238">A  ·  request 100m</text>
   <text class="tiny muted" x="54" y="258">busy: 10% of the node</text>
   <text class="tiny muted" x="54" y="276">C idle: 33%</text>
   <text class="tiny muted" x="54" y="294">C back: 10% again</text>
 
   <rect class="lane" x="256" y="214" width="200" height="92" rx="4"/>
-  <text class="tiny" fill="#3d5a3d" x="270" y="238">B  ·  request 200m</text>
+  <text class="tiny" fill="#8fbf8f" x="270" y="238">B  ·  request 200m</text>
   <text class="tiny muted" x="270" y="258">busy: 20%</text>
   <text class="tiny muted" x="270" y="276">C idle: 67%</text>
   <text class="tiny muted" x="270" y="294">C back: 20% again</text>
 
   <rect class="lane" x="472" y="214" width="208" height="92" rx="4"/>
-  <text class="tiny" fill="#2a3a2a" x="486" y="238">C  ·  request 700m</text>
+  <text class="tiny" fill="#7aaa7a" x="486" y="238">C  ·  request 700m</text>
   <text class="tiny muted" x="486" y="258">busy: 70%</text>
   <text class="tiny muted" x="486" y="276">idle: 0, leftover loaned out</text>
   <text class="tiny muted" x="486" y="294">wakes: 70% back at once</text>
