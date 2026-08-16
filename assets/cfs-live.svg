@@ -1,130 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
-  <title>CFS picks who runs, one slice at a time</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
+  <title>Two pods take turns on one CPU</title>
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .title { font-size: 14px; fill: #111; }
-    .sub { font-size: 12px; fill: #111; }
-    .tiny { font-size: 11px; fill: #111; }
-    .box { stroke: #c8c2b8; stroke-width: 1; }
-    .a { fill: #b8d8b8; }
-    .b { fill: #8fbf8f; }
-    .c { fill: #6aa86a; }
-    #now { animation: now 7s linear infinite; }
-    #phaseBusy { animation: pB 14s linear infinite; }
-    #phaseIdle { animation: pI 14s linear infinite; }
-    #rowBusy { animation: rB 14s linear infinite; }
-    #rowIdle { animation: rI 14s linear infinite; }
-    #lampA { animation: lampA 14s linear infinite; }
-    #lampB { animation: lampB 14s linear infinite; }
-    #lampC { animation: lampC 14s linear infinite; }
-    @keyframes now {
-      0% { x: 168; }
-      9.9% { x: 168; } 10% { x: 220; }
-      19.9% { x: 220; } 20% { x: 272; }
-      29.9% { x: 272; } 30% { x: 324; }
-      39.9% { x: 324; } 40% { x: 376; }
-      49.9% { x: 376; } 50% { x: 428; }
-      59.9% { x: 428; } 60% { x: 480; }
-      69.9% { x: 480; } 70% { x: 532; }
-      79.9% { x: 532; } 80% { x: 584; }
-      89.9% { x: 584; } 90% { x: 636; }
-      99.9% { x: 636; } 100% { x: 168; }
+    .sub { font-size: 13px; fill: #111; }
+    .tiny { font-size: 12px; fill: #111; }
+    .who { font-size: 28px; fill: #111; }
+    .card { fill: #f7f3ea; stroke: #b8b2a8; }
+    #whoA { animation: whoA 16s steps(1) infinite; }
+    #whoB { animation: whoB 16s steps(1) infinite; }
+    #cpu { animation: cpu 16s steps(1) infinite; }
+    #capBoth { animation: onFirst 16s steps(1) infinite; }
+    #capIdle { animation: onSecond 16s steps(1) infinite; }
+    #podB { animation: podB 16s steps(1) infinite; }
+    /* 16s: 0-50% both busy A,BBB,A,BBB. 50-100% B idle, always A. */
+    @keyframes whoA {
+      0%, 6.2% { opacity: 1; }
+      6.3%, 24.9% { opacity: 0; }
+      25%, 31.2% { opacity: 1; }
+      31.3%, 49.9% { opacity: 0; }
+      50%, 100% { opacity: 1; }
     }
-    @keyframes pB {
-      0%, 48% { opacity: 1; } 52%, 98% { opacity: 0; } 100% { opacity: 1; }
+    @keyframes whoB {
+      0%, 6.2% { opacity: 0; }
+      6.3%, 24.9% { opacity: 1; }
+      25%, 31.2% { opacity: 0; }
+      31.3%, 49.9% { opacity: 1; }
+      50%, 100% { opacity: 0; }
     }
-    @keyframes pI {
-      0%, 48% { opacity: 0; } 52%, 98% { opacity: 1; } 100% { opacity: 0; }
+    @keyframes onFirst {
+      0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; }
     }
-    @keyframes rB {
-      0%, 48% { opacity: 1; } 52%, 100% { opacity: 0.22; }
+    @keyframes onSecond {
+      0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; }
     }
-    @keyframes rI {
-      0%, 48% { opacity: 0.22; } 52%, 100% { opacity: 1; }
+    @keyframes podB {
+      0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0.3; }
     }
-    @keyframes lampA {
-      0%, 5% { opacity: 1; }
-      5.1%, 49.9% { opacity: 0.18; }
-      50%, 55% { opacity: 1; }
-      55.1%, 64.9% { opacity: 0.18; }
-      65%, 70% { opacity: 1; }
-      70.1%, 79.9% { opacity: 0.18; }
-      80%, 85% { opacity: 1; }
-      85.1%, 100% { opacity: 0.18; }
-    }
-    @keyframes lampB {
-      0%, 4.9% { opacity: 0.18; }
-      5%, 15% { opacity: 1; }
-      15.1%, 54.9% { opacity: 0.18; }
-      55%, 65% { opacity: 1; }
-      65.1%, 69.9% { opacity: 0.18; }
-      70%, 80% { opacity: 1; }
-      80.1%, 84.9% { opacity: 0.18; }
-      85%, 100% { opacity: 1; }
-    }
-    @keyframes lampC {
-      0%, 14.9% { opacity: 0.18; }
-      15%, 50% { opacity: 1; }
-      50.1%, 100% { opacity: 0.12; }
+    @keyframes cpu {
+      0%, 49.9% { fill: #8fbf8f; } 50%, 100% { fill: #c5ddc5; }
     }
   </style>
-  <rect width="720" height="360" fill="#faf9f6"/>
-  <text class="title" x="24" y="28">CFS does not split the CPU into three pieces at once.</text>
-  <text class="sub" x="24" y="48">It picks one pod, runs it for a tiny slice, then picks again. More request = more turns.</text>
+  <rect width="720" height="300" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">One machine. Two pods. They take turns.</text>
 
-  <rect x="24" y="68" width="128" height="68" class="box" fill="#fff"/>
-  <rect id="lampA" x="24" y="68" width="8" height="68" fill="#6aa86a"/>
-  <text class="tiny" x="42" y="90">pod A</text>
-  <text class="tiny" x="42" y="108">request 100m</text>
-  <text class="tiny" x="42" y="126">1 turn in 10</text>
+  <text id="capBoth" class="sub" x="24" y="54">Both want the CPU. B asked for more, so B gets more turns.</text>
+  <text id="capIdle" class="sub" x="24" y="54">B stepped away. A gets the leftover. No CPU limit anywhere.</text>
 
-  <rect x="24" y="148" width="128" height="68" class="box" fill="#fff"/>
-  <rect id="lampB" x="24" y="148" width="8" height="68" fill="#6aa86a"/>
-  <text class="tiny" x="42" y="170">pod B</text>
-  <text class="tiny" x="42" y="188">request 200m</text>
-  <text class="tiny" x="42" y="206">2 turns in 10</text>
+  <rect class="card" x="24" y="80" width="180" height="120"/>
+  <text class="tiny" x="40" y="112">your app</text>
+  <text class="sub" x="40" y="140">request 250m</text>
+  <text class="tiny" x="40" y="168">1 turn out of 4</text>
 
-  <rect x="24" y="228" width="128" height="68" class="box" fill="#fff"/>
-  <rect id="lampC" x="24" y="228" width="8" height="68" fill="#6aa86a"/>
-  <text class="tiny" x="42" y="250">pod C</text>
-  <text class="tiny" x="42" y="268">request 700m</text>
-  <text class="tiny" x="42" y="286">7 turns in 10</text>
+  <rect id="cpu" x="248" y="80" width="224" height="120" fill="#8fbf8f" stroke="#6a906a"/>
+  <text class="tiny" x="268" y="108">the CPU, right now</text>
+  <text id="whoA" class="who" x="332" y="162">A</text>
+  <text id="whoB" class="who" x="332" y="162">B</text>
 
-  <text id="phaseBusy" class="sub" x="172" y="80">Everyone wants CPU. Ten turns, split 1 / 2 / 7.</text>
-  <text id="phaseIdle" class="sub" x="172" y="80">C is idle. Those 7 turns go to A and B, still 1:2.</text>
+  <rect id="podB" class="card" x="516" y="80" width="180" height="120"/>
+  <text class="tiny" x="532" y="112">the other app</text>
+  <text class="sub" x="532" y="140">request 750m</text>
+  <text class="tiny" x="532" y="168">3 turns out of 4</text>
 
-  <g id="rowBusy">
-    <text class="tiny" x="172" y="106">this round</text>
-    <rect x="168" y="116" width="48" height="36" class="box a"/><text class="tiny" x="184" y="138">A</text>
-    <rect x="220" y="116" width="48" height="36" class="box b"/><text class="tiny" x="236" y="138">B</text>
-    <rect x="272" y="116" width="48" height="36" class="box b"/><text class="tiny" x="288" y="138">B</text>
-    <rect x="324" y="116" width="48" height="36" class="box c"/><text class="tiny" x="340" y="138">C</text>
-    <rect x="376" y="116" width="48" height="36" class="box c"/><text class="tiny" x="392" y="138">C</text>
-    <rect x="428" y="116" width="48" height="36" class="box c"/><text class="tiny" x="444" y="138">C</text>
-    <rect x="480" y="116" width="48" height="36" class="box c"/><text class="tiny" x="496" y="138">C</text>
-    <rect x="532" y="116" width="48" height="36" class="box c"/><text class="tiny" x="548" y="138">C</text>
-    <rect x="584" y="116" width="48" height="36" class="box c"/><text class="tiny" x="600" y="138">C</text>
-    <rect x="636" y="116" width="48" height="36" class="box c"/><text class="tiny" x="652" y="138">C</text>
-  </g>
-
-  <g id="rowIdle">
-    <text class="tiny" x="172" y="186">C idle</text>
-    <rect x="168" y="196" width="48" height="36" class="box a"/><text class="tiny" x="184" y="218">A</text>
-    <rect x="220" y="196" width="48" height="36" class="box b"/><text class="tiny" x="236" y="218">B</text>
-    <rect x="272" y="196" width="48" height="36" class="box b"/><text class="tiny" x="288" y="218">B</text>
-    <rect x="324" y="196" width="48" height="36" class="box a"/><text class="tiny" x="340" y="218">A</text>
-    <rect x="376" y="196" width="48" height="36" class="box b"/><text class="tiny" x="392" y="218">B</text>
-    <rect x="428" y="196" width="48" height="36" class="box b"/><text class="tiny" x="444" y="218">B</text>
-    <rect x="480" y="196" width="48" height="36" class="box a"/><text class="tiny" x="496" y="218">A</text>
-    <rect x="532" y="196" width="48" height="36" class="box b"/><text class="tiny" x="548" y="218">B</text>
-    <rect x="584" y="196" width="48" height="36" class="box b"/><text class="tiny" x="600" y="218">B</text>
-    <rect x="636" y="196" width="48" height="36" class="box b"/><text class="tiny" x="652" y="218">B</text>
-  </g>
-
-  <rect id="now" x="168" y="112" width="48" height="124" fill="none" stroke="#111" stroke-width="2.5"/>
-
-  <text class="tiny" x="172" y="262">time →   each box is one turn on the CPU. nobody has a CPU limit here.</text>
-  <text class="tiny" x="172" y="284">When C wants CPU again it takes its 7 turns back. A and B get fewer.</text>
-  <text class="tiny" x="172" y="306">A CPU limit would not change this sharing. It would only throw leftover turns away.</text>
-  <text class="tiny" x="172" y="336">The green strip on the left lights up when that pod is the one running.</text>
+  <text class="tiny" x="24" y="232">Only one pod can use the CPU at a time. Like one microphone.</text>
+  <text class="tiny" x="24" y="254">A paid for a quarter of the time, B paid for three quarters.</text>
+  <text class="tiny" x="24" y="276">When B is quiet, A can talk. When B comes back, they share again. That is CFS.</text>
 </svg>

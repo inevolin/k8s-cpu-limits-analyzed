@@ -14,13 +14,11 @@ and over, ten times a second.
 ## Why
 
 That sharing is already built into Linux. It is called CFS
-(Completely Fair Scheduler). It runs on every node. Kubernetes
-turns your CPU request into a weight. CFS does not cut the CPU
-into three pieces at once. It gives the CPU to one pod for a
-tiny slice, then the next, and so on. A bigger request just
-means more turns. If another app is idle, its turns go to
-whoever is still working. When it wakes up, it gets those
-turns back. **You do not need a CPU limit for any of that.**
+(Completely Fair Scheduler). Think of one microphone. Only
+one pod talks at a time. A bigger request just means more
+turns at the mic. If the other pod is quiet, you can talk.
+When it comes back, you share again. **You do not need a
+CPU limit for any of that.**
 
 ![cfs live](assets/cfs-live.svg)
 
