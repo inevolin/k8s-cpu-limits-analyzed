@@ -48,5 +48,5 @@
   <rect x="300" y="220" width="16" height="16" fill="#b7c4d4" stroke="#111"/>
   <text class="tiny" x="324" y="233">pod B request (3 cores)</text>
 
-  <text class="tiny" x="24" y="262">When pod B needs CPU again, those 3 cores go back to pod B. That is CFS.</text>
+  <text class="tiny" x="24" y="262">When pod B needs CPU again, those 3 cores go back to pod B. No limit needed.</text>
 </svg>

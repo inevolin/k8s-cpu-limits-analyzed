@@ -37,7 +37,7 @@
   <rect x="304" y="96" width="3" height="32" fill="#e07a6c"/>
   <text class="on" x="88" y="116">request</text>
   <text class="tiny" x="314" y="116" fill="#c4473a">wall</text>
-  <text class="tiny" x="360" y="116" fill="#111111">idle, blocked</text>
+  <text class="tiny" x="360" y="116" fill="#111111">throttled</text>
 
   <text class="sub" x="24" y="168">no limit</text>
   <rect class="lane" x="80" y="178" width="600" height="28" rx="3"/>

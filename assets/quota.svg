@@ -6,13 +6,13 @@
   <rect x="160" y="52" width="250" height="22" fill="#8fbf8f"/>
   <rect x="410" y="52" width="250" height="22" fill="#e4ddd2"/>
   <text x="168" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">runs 50 ms</text>
-  <text x="418" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">pod paused until next window</text>
+  <text x="418" y="67" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">throttled until next window</text>
 
   <text x="24" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">4 busy threads</text>
   <rect x="160" y="102" width="62" height="22" fill="#8fbf8f"/>
   <rect x="222" y="102" width="438" height="22" fill="#e4ddd2"/>
   <text x="168" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">~12 ms</text>
-  <text x="230" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">pod paused until next window</text>
+  <text x="230" y="117" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#111111">throttled until next window</text>
 
   <text x="24" y="168" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">no limit</text>
   <rect x="160" y="152" width="500" height="22" fill="#8fbf8f"/>

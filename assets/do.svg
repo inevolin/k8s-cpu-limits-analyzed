@@ -5,7 +5,7 @@
   <rect x="24" y="52" width="216" height="140" fill="#eef2ee" stroke="#c5d0c5"/>
   <text x="40" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#8fbf8f">keep</text>
   <text x="40" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">CPU request</text>
-  <text x="40" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">share + scheduling</text>
+  <text x="40" y="146" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">reserved CPU</text>
 
   <rect x="252" y="52" width="216" height="140" fill="#eef2ee" stroke="#c5d0c5"/>
   <text x="268" y="88" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#8fbf8f">keep</text>

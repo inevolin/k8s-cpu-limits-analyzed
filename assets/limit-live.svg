@@ -56,7 +56,7 @@
   </style>
   <rect width="720" height="380" fill="#faf9f6"/>
   <text class="title" x="24" y="30">One 100 ms window, slowed down so you can see it</text>
-  <text class="sub" x="24" y="50">500m limit = 50 ms of CPU, then: pod paused until next window.</text>
+  <text class="sub" x="24" y="50">500m limit = 50 ms of CPU, then the pod is throttled.</text>
 
   <rect x="80" y="68" width="600" height="14" rx="2" fill="#e8e4dc"/>
   <rect id="play" x="80" y="64" width="3" height="22" fill="#111111"/>
@@ -69,16 +69,16 @@
   <rect x="80" y="142" width="600" height="20" fill="#efe8dc"/>
   <rect id="run4" x="80" y="142" width="0" height="20" fill="#8fbf8f"/>
   <text id="tagRun" class="ink" x="90" y="156">running</text>
-  <text id="tagPause" class="wait" x="168" y="156">pod paused until next window</text>
-  <text class="tiny" x="80" y="184">Used up the 50 ms too fast. Pod paused until next window.</text>
+  <text id="tagPause" class="wait" x="168" y="156">throttled</text>
+  <text class="tiny" x="80" y="184">Used up the 50 ms too fast. Then throttled.</text>
 
   <text class="sub" x="24" y="214">1 thread, 500m limit</text>
   <rect class="lane" x="80" y="224" width="600" height="28" rx="3"/>
   <rect x="80" y="228" width="600" height="20" fill="#efe8dc"/>
   <rect id="run1" x="80" y="228" width="0" height="20" fill="#8fbf8f"/>
   <text id="tagRun1" class="ink" x="90" y="242">running</text>
-  <text id="tagPause1" class="wait" x="390" y="242">pod paused until next window</text>
-  <text class="tiny" x="80" y="270">Uses the whole 50 ms. Then: pod paused until next window.</text>
+  <text id="tagPause1" class="wait" x="390" y="242">throttled</text>
+  <text class="tiny" x="80" y="270">Uses the whole 50 ms, then throttled.</text>
 
   <text class="sub" x="24" y="298">no limit</text>
   <rect class="lane" x="80" y="308" width="600" height="28" rx="3"/>

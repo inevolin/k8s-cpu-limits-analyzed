@@ -16,7 +16,7 @@ uses up the limit's budget inside each short slice.
 
 ![burst latency](../assets/results-burst.svg)
 
-![windows frozen](../assets/results-throttle.svg)
+![CPU throttling](../assets/results-throttle.svg)
 
 | | typical (p50) | p95 | slowest 1% (p99) | throttled |
 |---|---|---|---|---|
