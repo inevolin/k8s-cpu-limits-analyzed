@@ -3,11 +3,10 @@
 Most charts set two CPU numbers: a request and a limit. People treat
 them like the same setting with a bit of headroom. **They are not.**
 
-The request is "save me this much when the machine is busy."
-The limit is "never let me use more than this, even if the machine
-is sitting there idle." That second one does not protect the app
-next to you. It just means: **pod paused until next window.** Over
-and over, ten times a second.
+The **request** is how much CPU your pod is promised.
+The **limit** is a hard cap. Hit it, and the **pod is paused
+until the next window** — up to ten times a second. That does
+not protect the pod next to you.
 
 ![values file](assets/values-file.svg)
 
