@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="280" viewBox="0 0 720 280">
-  <title>Four cores. You reserved one. They reserved three.</title>
+  <title>Four cores. Pod A reserved one. Pod B reserved three.</title>
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .title { font-size: 14px; fill: #111; }
@@ -9,8 +9,8 @@
     #capBusy { animation: first 10s steps(1) infinite; }
     #capIdle { animation: second 10s steps(1) infinite; }
     #c2, #c3, #c4 { animation: borrow 10s steps(1) infinite; }
-    #labThem2, #labThem3, #labThem4 { animation: first 10s steps(1) infinite; }
-    #labYou2, #labYou3, #labYou4 { animation: second 10s steps(1) infinite; }
+    #labB2, #labB3, #labB4 { animation: first 10s steps(1) infinite; }
+    #labA2, #labA3, #labA4 { animation: second 10s steps(1) infinite; }
     @keyframes first {
       0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; }
     }
@@ -23,30 +23,30 @@
     }
   </style>
   <rect width="720" height="280" fill="#faf9f6"/>
-  <text class="title" x="24" y="30">A node with 4 cores. You asked for 1. They asked for 3.</text>
+  <text class="title" x="24" y="30">A node with 4 cores. Pod A asked for 1. Pod B asked for 3.</text>
   <text id="capBusy" class="sub" x="24" y="54">Both busy. Each gets what they asked for. No CPU limit.</text>
-  <text id="capIdle" class="sub" x="24" y="54">They went idle. You can use the leftover cores.</text>
+  <text id="capIdle" class="sub" x="24" y="54">Pod B went idle. Pod A can use the leftover cores.</text>
 
   <rect class="core" x="40" y="80" width="140" height="120" fill="#8fbf8f"/>
-  <text class="tiny" x="88" y="136">you</text>
-  <text class="tiny" x="72" y="158">always yours</text>
+  <text class="tiny" x="78" y="136">pod A</text>
+  <text class="tiny" x="58" y="158">always pod A</text>
 
   <rect id="c2" class="core" x="200" y="80" width="140" height="120" fill="#b7c4d4"/>
-  <text id="labThem2" class="tiny" x="244" y="148">them</text>
-  <text id="labYou2" class="tiny" x="228" y="148">you, leftover</text>
+  <text id="labB2" class="tiny" x="238" y="148">pod B</text>
+  <text id="labA2" class="tiny" x="214" y="148">pod A, leftover</text>
 
   <rect id="c3" class="core" x="360" y="80" width="140" height="120" fill="#b7c4d4"/>
-  <text id="labThem3" class="tiny" x="404" y="148">them</text>
-  <text id="labYou3" class="tiny" x="388" y="148">you, leftover</text>
+  <text id="labB3" class="tiny" x="398" y="148">pod B</text>
+  <text id="labA3" class="tiny" x="374" y="148">pod A, leftover</text>
 
   <rect id="c4" class="core" x="520" y="80" width="140" height="120" fill="#b7c4d4"/>
-  <text id="labThem4" class="tiny" x="564" y="148">them</text>
-  <text id="labYou4" class="tiny" x="548" y="148">you, leftover</text>
+  <text id="labB4" class="tiny" x="558" y="148">pod B</text>
+  <text id="labA4" class="tiny" x="534" y="148">pod A, leftover</text>
 
   <rect x="40" y="220" width="16" height="16" fill="#8fbf8f" stroke="#111"/>
-  <text class="tiny" x="64" y="233">your request (1 core)</text>
-  <rect x="280" y="220" width="16" height="16" fill="#b7c4d4" stroke="#111"/>
-  <text class="tiny" x="304" y="233">their request (3 cores)</text>
+  <text class="tiny" x="64" y="233">pod A request (1 core)</text>
+  <rect x="300" y="220" width="16" height="16" fill="#b7c4d4" stroke="#111"/>
+  <text class="tiny" x="324" y="233">pod B request (3 cores)</text>
 
-  <text class="tiny" x="24" y="262">When they need CPU again, those 3 cores go back to them. That is CFS.</text>
+  <text class="tiny" x="24" y="262">When pod B needs CPU again, those 3 cores go back to pod B. That is CFS.</text>
 </svg>
