@@ -146,9 +146,12 @@ the limit line by itself does not free any nodes.
 **Leave `limits.memory`.** If CPU is short, the app waits. If
 memory is short, the app (or the node) dies.
 
-I would still set a CPU limit on a benchmark that needs a
-hard ceiling, and on pods that pin whole cores (request and
-limit set equal on purpose). For everything else, drop
+There are two narrow exceptions: a benchmark that needs a
+hard ceiling to give repeatable numbers, and pods that pin
+whole cores (request and limit set equal on purpose, with
+the static CPU manager). If you run one of those, you
+already know it. A normal web service, worker, or cron job
+is neither, so the odds are yours is not one of them. Drop
 `limits.cpu`, keep a request that is roughly right, and
 watch node CPU.
 
