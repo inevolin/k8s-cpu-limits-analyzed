@@ -1,4 +1,4 @@
-# Kubernetes CPU limits: the mistake, the why, and a small proof
+# Kubernetes CPU limits: the mistake, the why, and proof
 
 Most charts set two CPU numbers: a request and a limit. People treat
 them like the same setting with a bit of headroom. They are not.
