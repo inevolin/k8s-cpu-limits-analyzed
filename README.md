@@ -6,7 +6,8 @@ them like the same setting with a bit of headroom. They are not.
 The request is "save me this much when the machine is busy."
 The limit is "never let me use more than this, even if the machine
 is sitting there idle." That second one does not protect the app
-next to you. It just pauses *your* app, over and over.
+next to you. It just means: pod paused until next window. Over
+and over, ten times a second.
 
 ![mistake](assets/mistake.svg)
 
@@ -24,11 +25,11 @@ The pictures below move. If they sit still, click them.
 ![cfs live](assets/cfs-live.svg)
 
 A limit is a separate budget, also enforced by CFS. Every
-tenth of a second the kernel gives your container a slice of
-CPU time. All of its threads share that slice. When it is
-used up, the kernel does not slow them down. It stops them
-until the next slice. Four threads working at once burn a
-500m budget in about 12 milliseconds, then wait.
+tenth of a second the kernel gives your pod a slice of CPU
+time. All of its threads share that slice. When it is used
+up, the pod is not slowed down. The pod is paused until the
+next window. Four threads working at once burn a 500m budget
+in about 12 milliseconds. Then: pod paused until next window.
 
 ![limit live](assets/limit-live.svg)
 
@@ -61,13 +62,13 @@ thinks it has 8." One pod had a 500m limit. The other did not.
 The useful test is a burst that *on average* stays under 500m,
 but for a moment uses several threads at once. That used up the
 budget inside one slice. Typical response time went up about
-4x. The kernel paused the limited pod in about half of those
-slices. No errors. A normal CPU graph would have looked fine.
+4x. About half the time: pod paused until next window.
+No errors. A normal CPU graph would have looked fine.
 
 ![burst](assets/burst.svg)
 
 I also sent a short traffic spike that *did* go over the cap.
-The limited pod got paused in almost every slice. Then I put
+Almost every slice: pod paused until next window. Then I put
 another pod on the same machine that just burns CPU in a loop
 (no limit of its own). The app without a limit did not get
 slower. This machine still had spare cores, so it was not a

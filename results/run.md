@@ -18,7 +18,7 @@ up the limit's budget inside each short slice.
 
 ![windows frozen](../assets/results-throttle.svg)
 
-| | typical (p50) | p95 | slowest 1% (p99) | how often the kernel paused it |
+| | typical (p50) | p95 | slowest 1% (p99) | pod paused until next window |
 |---|---|---|---|---|
 | 500m limit | 86.9 ms | 89.5 | 101.6 | half the time (254 / 509) |
 | no limit | 22.7 ms | 26.1 | 43.7 | never |

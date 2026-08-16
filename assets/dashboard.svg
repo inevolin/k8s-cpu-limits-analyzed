@@ -42,6 +42,6 @@
 
   <!-- 1-minute average -->
   <line x1="80" y1="124" x2="674" y2="124" stroke="#222" stroke-width="2"/>
-  <text x="80" y="210" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">rust = that second hit the limit and the kernel paused the app</text>
+  <text x="80" y="210" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">rust = that second hit the limit: pod paused until next window</text>
   <text x="80" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">black line = 1-minute average. looks healthy. it is not.</text>
 </svg>

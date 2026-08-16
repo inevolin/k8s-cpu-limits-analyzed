@@ -4,8 +4,7 @@
 
 A CPU limit is a budget: how much CPU time the container may use
 every 100 milliseconds. 500m means 50 ms of CPU time per slice,
-shared by every thread. When the budget is gone, the kernel
-stops the whole container until the next slice.
+shared by every thread. When the budget is gone: pod paused until next window.
 
 A CPU request is a share. Linux CFS (Completely Fair Scheduler)
 turns it into a weight. That only matters when the node is
