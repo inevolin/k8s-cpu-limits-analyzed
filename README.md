@@ -43,6 +43,15 @@ reserved core.
 
 ![Side-by-side comparison of running out of CPU versus running out of memory: CPU means the app waits and catches up, so drop the limit and keep the request; memory means the app gets OOM-killed, so keep the memory limit](assets/cpu-vs-memory.svg)
 
+## What average CPU hides
+
+Your CPU graph usually averages a minute. CPU throttling
+lasts a tenth of a second. So **the graph can look fine while
+the app is being throttled all the time.** Watch
+`container_cpu_cfs_throttled_periods_total`, not average CPU.
+
+![Two views of the same 30 seconds: an average CPU graph that looks flat and fine, next to a CPU throttling graph on the same window showing the pod repeatedly hitting its limit](assets/dashboard-blind.svg)
+
 People put a limit on because they are afraid some other app
 will starve their pod. That is what the request is for. **The
 app you care about is protected by its own request.** A
@@ -54,14 +63,13 @@ limit on whoever looks greedy.
 
 ![Diagram showing a CPU limit on the busy pod only stops it using leftover CPU and does not help the neighbor, while a request on your own pod is what actually reserves its share](assets/neighbor.svg)
 
-## What average CPU hides
-
-Your CPU graph usually averages a minute. CPU throttling
-lasts a tenth of a second. So **the graph can look fine while
-the app is being throttled all the time.** Watch
-`container_cpu_cfs_throttled_periods_total`, not average CPU.
-
-![Two views of the same 30 seconds: an average CPU graph that looks flat and fine, next to a CPU throttling graph on the same window showing the pod repeatedly hitting its limit](assets/dashboard-blind.svg)
+The same blindness poisons right-sizing. Usage recorded under
+a CPU limit can never go above the limit: the cap clips every
+burst, so the history shows what the kernel allowed, not what
+the app wanted. Size a request from that history and you copy
+the cap's distortion into the request. Drop the limit first,
+let the app run for a while, then measure and set requests
+from numbers that were free to move.
 
 ## Proof
 
