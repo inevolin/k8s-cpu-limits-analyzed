@@ -4,7 +4,7 @@
 
 A CPU limit is a budget: how much CPU time the container may use
 every 100 milliseconds. 500m means 50 ms of CPU time per slice,
-shared by every thread. When the budget is gone: pod paused until next window.
+shared by every thread. When the budget is gone: **pod paused until next window.**
 
 A CPU request is a share. Linux CFS (Completely Fair Scheduler)
 turns it into a weight. That only matters when the node is
@@ -12,8 +12,8 @@ actually busy: CFS splits CPU in proportion to those weights.
 Idle leftover is free unless a limit is in the way. The same
 CFS is also what pauses you when a limit's budget runs out.
 
-The app next to you is protected by *its* request, not by your
-limit. Your limit only stops *you* from using idle CPU.
+**The app next to you is protected by its request, not by your
+limit.** Your limit only stops *you* from using idle CPU.
 
 There is one setup where the "limit" is doing something else:
 request and limit set equal, and the node is configured to pin
@@ -46,7 +46,7 @@ the memory limit.
 
 ## Memory limits stay
 
-Leave `limits.memory`. If CPU is short, the app waits. If
+**Leave `limits.memory`.** If CPU is short, the app waits. If
 memory is short, the app (or the node) dies.
 
 ## When a CPU limit still makes sense
@@ -55,7 +55,7 @@ memory is short, the app (or the node) dies.
 - a benchmark that needs a fixed ceiling
 - pods that pin whole cores, as above
 
-For normal services, drop `limits.cpu`, keep a request that
+For normal services, **drop `limits.cpu`**, keep a request that
 is roughly right, and watch node CPU. If someone can deploy
 with no request, add a default request. Do not paper over
 that with a CPU limit.
