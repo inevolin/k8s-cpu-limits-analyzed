@@ -1,5 +1,7 @@
 # Kubernetes CPU limits: the mistake, the why, and proof
 
+> This analysis was co-produced with Claude Fable 5 and Grok 4.6.
+
 Most charts set two CPU numbers, a request and a limit, and
 people treat them like the same setting with a bit of headroom.
 The **request** is how much CPU is reserved for your pod if
