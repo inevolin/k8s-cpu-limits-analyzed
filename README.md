@@ -20,8 +20,6 @@ CFS splits time by those weights. If another app is idle, you
 can use the leftover. When it wakes up, it gets its share back.
 **You do not need a CPU limit for any of that.**
 
-The pictures below move. If they sit still, click them.
-
 ![cfs live](assets/cfs-live.svg)
 
 A limit is a separate budget, also enforced by CFS. Every
