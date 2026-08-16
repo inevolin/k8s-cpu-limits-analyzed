@@ -38,7 +38,7 @@ tenth of a second. So **the graph can look fine while the app is
 being stopped all the time.** The number that actually shows this
 is `container_cpu_cfs_throttled_periods_total`.
 
-![dashboard](assets/dashboard.svg)
+![dashboard](assets/dashboard-blind.svg)
 
 ![cpu vs memory](assets/cpu-vs-memory.svg)
 
