@@ -9,13 +9,13 @@
 
   <!-- demand line dips under a limit, then continues -->
   <line x1="40" y1="92" x2="318" y2="92" stroke="#d8d2c4" stroke-width="1" stroke-dasharray="2,3"/>
-  <text x="322" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#999999" text-anchor="end">limit</text>
+  <text x="322" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#999999" text-anchor="end">cpu limit</text>
   <path d="M 40 100 L 90 100 L 110 130 L 150 130 L 170 100 L 318 100"
         fill="none" stroke="#5a9a5a" stroke-width="2.5"/>
   <text x="130" y="148" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#555555" text-anchor="middle">throttled, then catches up</text>
 
   <text x="40" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app waits, then finishes late</text>
-  <text x="40" y="202" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="bold" fill="#5a9a5a">drop the limit, keep the request</text>
+  <text x="40" y="202" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="bold" fill="#5a9a5a">drop limits.cpu, keep requests.cpu</text>
 
   <!-- Memory panel -->
   <rect x="366" y="42" width="330" height="182" fill="#fff5f3" stroke="#e0b3a8"/>
@@ -23,7 +23,7 @@
   <text x="382" y="68" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#555555" text-anchor="start" dx="90">not compressible</text>
 
   <line x1="382" y1="92" x2="660" y2="92" stroke="#e0b3a8" stroke-width="1" stroke-dasharray="2,3"/>
-  <text x="664" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#c48a80" text-anchor="end">limit</text>
+  <text x="664" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#c48a80" text-anchor="end">memory limit</text>
   <!-- demand line rises and hits a hard wall, stops -->
   <path d="M 382 130 L 440 130 L 480 100 L 528 92" fill="none" stroke="#c14f3d" stroke-width="2.5"/>
   <circle cx="528" cy="92" r="4.5" fill="#c14f3d"/>
@@ -31,5 +31,5 @@
   <text x="528" y="152" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#c14f3d" text-anchor="middle" font-weight="bold">killed, no recovery</text>
 
   <text x="382" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">app is OOM-killed</text>
-  <text x="382" y="202" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="bold" fill="#c14f3d">keep the limit</text>
+  <text x="382" y="202" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="bold" fill="#c14f3d">keep limits.memory</text>
 </svg>
