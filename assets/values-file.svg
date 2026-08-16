@@ -14,11 +14,11 @@
 
   <rect x="400" y="48" width="296" height="92" fill="#e8f0e8" stroke="#5a9a5a"/>
   <text x="416" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#5a9a5a">request</text>
-  <text x="416" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">CPU reserved for you,</text>
+  <text x="416" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">CPU reserved for the pod,</text>
   <text x="416" y="114" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">plus leftover if idle</text>
 
   <rect x="400" y="152" width="296" height="94" fill="#f6eeea" stroke="#c4473a"/>
   <text x="416" y="178" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c4473a">limit</text>
   <text x="416" y="200" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hard cap on CPU use</text>
-  <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hit it and you throttle</text>
+  <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hit it and the pod throttles</text>
 </svg>

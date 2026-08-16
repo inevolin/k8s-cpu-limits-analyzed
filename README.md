@@ -6,7 +6,7 @@ The **request** is how much CPU is reserved for your pod if
 it needs it. The **limit** is a hard cap. Hit it and the
 kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. **It does not protect the pod next to you.** In the
+Kubernetes. **It does not protect the neighboring pods.** In the
 burst test below, adding a CPU limit took typical latency
 from 23 ms to 87 ms, about 4x, with the limited pod throttled
 in half of all CFS windows, and the average CPU graph looked
@@ -21,7 +21,7 @@ Linux already shares a busy node. That sharing is called CFS
 cgroup, not a pinned core. If the node is busy, CFS splits
 time in proportion to those weights: a 16 CPU request gets
 about sixteen times the CPU of a 1 CPU request. If the other
-pods are idle you can use the leftover, and when they need
+pods are idle a pod can use the leftover, and when they need
 CPU again those cores go back. **You do not need a CPU limit
 for any of that.**
 
@@ -31,7 +31,7 @@ A limit is a separate cap, also enforced by CFS. Every 100 ms
 the kernel gives your pod a budget of CPU time, and every
 thread in the pod shares that budget. When it is gone, the
 pod is throttled until the next 100 ms. The node can be idle
-and you still wait. A 1 CPU limit on a 32-core node can still
+and the pod still waits. A 1 CPU limit on a 32-core node can still
 run on all 32 cores for a few milliseconds, then sit out the
 rest of the window. Four threads working at once burn a 500m
 budget in about 12 milliseconds. **It is an average, not a
