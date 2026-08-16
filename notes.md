@@ -1,61 +1,64 @@
 # notes
 
-## cpu.max and cpu.weight
+## What request and limit actually become
 
-A CPU **limit** becomes `cpu.max` in the cgroup: a quota of CPU-time per 100 ms
-period, shared by every thread in the container. 500m means 50 ms of CPU time
-per window. When the quota hits zero the kernel stops scheduling the cgroup
-until the next window. It does not slow the threads down. It parks them.
+A CPU limit is a budget: how much CPU time the container may use
+every 100 milliseconds. 500m means 50 ms of CPU time per slice,
+shared by every thread. When the budget is gone, the kernel
+stops the whole container until the next slice.
 
-A CPU **request** becomes `cpu.weight`. Weight only matters when the node is
-busy. Then CFS splits CPU in proportion to requests. Idle CPU is up for grabs
-unless a limit is in the way.
+A CPU request is a share. It only matters when the node is
+actually busy. Then Linux splits CPU in proportion to requests.
+Idle leftover is free unless a limit is in the way.
 
-Neighbors are protected by their requests, not by your limit. The
-limit just stops you from using idle CPU.
+The app next to you is protected by *its* request, not by your
+limit. Your limit only stops *you* from using idle CPU.
 
-The one case where a "limit" is doing real isolation is Guaranteed QoS plus
-the kubelet static CPU manager. There, request == limit pins whole cores. That
-is pinning, not quota. Leave those pods alone.
+There is one setup where the "limit" is doing something else:
+request and limit set equal, and the node is configured to pin
+whole cores to that pod. That is reserved cores, not a freeze.
+Leave those alone.
 
-## .NET reads the quota
+## .NET looks at the limit
 
-`Environment.ProcessorCount` is `ceil(quota/period)`, not the size of the
-node. A 500m limit reports 1. The ThreadPool minimum and Server GC heap count
-follow that number. On a common 100m default you start with one worker thread.
+If you do not set `DOTNET_PROCESSOR_COUNT`, .NET counts CPUs
+from the limit. A 500m limit (or the common 100m default)
+shows up as 1 CPU. The thread pool and garbage collector
+follow that. You start with one worker thread.
 
-This repo pins `DOTNET_PROCESSOR_COUNT=4` on both pods so the benches
-compare the cap, not the runtime sizing. After you drop the limit in a
-real fleet, set a default so the same service does not size itself to a
-4-core node in one pool and a 16-core node in another:
+This lab sets `DOTNET_PROCESSOR_COUNT=4` on both pods so the
+test is about the limit, not about .NET shrinking itself. In
+a real fleet, set one default after you drop limits, or the
+same service will behave differently on a 4-core node than on
+a 16-core node:
 
 ```yaml
 - name: DOTNET_PROCESSOR_COUNT
   value: "4"
 ```
 
-A tight CPU limit can also look like a memory incident. The GC needs CPU to
-reclaim. If it is parked for most of every 100 ms window, allocation wins and
-the pod OOM-kills. Check `container_cpu_cfs_throttled_periods_total` before
-you raise the memory limit.
+A tight CPU limit can also look like a memory problem. The
+garbage collector needs CPU to free memory. If it is paused
+most of the time, memory grows and the pod gets killed. Check
+`container_cpu_cfs_throttled_periods_total` before you raise
+the memory limit.
 
-## keep memory limits
+## Memory limits stay
 
-Leave `limits.memory`. CPU being slow is recoverable. A leak without
-a memory cap can take the node.
+Leave `limits.memory`. If CPU is short, the app waits. If
+memory is short, the app (or the node) dies.
 
-## when a CPU limit is still reasonable
+## When a CPU limit still makes sense
 
-- code you do not trust, where you want a hard backstop even if requests are a lie
-- a bench that needs a fixed ceiling so runs compare
-- the pinned-core case above
+- code you do not trust
+- a benchmark that needs a fixed ceiling
+- pods that pin whole cores, as above
 
-For ordinary first-party services, drop `limits.cpu`, keep an honest request,
-and watch node CPU. If a request is a joke (10m on a service that sits at 200m),
-fix the request in the same change. If requests are optional in the namespace,
-a LimitRange default request is the actual gap — not a CPU limit on the greedy
-pod.
+For normal services, drop `limits.cpu`, keep a request that
+is roughly right, and watch node CPU. If someone can deploy
+with no request, add a default request. Do not paper over
+that with a CPU limit.
 
-HPA scales on usage vs request, not vs limit. The formula stays the same.
-Usage is allowed to climb higher, so a CPU HPA may add replicas it would
-not have added under a cap.
+Autoscaling on CPU compares use to the *request*. Removing
+the limit does not change that formula. Use can go higher,
+so you may get more replicas. That is usually fine.

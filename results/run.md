@@ -1,43 +1,61 @@
 # numbers from this run
 
-2026-08-16 13:21 WEST. minikube, 8 CPU, ns `cpu-lab`.
-Both pods: 250m request, `DOTNET_PROCESSOR_COUNT=4`. One has `limits.cpu: 500m`.
-Startup is 3 restarts (ignore it). Everything else is one pass.
+2026-08-16 13:21 WEST. Local minikube, 8 CPUs.
+Both apps asked for 250m. I pinned .NET to 4 CPUs on both.
+One also had a 500m CPU limit.
+
+Startup times are noisy (`dotnet run` compiles every time).
+I would not quote them. Everything else is one pass.
 
 ## burst
 
-`/burst?threads=4&ms=20` at 5 rps, 45s. Offered ~400m, under the 500m cap.
+Same work on both apps: four threads spinning for 20 ms,
+5 times a second, for 45 seconds. That is about 400m on
+average, so it stays under the 500m limit. It still uses
+up the limit's budget inside each short slice.
 
 ![burst latency](../assets/results-burst.svg)
 
 ![windows frozen](../assets/results-throttle.svg)
 
-| | p50 | p95 | p99 | throttle | errors / timeouts |
-|---|---|---|---|---|---|
-| 500m limit | 86.9 | 89.5 | 101.6 | 49.90% (254 / 509) | 0 / 0 |
-| no limit | 22.7 | 26.1 | 43.7 | 0.00% | 0 / 0 |
+| | typical (p50) | p95 | slowest 1% (p99) | how often the kernel paused it |
+|---|---|---|---|---|
+| 500m limit | 86.9 ms | 89.5 | 101.6 | half the time (254 / 509) |
+| no limit | 22.7 ms | 26.1 | 43.7 | never |
+
+No failed requests.
 
 ## spike
 
-`/mixed?cpuMs=15&ioMs=30`. Quiet 5 rps (20s), then 40 rps (20s). Over the cap. p50 barely moves because of the 30ms sleep.
+A quieter endpoint (a bit of CPU, then a 30 ms sleep). First
+a slow trickle, then a short burst of traffic that *does* go
+over the 500m cap. Typical time barely moves because most of
+the work is sleep. The slow requests and the pauses are where
+it shows.
 
 ![spike](../assets/results-spike.svg)
 
-| | quiet p99 | spike p50 | spike p99 | spike throttle |
+| | slow requests, quiet | typical during spike | slow requests during spike | paused |
 |---|---|---|---|---|
-| 500m limit | 57.4 | 47.0 | 87.8 | 93.85% (244 / 260) |
-| no limit | 52.0 | 46.6 | 58.8 | 0.00% |
+| 500m limit | 57.4 ms | 47.0 | 87.8 | almost always (244 / 260) |
+| no limit | 52.0 ms | 46.6 | 58.8 | never |
 
-## hog
+## a pod that just burns CPU
 
-Victim is app-open (no CPU limit). Hog is 4 busy loops, 100m request, no CPU limit. 8-core node. Didn't pack it.
+I started a fourth-ish workload on the same machine: a small
+pod with 4 tight loops, a tiny 100m request, and no CPU
+limit. Then I hit the *unlimited* app again.
 
-![hog](../assets/results-hog.svg)
+The machine still had spare cores (8 CPUs, one busy pod).
+Nothing really had to fight. The unlimited app did not get
+slower. This is not a packed production node.
 
-| | p99 | throttle |
+![busy pod](../assets/results-hog.svg)
+
+| | slowest 1% | paused |
 |---|---|---|
-| no hog | 52.9 | 0.00% |
-| hog on the node | 49.2 | 0.00% |
+| no busy pod | 52.9 ms | never |
+| busy pod on the node | 49.2 ms | never |
 
 ```
 app-limit-64bdf458f-gmkc2   minikube
@@ -47,10 +65,10 @@ hog-5b894989-vks8q          minikube
 
 ## what .NET saw
 
-| pod | ProcessorCount | cpu.max |
+| pod | CPUs .NET thinks it has | kernel budget |
 |---|---|---|
-| app-limit (500m cap) | 4 | `50000 100000` |
-| app-open (no cap) | 4 | `max 100000` |
+| 500m limit | 4 | 50 ms every 100 ms |
+| no limit | 4 | no budget (unlimited) |
 
 ## startup
 
@@ -61,4 +79,4 @@ hog-5b894989-vks8q          minikube
 | 500m limit | 35, 36, 40 | 36 |
 | no limit | 32, 28, 47 | 32 |
 
-Raw: [`run.jsonl`](run.jsonl).
+Raw log: [`run.jsonl`](run.jsonl).

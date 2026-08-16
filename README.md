@@ -1,73 +1,91 @@
 # Kubernetes CPU limits: the mistake, the why, and a small proof
 
-People set a CPU request and a CPU limit as if they were one knob
-with a safety margin. They are not. The request is your share when
-the node is busy. The limit freezes *your* container, even when
-cores are idle. It does not protect the pod next to you.
+Most charts set two CPU numbers: a request and a limit. People treat
+them like the same setting with a bit of headroom. They are not.
+
+The request is "save me this much when the machine is busy."
+The limit is "never let me use more than this, even if the machine
+is sitting there idle." That second one does not protect the app
+next to you. It just pauses *your* app, over and over.
 
 ![mistake](assets/mistake.svg)
 
 ## Why
 
-The request becomes `cpu.weight`. CFS splits a busy node by
-weight. Idle leftover is free to borrow.
+When the node is full, Linux shares CPU based on requests. If the
+other apps are idle, you can use the leftover. That is already the
+protection.
 
-The limit becomes `cpu.max`: a budget of CPU-time every 100 ms,
-shared by every thread. When it hits zero the kernel stops
-scheduling the cgroup. Four busy threads burn a 500m quota in
-about 12 ms, then sit until the window resets.
+A limit is a separate budget. Every tenth of a second the kernel
+gives your container a slice of CPU time. All of its threads share
+that slice. When it is used up, the kernel does not slow them
+down. It stops them until the next slice. Four threads working at
+once burn a 500m budget in about 12 milliseconds, then wait.
 
 ![quota](assets/quota.svg)
 
 ![borrow](assets/borrow.svg)
 
-The usual CPU graph averages a minute. Throttling is a yes/no
-inside 100 ms. Watch
-`container_cpu_cfs_throttled_periods_total`.
+Your CPU graph usually averages a minute. The pauses last a
+tenth of a second. So the graph can look fine while the app is
+being stopped all the time. The number that actually shows this
+is `container_cpu_cfs_throttled_periods_total`.
 
 ![dashboard](assets/dashboard.svg)
 
 ![cpu vs memory](assets/cpu-vs-memory.svg)
 
-A limit on the hog only blocks leftover CPU. The victim is
-protected by *its* request. If requests are optional, add a
-LimitRange. That is the gap.
+People put a limit on because they are afraid some other app will
+eat the node. That is the wrong fix. The app you care about is
+protected by *its own* request. If teams can deploy with no
+request at all, give them a default request. Do not put a CPU
+limit on whoever looks greedy.
 
 ![neighbor](assets/neighbor.svg)
 
 ## Proof
 
-Same .NET app twice on minikube (8 CPU). Both 250m request,
-both `DOTNET_PROCESSOR_COUNT=4`. One has a 500m limit.
+I ran the same .NET app twice on a local 8-CPU minikube. Both
+asked for 250m. I also pinned .NET to 4 CPUs on both, so I was
+not accidentally comparing "app thinks it has 1 core" vs "app
+thinks it has 8." One pod had a 500m limit. The other did not.
 
-The burst stays under the cap on average (~400m) but burns the
-quota inside one window. Typical latency roughly quadrupled.
-About half the windows froze. No errors. The CPU graph would
-have looked fine.
+The useful test is a burst that *on average* stays under 500m,
+but for a moment uses several threads at once. That used up the
+budget inside one slice. Typical response time went up about
+4x. The kernel paused the limited pod in about half of those
+slices. No errors. A normal CPU graph would have looked fine.
 
 ![burst](assets/burst.svg)
 
-A traffic spike over the cap froze almost every window on the
-limited pod. A hog on the same node did not make the unlimited
-app worse (fat 8-core node; the request still held).
+I also sent a short traffic spike that *did* go over the cap.
+The limited pod got paused in almost every slice. Then I put
+another pod on the same machine that just burns CPU in a loop
+(no limit of its own). The app without a limit did not get
+slower. This machine still had spare cores, so it was not a
+packed production node. It only shows the direction: the
+request was enough.
 
-Tables: [results/run.md](results/run.md). Extra (.NET, exceptions):
-[notes.md](notes.md).
+More numbers and charts: [results/run.md](results/run.md).
+A bit more on .NET: [notes.md](notes.md).
 
 ## Conclusion
 
 ![do](assets/do.svg)
 
-Then watch throttle ratio and node CPU. After a while, shrink
-requests from real p95. That is what can drop nodes.
+After you drop CPU limits, look at that pause metric and at
+node CPU. Later you can shrink requests to what the apps
+really use. That is what can save machines. Deleting the
+limit line by itself does not.
 
-Keep a CPU limit only on untrusted code, benches that need a
-fixed ceiling, and Guaranteed + static CPU manager (those
-limits are core pins).
+I would still set a CPU limit on code you do not trust, on a
+benchmark that needs a hard ceiling, and on pods that pin
+whole cores (request and limit set equal on purpose).
 
 ## Run it
 
-Disposable cluster. The hog burns CPU.
+Use a throwaway cluster. One of the pods will burn CPU on
+purpose.
 
 ```bash
 minikube start --driver=docker --cpus=8 --memory=8192
@@ -77,5 +95,6 @@ kubectl config use-context minikube
 ./scripts/cleanup.sh
 ```
 
-Needs `kubectl` and `python3`. First run pulls the .NET 10 SDK
-image. `NS` / `KCTX` override ns and context (`cpu-lab` / current).
+Needs `kubectl` and `python3`. First run downloads a large
+.NET image. `NS` and `KCTX` change the namespace and cluster
+if you need to.
