@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
+  <title>A burst with a limit vs without</title>
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .title { font-size: 14px; fill: #222; }
+    .sub { font-size: 12px; fill: #555; }
+    .tiny { font-size: 11px; fill: #6a6258; }
+    .on { font-size: 11px; fill: #faf9f6; }
+    .lane { fill: #eee; }
+    #useLimit { animation: useL 6s ease-in-out infinite; }
+    #useOpen { animation: useO 6s ease-in-out infinite; }
+    #burstTag { animation: burstT 6s ease-in-out infinite; }
+    /* 4 cores = 600px. request 1 core = 150px. limit 1.5 = 225px. */
+    @keyframes useL {
+      0%, 18% { width: 90px; }
+      30%, 55% { width: 225px; }
+      70%, 100% { width: 90px; }
+    }
+    @keyframes useO {
+      0%, 18% { width: 90px; }
+      30%, 55% { width: 520px; }
+      70%, 100% { width: 90px; }
+    }
+    @keyframes burstT {
+      0%, 18% { opacity: 0; } 28%, 58% { opacity: 1; } 70%, 100% { opacity: 0; }
+    }
+  </style>
+  <rect width="720" height="300" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">A traffic burst. Same request. Only the limit changes.</text>
+  <text class="sub" x="24" y="50">Node has 4 cores. App asked for 1. Burst wants leftover CPU.</text>
+  <text id="burstTag" class="sub" x="520" y="50" fill="#b4482a">burst</text>
+
+  <text class="sub" x="24" y="88">with a 1.5 core limit</text>
+  <rect class="lane" x="80" y="98" width="600" height="28" rx="3"/>
+  <rect x="80" y="98" width="150" height="28" fill="#3d5a3d"/>
+  <rect id="useLimit" x="80" y="98" width="90" height="28" fill="#9aaa9a" opacity="0.95"/>
+  <rect x="304" y="96" width="3" height="32" fill="#b4482a"/>
+  <text class="on" x="88" y="116">request</text>
+  <text class="tiny" x="314" y="116" fill="#b4482a">wall</text>
+  <text class="tiny" x="360" y="116">idle, blocked</text>
+
+  <text class="sub" x="24" y="168">no limit</text>
+  <rect class="lane" x="80" y="178" width="600" height="28" rx="3"/>
+  <rect x="80" y="178" width="150" height="28" fill="#3d5a3d"/>
+  <rect id="useOpen" x="80" y="178" width="90" height="28" fill="#9aaa9a" opacity="0.95"/>
+  <text class="on" x="88" y="196">request</text>
+  <text class="tiny" x="250" y="196" fill="#2a3a2a">borrows idle CPU</text>
+
+  <text class="tiny" x="80" y="236">0</text>
+  <text class="tiny" x="220" y="236">1</text>
+  <text class="tiny" x="370" y="236">2</text>
+  <text class="tiny" x="520" y="236">3</text>
+  <text class="tiny" x="665" y="236">4 cores</text>
+
+  <text class="tiny" x="24" y="268">The request is still there in both rows. Borrowing leftover does not</text>
+  <text class="tiny" x="24" y="286">take CPU from a neighbor who is actually working. CFS already handles that.</text>
+</svg>

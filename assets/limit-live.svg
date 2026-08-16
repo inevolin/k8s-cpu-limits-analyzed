@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <title>A CPU limit pauses the app every 100 ms</title>
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .title { font-size: 14px; fill: #222; }
+    .sub { font-size: 12px; fill: #555; }
+    .tiny { font-size: 11px; fill: #6a6258; }
+    .on { fill: #faf9f6; font-size: 11px; }
+    .lane { fill: #fff; stroke: #d8d2c8; }
+    #play { animation: play 4s linear infinite; }
+    #run4 { animation: run4 4s linear infinite; }
+    #run1 { animation: run1 4s linear infinite; }
+    #runOpen { animation: runOpen 4s linear infinite; }
+    #tagRun { animation: tagRun 4s linear infinite; }
+    #tagPause { animation: tagPause 4s linear infinite; }
+    /* window is 80..680 = 600px. 4s = two 100ms windows (2s each). */
+    @keyframes play {
+      0% { x: 80; } 50% { x: 680; } 50.01% { x: 80; } 100% { x: 680; }
+    }
+    /* 4 threads: budget 50ms = half window = 300px in 1s, then freeze 1s */
+    @keyframes run4 {
+      0% { width: 0; }
+      12.5%, 50% { width: 75px; }
+      50.01% { width: 0; }
+      62.5%, 100% { width: 75px; }
+    }
+    @keyframes run1 {
+      0% { width: 0; }
+      25%, 50% { width: 300px; }
+      50.01% { width: 0; }
+      75%, 100% { width: 300px; }
+    }
+    @keyframes runOpen {
+      0%, 50% { width: 0; }
+      50% { width: 600px; }
+      50.01% { width: 0; }
+      100% { width: 600px; }
+    }
+    @keyframes tagRun {
+      0%, 12% { opacity: 1; } 13%, 49% { opacity: 0; }
+      50%, 62% { opacity: 1; } 63%, 100% { opacity: 0; }
+    }
+    @keyframes tagPause {
+      0%, 12% { opacity: 0; } 13%, 49% { opacity: 1; }
+      50%, 62% { opacity: 0; } 63%, 100% { opacity: 1; }
+    }
+  </style>
+  <rect width="720" height="360" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">One 100 ms window, slowed down so you can see it</text>
+  <text class="sub" x="24" y="50">500m limit = 50 ms of CPU time, then the kernel pauses everything.</text>
+
+  <rect class="lane" x="80" y="68" width="600" height="14" rx="2" fill="#eee" stroke="none"/>
+  <rect id="play" x="80" y="64" width="3" height="22" fill="#222"/>
+  <text class="tiny" x="80" y="100">0 ms</text>
+  <text class="tiny" x="360" y="100">50 ms  (budget gone)</text>
+  <text class="tiny" x="640" y="100">100</text>
+
+  <text class="sub" x="24" y="128">4 threads, 500m limit</text>
+  <rect class="lane" x="80" y="138" width="600" height="28" rx="3"/>
+  <rect x="80" y="142" width="600" height="20" fill="#e4ddd2"/>
+  <rect id="run4" x="80" y="142" width="0" height="20" fill="#3d5a3d"/>
+  <text id="tagRun" class="on" x="90" y="156">running</text>
+  <text id="tagPause" class="tiny" x="170" y="156" fill="#b4482a">paused until the next window</text>
+
+  <text class="sub" x="24" y="192">1 thread, 500m limit</text>
+  <rect class="lane" x="80" y="202" width="600" height="28" rx="3"/>
+  <rect id="run1" x="80" y="206" width="0" height="20" fill="#3d5a3d"/>
+  <text class="tiny" x="90" y="220" fill="#faf9f6">runs the whole 50 ms budget, then waits</text>
+
+  <text class="sub" x="24" y="256">no limit</text>
+  <rect class="lane" x="80" y="266" width="600" height="28" rx="3"/>
+  <rect id="runOpen" x="80" y="270" width="0" height="20" fill="#3d5a3d"/>
+  <text class="tiny" x="90" y="284" fill="#faf9f6">keeps going. leftover cores are allowed</text>
+
+  <text class="tiny" x="24" y="324">The pause is not a slower clock. The app is stopped. That is why</text>
+  <text class="tiny" x="24" y="342">a burst of parallel work (thread pool, GC, 4 handlers at once) hurts so much.</text>
+</svg>

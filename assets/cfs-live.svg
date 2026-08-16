@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="340" viewBox="0 0 720 340">
+  <title>CFS sharing a node by request size</title>
+  <style>
+    .bg { fill: #faf9f6; }
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .title { font-size: 14px; fill: #222; }
+    .sub { font-size: 12px; fill: #555; }
+    .tiny { font-size: 11px; }
+    .on { fill: #faf9f6; }
+    .muted { fill: #6a6258; }
+    .lane { fill: #fff; stroke: #d8d2c8; }
+    .tick { fill: none; stroke: #ddd; }
+    #phase-busy { animation: fadeBusy 12s infinite; }
+    #phase-idle { animation: fadeIdle 12s infinite; }
+    #barA { animation: aW 12s infinite; }
+    #barB { animation: bX 12s infinite; }
+    #barC { animation: cW 12s infinite; }
+    #labA { animation: aLab 12s infinite; }
+    #labB { animation: bLab 12s infinite; }
+    #labC { animation: cLab 12s infinite; }
+    #cIdleTag { animation: cTag 12s infinite; }
+    @keyframes fadeBusy {
+      0%, 32% { opacity: 1; } 38%, 82% { opacity: 0; } 88%, 100% { opacity: 1; }
+    }
+    @keyframes fadeIdle {
+      0%, 32% { opacity: 0; } 38%, 82% { opacity: 1; } 88%, 100% { opacity: 0; }
+    }
+    /* track 40..680 = 640px. busy: A64 B128 C448. idle: A213 B427 C0 */
+    @keyframes aW {
+      0%, 30% { width: 64px; } 40%, 80% { width: 213px; } 90%, 100% { width: 64px; }
+    }
+    @keyframes bX {
+      0%, 30% { x: 104px; width: 128px; } 40%, 80% { x: 253px; width: 427px; } 90%, 100% { x: 104px; width: 128px; }
+    }
+    @keyframes cW {
+      0%, 30% { x: 232px; width: 448px; opacity: 1; }
+      40%, 80% { x: 680px; width: 0; opacity: 0.25; }
+      90%, 100% { x: 232px; width: 448px; opacity: 1; }
+    }
+    @keyframes aLab {
+      0%, 30% { x: 52px; } 40%, 80% { x: 120px; } 90%, 100% { x: 52px; }
+    }
+    @keyframes bLab {
+      0%, 30% { x: 140px; } 40%, 80% { x: 430px; } 90%, 100% { x: 140px; }
+    }
+    @keyframes cLab {
+      0%, 30% { x: 420px; opacity: 1; } 40%, 80% { x: 420px; opacity: 0; } 90%, 100% { x: 420px; opacity: 1; }
+    }
+    @keyframes cTag {
+      0%, 32% { opacity: 0; } 40%, 80% { opacity: 1; } 88%, 100% { opacity: 0; }
+    }
+  </style>
+  <rect class="bg" width="720" height="340"/>
+  <text class="title" x="24" y="30">CFS, live. Three apps, one node.</text>
+  <text class="sub" x="24" y="50">Requests: A 100m · B 200m · C 700m. No CPU limits.</text>
+
+  <text id="phase-busy" class="sub" x="24" y="82">Everyone wants CPU. CFS splits 10 / 20 / 70.</text>
+  <text id="phase-idle" class="sub" x="24" y="82">C goes idle. A and B split the leftover, still 1:2.</text>
+
+  <rect class="lane" x="40" y="108" width="640" height="56" rx="4"/>
+  <rect id="barA" x="40" y="116" width="64" height="40" fill="#6a8a6a"/>
+  <rect id="barB" x="104" y="116" width="128" height="40" fill="#3d5a3d"/>
+  <rect id="barC" x="232" y="116" width="448" height="40" fill="#2a3a2a"/>
+  <text id="labA" class="tiny on" x="52" y="140">A</text>
+  <text id="labB" class="tiny on" x="140" y="140">B</text>
+  <text id="labC" class="tiny on" x="420" y="140">C</text>
+  <text id="cIdleTag" class="tiny muted" x="560" y="140">C idle</text>
+
+  <text class="tiny muted" x="40" y="190">0%</text>
+  <text class="tiny muted" x="340" y="190">50%</text>
+  <text class="tiny muted" x="640" y="190">100% of the node</text>
+
+  <rect class="lane" x="40" y="214" width="200" height="92" rx="4"/>
+  <text class="tiny" fill="#6a8a6a" x="54" y="238">A  ·  request 100m</text>
+  <text class="tiny muted" x="54" y="258">busy: 10% of the node</text>
+  <text class="tiny muted" x="54" y="276">C idle: 33%</text>
+  <text class="tiny muted" x="54" y="294">C back: 10% again</text>
+
+  <rect class="lane" x="256" y="214" width="200" height="92" rx="4"/>
+  <text class="tiny" fill="#3d5a3d" x="270" y="238">B  ·  request 200m</text>
+  <text class="tiny muted" x="270" y="258">busy: 20%</text>
+  <text class="tiny muted" x="270" y="276">C idle: 67%</text>
+  <text class="tiny muted" x="270" y="294">C back: 20% again</text>
+
+  <rect class="lane" x="472" y="214" width="208" height="92" rx="4"/>
+  <text class="tiny" fill="#2a3a2a" x="486" y="238">C  ·  request 700m</text>
+  <text class="tiny muted" x="486" y="258">busy: 70%</text>
+  <text class="tiny muted" x="486" y="276">idle: 0, leftover loaned out</text>
+  <text class="tiny muted" x="486" y="294">wakes: 70% back at once</text>
+</svg>

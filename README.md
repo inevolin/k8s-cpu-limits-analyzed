@@ -19,7 +19,9 @@ CFS splits time by those weights. If another app is idle, you
 can use the leftover. When it wakes up, it gets its share back.
 You do not need a CPU limit for any of that.
 
-![cfs](assets/cfs.svg)
+The pictures below move. If they sit still, click them.
+
+![cfs live](assets/cfs-live.svg)
 
 A limit is a separate budget, also enforced by CFS. Every
 tenth of a second the kernel gives your container a slice of
@@ -28,9 +30,9 @@ used up, the kernel does not slow them down. It stops them
 until the next slice. Four threads working at once burn a
 500m budget in about 12 milliseconds, then wait.
 
-![quota](assets/quota.svg)
+![limit live](assets/limit-live.svg)
 
-![borrow](assets/borrow.svg)
+![borrow live](assets/borrow-live.svg)
 
 Your CPU graph usually averages a minute. The pauses last a
 tenth of a second. So the graph can look fine while the app is
