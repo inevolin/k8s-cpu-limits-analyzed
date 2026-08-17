@@ -8,7 +8,7 @@ The **request** is how much CPU is reserved for your pod if
 it needs it. The **limit** is a hard cap. Hit it and the
 kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. **It does not protect the neighboring pods.** In the
+Kubernetes. **It is not designed not protect neighboring pods** (see below the use cases for CPU limits). In the
 burst test below, adding a CPU limit took typical latency
 from 23 ms to 87 ms (making it ~4x slower), with the limited pod throttled
 in half of all CFS windows, and the average CPU graph looked
@@ -18,7 +18,7 @@ fine the whole time.
 
 ## Why
 
-Linux already shares a busy node. That sharing is called CFS
+Linux already fairly shares a busy node's CPU power among pods. That sharing is called CFS
 (Completely Fair Scheduler). A request is a weight in the
 cgroup, not a pinned core. If the node is busy, CFS splits
 time in proportion to those weights: a 16 CPU request gets
@@ -169,14 +169,15 @@ When the node is actually busy, CFS splits time in those
 weights. A 16 CPU request next to sixteen 1 CPU requests
 gets about half the machine. Nothing else is required.
 
-**Doesn't a limit stop a bad pod from eating the node?** It
-stops that pod from using leftover CPU. It does not give
+**Doesn't a limit stop a bad pod from eating the node?** 
+The idea of monopolizing a node is a myth. It stops
+that pod from using leftover CPU. It does not give
 CPU to anyone else. The neighbor is protected by *its*
 request. If leftover is huge, requests on that node are too
-small.
+small. 
 
 **So how do you prevent a nosy neighbor from monopolizing
-the spare CPU?** You do not have to. Spare CPU is borrowed,
+the spare CPU?** The idea of monopolizing a node is a myth. Spare CPU is borrowed,
 not taken: the moment another pod wants CPU, CFS pulls those
 cores back within milliseconds and splits time by request
 weights again. The neighbor is only using CPU that would
@@ -199,8 +200,7 @@ run past 100% of the request and you may get more replicas.
 **Don't I want a limit so the app behaves the same on a
 quiet node and a busy one?** That is what a limit buys:
 the same cap everywhere, including when the node is idle.
-You pay for that with throttling. Most services want the
-leftover.
+You pay for that with throttling. Most applications you build typically should use available CPU resources if they are unused anyways.
 
 **Is this a reserved core?** Only if the node pins whole
 cores (`cpuManagerPolicy: static`, integer request, request
