@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="280" viewBox="0 0 720 280">
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
   <title>Four cores. Pod A reserved one. Pod B reserved three. No limit on either.</title>
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -6,7 +6,7 @@
     .sub { font-size: 13px; fill: #111; }
     .tiny { font-size: 12px; fill: #111; }
     .core { stroke: #111; stroke-width: 1.2; }
-    .coreno { font-size: 10px; fill: #666; }
+    .coreno { font-size: 10px; fill: #444; }
     #capBusy { animation: first 5s linear infinite; }
     #capIdle { animation: second 5s linear infinite; }
     #c2, #c3, #c4 { animation: borrow 5s linear infinite; }
@@ -23,10 +23,8 @@
       50%, 100% { fill: #6aa96a; }
     }
   </style>
-  <rect width="720" height="280" fill="#faf9f6"/>
+  <rect width="720" height="300" fill="#faf9f6"/>
   <text class="title" x="24" y="30">A node with 4 cores. Pod A requests 1 core, Pod B requests 3 cores.</text>
-  <text id="capBusy" class="sub" x="24" y="54">Both busy. Each gets its request. No CPU limit.</text>
-  <text id="capIdle" class="sub" x="24" y="54">Pod B went idle. Pod A uses the leftover cores.</text>
 
   <rect class="core" x="40" y="80" width="140" height="120" fill="#6aa96a"/>
   <text class="coreno" x="48" y="96">core 1</text>
@@ -55,5 +53,8 @@
   <rect x="300" y="220" width="16" height="16" fill="#a3cfa3" stroke="#111"/>
   <text class="tiny" x="324" y="233">pod B request (3 cores)</text>
 
-  <text class="tiny" x="24" y="262">When pod B needs CPU again, those cores go back. No limit was ever set.</text>
+  <text id="capBusy" class="sub" x="24" y="256">Both busy. Each gets its request. No CPU limit.</text>
+  <text id="capIdle" class="sub" x="24" y="256">Pod B went idle. Pod A uses the leftover cores.</text>
+
+  <text class="tiny" x="24" y="282">When pod B needs CPU again, those cores go back. No limit was ever set.</text>
 </svg>
