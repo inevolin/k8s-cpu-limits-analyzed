@@ -8,7 +8,8 @@ The **request** is how much CPU is reserved for your pod if
 it needs it. The **limit** is a hard cap. Hit it and the
 kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. **It is not designed not protect neighboring pods** (see below the use cases for CPU limits). In the
+Kubernetes. **A CPU limit does not protect neighboring pods; 
+their protection comes from their own requests.** (see below the use cases for CPU limits). In the
 burst test below, adding a CPU limit took typical latency
 from 23 ms to 87 ms (making it ~4x slower), with the limited pod throttled
 in half of all CFS windows, and the average CPU graph looked
@@ -26,6 +27,12 @@ about sixteen times the CPU of a 1 CPU request. If the other
 pods are idle a pod can use the leftover, and when they need
 CPU again those cores go back. **You do not need a CPU limit
 for any of that.**
+
+One caveat: the request guarantees your proportion of CPU
+over time, not exactly when you get it. Under heavy
+contention your share arrives in slices, so tail latency
+can still move a little even with a correct request. A
+limit does not fix that, it only adds throttling on top.
 
 ![Diagram of a 4-core node with pod A requesting 1 core and pod B requesting 3, both busy and getting their share, then pod B going idle and pod A using the leftover cores, with no CPU limit involved](assets/cfs-live.svg)
 
@@ -146,14 +153,17 @@ the limit line by itself does not free any nodes.
 **Leave `limits.memory`.** If CPU is short, the app waits. If
 memory is short, the app (or the node) dies.
 
-There are two narrow exceptions: a benchmark that needs a
-hard ceiling to give repeatable numbers, and pods that pin
-whole cores (request and limit set equal on purpose, with
-the static CPU manager). If you run one of those, you
-already know it. A normal web service, worker, or cron job
-is neither, so the odds are yours is not one of them. Drop
-`limits.cpu`, keep a request that is roughly right, and
-watch node CPU.
+There are a few narrow exceptions: a benchmark that needs a
+hard ceiling for repeatable numbers; pods that pin whole
+cores (request equal to limit on purpose, with the static
+CPU manager); and multi-tenant platforms where the cap is
+the product, because you sell or bill a fixed amount of CPU
+per customer. Some teams also keep limits purely for
+predictability: the app behaves the same on a quiet node
+and a busy one. That is a real trade, but you pay for it
+with throttling and wasted idle CPU. If you run one of
+these, you already know it. A normal web service, worker,
+or cron job is none of them.
 
 Autoscaling on CPU compares use to the *request*, not the
 limit. Removing the limit does not change that formula. Use
@@ -161,6 +171,21 @@ can go higher, so you may get more replicas, which is
 usually fine.
 
 ## Questions that come up
+
+**Your CPU request was just too low!**
+Isn't your 4x latency just a request that was too low?
+Partly, and that is the point. Burst above the request is
+opportunistic, never guaranteed: the implicit ceiling is
+node capacity and your neighbors. Size the request for
+baseline performance, not for the minimum that boots the
+app, and treat burst as a bonus. But even with a perfect
+request, a limit only subtracts. Without a limit the worst
+case is your weighted share and the best case is more. With
+a limit the best case is the cap, even on an idle node. And
+"I am under my limit on the graph" does not mean no
+throttling: four threads for 20 ms burn a 500m window
+budget while the one-minute average stays comfortably
+under 500m. That is exactly what the burst test shows.
 
 **How is a request enforced?** It is a CFS weight
 (`cpu.shares` / `cpu.weight`). The Kubernetes scheduler will
@@ -170,21 +195,16 @@ weights. A 16 CPU request next to sixteen 1 CPU requests
 gets about half the machine. Nothing else is required.
 
 **Doesn't a limit stop a bad pod from eating the node?** 
-The idea of monopolizing a node is a myth. It stops
-that pod from using leftover CPU. It does not give
-CPU to anyone else. The neighbor is protected by *its*
-request. If leftover is huge, requests on that node are too
-small. 
-
-**So how do you prevent a nosy neighbor from monopolizing
-the spare CPU?** The idea of monopolizing a node is a myth. Spare CPU is borrowed,
-not taken: the moment another pod wants CPU, CFS pulls those
+Monopolizing a node is a myth. Spare CPU is borrowed, not
+taken: the moment another pod wants CPU, CFS pulls those
 cores back within milliseconds and splits time by request
-weights again. The neighbor is only using CPU that would
-otherwise sit idle, and it gives that CPU back the moment
-someone else needs it. If several pods burst at once, the
-leftover is not first come first served: CFS divides it
-between them in proportion to their requests.
+weights again. A limit on the busy pod only stops it using
+CPU that would otherwise sit idle. It does not give CPU to
+anyone else: the neighbor is protected by its request. If
+several pods burst at once, the leftover is not first come
+first served, CFS divides it in proportion to their
+requests. If leftover on the node is huge, the requests on
+that node are too small.
 
 **Don't Go / Java / .NET need the limit to size the thread
 pool?** They often read the quota and treat it as the CPU
@@ -207,6 +227,44 @@ cores (`cpuManagerPolicy: static`, integer request, request
 equal to limit). Setting request equal to limit by itself
 does not pin. That is the Uber-style cpuset setup. Leave
 those alone.
+
+**Doesn't dropping the limit lose Guaranteed QoS?** Yes, the pod becomes Burstable. In practice this matters
+less than it sounds: the kubelet evicts pods under memory
+pressure, never for CPU. CPU is compressible, when it is
+short you wait, nothing gets killed. Keep memory request
+equal to memory limit and your eviction exposure is
+basically unchanged. Note also that under node pressure the
+kubelet ranks pods by how far usage exceeds the request,
+not purely by QoS class ([docs](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#pod-selection-for-kubelet-eviction). 
+If a platform enforces request equal to limit (like GKE Autopilot does), this whole article does not apply there.
+
+**My JVM/Spring Boot pods idle at 20m but need 800m to
+start. Without limits, 30 restarting pods fight each other.**
+That is a race for CPU either way, and limits make it
+worse: every pod gets throttled and the idle CPU goes
+unused. Fix the actual problem: stagger the rollout
+(maxSurge/maxUnavailable), set a request above the
+embarrassing 20m, or give pods a temporary boost during
+boot with kube-startup-cpu-boost,
+built on in-place pod resize (stable since Kubernetes
+1.33). Watch readiness probes too: slow starts under
+contention can flap probes and mislead the HPA.
+
+**After I drop limits, can a burster hurt the node itself?**
+Not the other pods, but kubelet, containerd, the CNI, and
+log shippers often run with tiny or no CPU reservation. A
+pod bursting into all spare CPU can delay exec probes and
+flap readiness. The fix is system-reserved and
+kube-reserved in the kubelet config, which carves out CPU
+for the node's own daemons. A per-pod CPU limit is the
+wrong tool for this.
+
+**I dropped the limit and the pod was rejected.**
+A namespace ResourceQuota on limits.cpu forces every
+pod to declare a limit, and a LimitRange default silently
+injects one. Check both before rolling this out. Quota on
+requests.cpu instead: that is the number the scheduler
+actually books.
 
 ## Run it
 
@@ -248,6 +306,9 @@ Expect output like this as it runs:
 
 ## Further reading
 
+- Tim Hockin (Kubernetes co-founder): ["do not use CPU limits"](https://x.com/thockin/status/1134193838841401345)
+- Natan Yellin, [Stop using CPU limits on Kubernetes](https://home.robusta.dev/blog/stop-using-cpu-limits) - the same conclusion as a 2x2 decision table.
+- Datadog, ["When to set CPU limits"](https://www.datadoghq.com/blog/kubernetes-cpu-requests-limits/)
 - [Kubernetes docs: resource requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) - how requests, limits, and CFS quota fit together.
 - Dave Chiluk, ["Throttling: New Developments in Application Performance with CPU Limits"](https://www.youtube.com/watch?v=UE7QX98-kO0) (KubeCon NA 2019) - the CFS throttling bug and why limits hurt more than the naive model suggests.
 - The kernel's CFS bandwidth burst feature (`cpu.max.burst`) lets a cgroup borrow a little unused budget from past periods, softening some of this without removing the limit.
