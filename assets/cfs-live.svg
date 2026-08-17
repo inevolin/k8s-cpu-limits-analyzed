@@ -48,21 +48,21 @@
   <text class="tiny" x="110" y="146" text-anchor="middle">Pod A: working...</text>
 
   <rect id="c2" class="core" fill="#a3cfa3" x="200" y="80" width="140" height="120"/>
-  <rect id="ov2" x="200" y="80" width="140" height="120" fill="none" stroke="#4a7a4a" stroke-width="2.5" stroke-dasharray="7,5"/>
+  <rect id="ov2" x="200" y="80" width="140" height="120" fill="none" stroke="#4878a8" stroke-width="2.5" stroke-dasharray="7,5"/>
   <text class="coreno" x="208" y="96">core 2</text>
   <text id="labB2" class="tiny" x="270" y="148" text-anchor="middle">Pod B: working...</text>
   <text id="labA2" class="tiny" x="270" y="140" text-anchor="middle">A borrows</text>
   <text id="labA2b" class="tiny" x="270" y="160" text-anchor="middle">unused core</text>
 
   <rect id="c3" class="core" fill="#a3cfa3" x="360" y="80" width="140" height="120"/>
-  <rect id="ov3" x="360" y="80" width="140" height="120" fill="none" stroke="#4a7a4a" stroke-width="2.5" stroke-dasharray="7,5"/>
+  <rect id="ov3" x="360" y="80" width="140" height="120" fill="none" stroke="#4878a8" stroke-width="2.5" stroke-dasharray="7,5"/>
   <text class="coreno" x="368" y="96">core 3</text>
   <text id="labB3" class="tiny" x="430" y="148" text-anchor="middle">Pod B: working...</text>
   <text id="labA3" class="tiny" x="430" y="140" text-anchor="middle">A borrows</text>
   <text id="labA3b" class="tiny" x="430" y="160" text-anchor="middle">unused core</text>
 
   <rect id="c4" class="core" fill="#a3cfa3" x="520" y="80" width="140" height="120"/>
-  <rect id="ov4" x="520" y="80" width="140" height="120" fill="none" stroke="#4a7a4a" stroke-width="2.5" stroke-dasharray="7,5"/>
+  <rect id="ov4" x="520" y="80" width="140" height="120" fill="none" stroke="#4878a8" stroke-width="2.5" stroke-dasharray="7,5"/>
   <text class="coreno" x="528" y="96">core 4</text>
   <text id="labB4" class="tiny" x="590" y="148" text-anchor="middle">Pod B: working...</text>
   <text id="labA4" class="tiny" x="590" y="140" text-anchor="middle">A borrows</text>
@@ -72,7 +72,7 @@
   <text class="tiny" x="64" y="243">pod A request (1 core)</text>
   <rect x="300" y="230" width="16" height="16" fill="#a3cfa3" stroke="#111"/>
   <text class="tiny" x="324" y="243">pod B request (3 cores)</text>
-  <rect x="560" y="230" width="16" height="16" fill="none" stroke="#4a7a4a" stroke-width="2" stroke-dasharray="4,3"/>
+  <rect x="560" y="230" width="16" height="16" fill="none" stroke="#4878a8" stroke-width="2" stroke-dasharray="4,3"/>
   <text class="tiny" x="584" y="243">borrowed by pod A</text>
 
   <text id="capBusy" class="sub" x="24" y="276">Both busy. Each gets its request. No CPU limit.</text>
