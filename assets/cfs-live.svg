@@ -30,8 +30,7 @@
 
   <rect class="core" x="40" y="80" width="140" height="120" fill="#6aa96a"/>
   <text class="coreno" x="48" y="96">core 1</text>
-  <text class="tiny" x="110" y="136" text-anchor="middle">Pod A: working...</text>
-  <text class="tiny" x="110" y="158" text-anchor="middle">1 core, reserved</text>
+  <text class="tiny" x="110" y="146" text-anchor="middle">Pod A: working...</text>
 
   <rect id="c2" class="core" x="200" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text class="coreno" x="208" y="96">core 2</text>
