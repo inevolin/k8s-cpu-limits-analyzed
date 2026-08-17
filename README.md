@@ -8,8 +8,8 @@ The **request** is how much CPU is reserved for your pod if
 it needs it. The **limit** is a hard cap. Hit it and the
 kernel **throttles** the pod, even when the node still has
 spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. **A CPU limit does not protect neighboring pods; 
-their protection comes from their own requests.** (see below the use cases for CPU limits). In the
+Kubernetes. **A CPU limit does not protect neighboring pods;
+their protection comes from their own requests.** (see the exceptions below). In the
 burst test below, adding a CPU limit took typical latency
 from 23 ms to 87 ms (making it ~4x slower), with the limited pod throttled
 in half of all CFS windows, and the average CPU graph looked
@@ -19,13 +19,13 @@ fine the whole time.
 
 ## Why
 
-Linux already fairly shares a busy node's CPU power among pods. That sharing is called CFS
+Linux already shares a busy node's CPU fairly among pods. That sharing is called CFS
 (Completely Fair Scheduler). A request is a weight in the
 cgroup, not a pinned core. If the node is busy, CFS splits
 time in proportion to those weights: a 16 CPU request gets
 about sixteen times the CPU of a 1 CPU request. If the other
-pods are idle a pod can use the leftover, and when they need
-CPU again those cores go back. **You do not need a CPU limit
+pods are idle, a pod can use the leftover; when they need
+CPU again, those cores go back. **You do not need a CPU limit
 for any of that.**
 
 One caveat: the request guarantees your proportion of CPU
@@ -172,8 +172,7 @@ usually fine.
 
 ## Questions that come up
 
-**Your CPU request was just too low!**
-Isn't your 4x latency just a request that was too low?
+**Isn't your 4x latency just a request that was too low?**
 Partly, and that is the point. Burst above the request is
 opportunistic, never guaranteed: the implicit ceiling is
 node capacity and your neighbors. Size the request for
@@ -194,7 +193,7 @@ When the node is actually busy, CFS splits time in those
 weights. A 16 CPU request next to sixteen 1 CPU requests
 gets about half the machine. Nothing else is required.
 
-**Doesn't a limit stop a bad pod from eating the node?** 
+**Doesn't a limit stop a bad pod from eating the node?**
 Monopolizing a node is a myth. Spare CPU is borrowed, not
 taken: the moment another pod wants CPU, CFS pulls those
 cores back within milliseconds and splits time by request
@@ -220,7 +219,7 @@ run past 100% of the request and you may get more replicas.
 **Don't I want a limit so the app behaves the same on a
 quiet node and a busy one?** That is what a limit buys:
 the same cap everywhere, including when the node is idle.
-You pay for that with throttling. Most applications you build typically should use available CPU resources if they are unused anyways.
+You pay for that with throttling. Most services should use idle CPU when it's there; consistency is the exception, not the default.
 
 **Is this a reserved core?** Only if the node pins whole
 cores (`cpuManagerPolicy: static`, integer request, request
@@ -235,8 +234,8 @@ short you wait, nothing gets killed. Keep memory request
 equal to memory limit and your eviction exposure is
 basically unchanged. Note also that under node pressure the
 kubelet ranks pods by how far usage exceeds the request,
-not purely by QoS class ([docs](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#pod-selection-for-kubelet-eviction). 
-If a platform enforces request equal to limit (like GKE Autopilot does), this whole article does not apply there.
+not purely by QoS class ([docs](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#pod-selection-for-kubelet-eviction)).
+If a platform enforces request equal to limit (like GKE Autopilot does), this article's advice to drop the limit does not apply there.
 
 **My JVM/Spring Boot pods idle at 20m but need 800m to
 start. Without limits, 30 restarting pods fight each other.**
@@ -246,8 +245,8 @@ unused. Fix the actual problem: stagger the rollout
 (maxSurge/maxUnavailable), set a request above the
 embarrassing 20m, or give pods a temporary boost during
 boot with kube-startup-cpu-boost,
-built on in-place pod resize (stable since Kubernetes
-1.33). Watch readiness probes too: slow starts under
+built on in-place pod resize (beta since Kubernetes 1.33,
+GA in 1.35). Watch readiness probes too: slow starts under
 contention can flap probes and mislead the HPA.
 
 **After I drop limits, can a burster hurt the node itself?**
