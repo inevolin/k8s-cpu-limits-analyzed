@@ -17,6 +17,10 @@
     @keyframes second {
       0%, 47% { opacity: 0; } 50%, 100% { opacity: 1; }
     }
+    @keyframes coreStroke {
+      0%, 47% { stroke-opacity: 1; } 50%, 100% { stroke-opacity: 0; }
+    }
+    #c2, #c3, #c4 { animation: coreStroke 5s linear infinite; }
   </style>
   <rect width="720" height="326" fill="#faf9f6"/>
   <text class="title" x="24" y="30">A node with 4 cores. Pod A requests 1 core, Pod B requests 3 cores.</text>
@@ -46,15 +50,15 @@
   <text id="labA4" class="tiny" x="590" y="140" text-anchor="middle">A borrows</text>
   <text id="labA4b" class="tiny" x="590" y="160" text-anchor="middle">unused core</text>
 
-  <rect x="40" y="220" width="16" height="16" fill="#6aa96a" stroke="#111"/>
-  <text class="tiny" x="64" y="233">pod A request (1 core)</text>
-  <rect x="300" y="220" width="16" height="16" fill="#a3cfa3" stroke="#111"/>
-  <text class="tiny" x="324" y="233">pod B request (3 cores)</text>
-  <rect x="560" y="220" width="16" height="16" fill="none" stroke="#4a7a4a" stroke-width="2" stroke-dasharray="4,3"/>
-  <text class="tiny" x="584" y="233">borrowed by pod A</text>
+  <rect x="40" y="230" width="16" height="16" fill="#6aa96a" stroke="#111"/>
+  <text class="tiny" x="64" y="243">pod A request (1 core)</text>
+  <rect x="300" y="230" width="16" height="16" fill="#a3cfa3" stroke="#111"/>
+  <text class="tiny" x="324" y="243">pod B request (3 cores)</text>
+  <rect x="560" y="230" width="16" height="16" fill="none" stroke="#4a7a4a" stroke-width="2" stroke-dasharray="4,3"/>
+  <text class="tiny" x="584" y="243">borrowed by pod A</text>
 
-  <text id="capBusy" class="sub" x="24" y="262">Both busy. Each gets its request. No CPU limit.</text>
-  <text id="capIdle" class="sub" x="24" y="262">Pod B went idle. Pod A uses the leftover cores.</text>
+  <text id="capBusy" class="sub" x="24" y="276">Both busy. Each gets its request. No CPU limit.</text>
+  <text id="capIdle" class="sub" x="24" y="276">Pod B went idle. Pod A uses the leftover cores.</text>
 
-  <text class="tiny" x="24" y="288">When pod B needs CPU again, those cores go back. No limit was ever set.</text>
+  <text class="tiny" x="24" y="302">When pod B needs CPU again, those cores go back. No limit was ever set.</text>
 </svg>
