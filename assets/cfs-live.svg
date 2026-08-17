@@ -7,20 +7,38 @@
     .tiny { font-size: 12px; fill: #111; }
     .core { stroke: #111; stroke-width: 1.2; }
     .coreno { font-size: 10px; fill: #444; }
-    #capBusy { animation: first 5s linear infinite; }
-    #capIdle { animation: second 5s linear infinite; }
-    #labB2, #labB3, #labB4 { animation: first 5s linear infinite; }
-    #labA2, #labA3, #labA4, #labA2b, #labA3b, #labA4b, #ov2, #ov3, #ov4 { animation: second 5s linear infinite; }
-    @keyframes first {
-      0%, 47% { opacity: 1; } 50%, 100% { opacity: 0; }
+    #capBusy { animation: state1 6s linear infinite; }
+    #capPartial { animation: state2 6s linear infinite; }
+    #capIdle { animation: state3 6s linear infinite; }
+    #labB2 { animation: state1 6s linear infinite; }
+    #labA2, #labA2b, #ov2 { animation: state2and3 6s linear infinite; }
+    #labB3, #labB4 { animation: state1and2 6s linear infinite; }
+    #labA3, #labA3b, #labA4, #labA4b, #ov3, #ov4 { animation: state3 6s linear infinite; }
+    #c2 { animation: coreStroke2 6s linear infinite; }
+    #c3, #c4 { animation: coreStroke34 6s linear infinite; }
+    /* three states per loop: 0-31% all busy, 33-64% pod B down to 2
+       cores (core 2 borrowed), 66-97% pod B fully idle (all borrowed) */
+    @keyframes state1 {
+      0%, 31% { opacity: 1; } 33%, 100% { opacity: 0; }
     }
-    @keyframes second {
-      0%, 47% { opacity: 0; } 50%, 100% { opacity: 1; }
+    @keyframes state2 {
+      0%, 31% { opacity: 0; } 33%, 64% { opacity: 1; } 66%, 100% { opacity: 0; }
     }
-    @keyframes coreStroke {
-      0%, 47% { stroke-opacity: 1; } 50%, 100% { stroke-opacity: 0; }
+    @keyframes state3 {
+      0%, 64% { opacity: 0; } 66%, 97% { opacity: 1; } 100% { opacity: 0; }
     }
-    #c2, #c3, #c4 { animation: coreStroke 5s linear infinite; }
+    @keyframes state2and3 {
+      0%, 31% { opacity: 0; } 33%, 97% { opacity: 1; } 100% { opacity: 0; }
+    }
+    @keyframes state1and2 {
+      0%, 64% { opacity: 1; } 66%, 100% { opacity: 0; }
+    }
+    @keyframes coreStroke2 {
+      0%, 31% { stroke-opacity: 1; } 33%, 100% { stroke-opacity: 0; }
+    }
+    @keyframes coreStroke34 {
+      0%, 64% { stroke-opacity: 1; } 66%, 100% { stroke-opacity: 0; }
+    }
   </style>
   <rect width="720" height="326" fill="#faf9f6"/>
   <text class="title" x="24" y="30">A node with 4 cores. Pod A requests 1 core, Pod B requests 3 cores.</text>
@@ -58,6 +76,7 @@
   <text class="tiny" x="584" y="243">borrowed by pod A</text>
 
   <text id="capBusy" class="sub" x="24" y="276">Both busy. Each gets its request. No CPU limit.</text>
+  <text id="capPartial" class="sub" x="24" y="276">Pod B scales down to 2 cores. Pod A borrows the third.</text>
   <text id="capIdle" class="sub" x="24" y="276">Pod B went idle. Pod A uses the leftover cores.</text>
 
   <text class="tiny" x="24" y="302">When pod B needs CPU again, those cores go back. No limit was ever set.</text>
