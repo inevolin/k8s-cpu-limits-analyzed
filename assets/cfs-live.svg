@@ -30,24 +30,24 @@
 
   <rect class="core" x="40" y="80" width="140" height="120" fill="#6aa96a"/>
   <text class="coreno" x="48" y="96">core 1</text>
-  <text class="tiny" x="97" y="136" text-anchor="middle">pod A</text>
+  <text class="tiny" x="110" y="136" text-anchor="middle">Pod A: working...</text>
   <text class="tiny" x="110" y="158" text-anchor="middle">1 core, reserved</text>
 
   <rect id="c2" class="core" x="200" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text class="coreno" x="208" y="96">core 2</text>
-  <text id="labB2" class="tiny" x="270" y="148" text-anchor="middle">pod B</text>
+  <text id="labB2" class="tiny" x="270" y="148" text-anchor="middle">Pod B: working...</text>
   <text id="labA2" class="tiny" x="270" y="140" text-anchor="middle">A borrows</text>
   <text id="labA2b" class="tiny" x="270" y="160" text-anchor="middle">unused core</text>
 
   <rect id="c3" class="core" x="360" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text class="coreno" x="368" y="96">core 3</text>
-  <text id="labB3" class="tiny" x="430" y="148" text-anchor="middle">pod B</text>
+  <text id="labB3" class="tiny" x="430" y="148" text-anchor="middle">Pod B: working...</text>
   <text id="labA3" class="tiny" x="430" y="140" text-anchor="middle">A borrows</text>
   <text id="labA3b" class="tiny" x="430" y="160" text-anchor="middle">unused core</text>
 
   <rect id="c4" class="core" x="520" y="80" width="140" height="120" fill="#a3cfa3"/>
   <text class="coreno" x="528" y="96">core 4</text>
-  <text id="labB4" class="tiny" x="590" y="148" text-anchor="middle">pod B</text>
+  <text id="labB4" class="tiny" x="590" y="148" text-anchor="middle">Pod B: working...</text>
   <text id="labA4" class="tiny" x="590" y="140" text-anchor="middle">A borrows</text>
   <text id="labA4b" class="tiny" x="590" y="160" text-anchor="middle">unused core</text>
 
