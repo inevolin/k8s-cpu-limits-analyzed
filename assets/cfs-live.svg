@@ -6,11 +6,11 @@
     .sub { font-size: 13px; fill: #111; }
     .tiny { font-size: 12px; fill: #111; }
     .core { stroke: #111; stroke-width: 1.2; }
-    #capBusy { animation: first 10s linear infinite; }
-    #capIdle { animation: second 10s linear infinite; }
-    #c2, #c3, #c4 { animation: borrow 10s linear infinite; }
-    #labB2, #labB3, #labB4 { animation: first 10s linear infinite; }
-    #labA2, #labA3, #labA4 { animation: second 10s linear infinite; }
+    #capBusy { animation: first 5s linear infinite; }
+    #capIdle { animation: second 5s linear infinite; }
+    #c2, #c3, #c4 { animation: borrow 5s linear infinite; }
+    #labB2, #labB3, #labB4 { animation: first 5s linear infinite; }
+    #labA2, #labA3, #labA4 { animation: second 5s linear infinite; }
     @keyframes first {
       0%, 47% { opacity: 1; } 50%, 100% { opacity: 0; }
     }
@@ -24,7 +24,7 @@
   </style>
   <rect width="720" height="280" fill="#faf9f6"/>
   <text class="title" x="24" y="30">A node with 4 cores. Pod A asked for 1. Pod B asked for 3.</text>
-  <text class="tiny" x="654" y="30" fill="#666">loops, 5s/step</text>
+  <text class="tiny" x="654" y="30" fill="#666">loops, 2.5s/step</text>
   <text id="capBusy" class="sub" x="24" y="54">Both busy. Each gets its request. No CPU limit.</text>
   <text id="capIdle" class="sub" x="24" y="54">Pod B went idle. Pod A uses the leftover cores.</text>
 
