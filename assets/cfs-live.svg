@@ -24,7 +24,7 @@
     }
   </style>
   <rect width="720" height="280" fill="#faf9f6"/>
-  <text class="title" x="24" y="30">A node with 4 cores. Pod A asked for 1. Pod B asked for 3.</text>
+  <text class="title" x="24" y="30">A node with 4 cores. Pod A requests 1 core, Pod B requests 3 cores.</text>
   <text class="tiny" x="654" y="30" fill="#666">loops, 2.5s/step</text>
   <text id="capBusy" class="sub" x="24" y="54">Both busy. Each gets its request. No CPU limit.</text>
   <text id="capIdle" class="sub" x="24" y="54">Pod B went idle. Pod A uses the leftover cores.</text>
