@@ -76,7 +76,7 @@
   <text class="tiny" x="584" y="243">borrowed by pod A</text>
 
   <text id="capBusy" class="sub" x="24" y="276">Both busy. Each gets its request. No CPU limit.</text>
-  <text id="capPartial" class="sub" x="24" y="276">Pod B scales down to 2 cores. Pod A borrows the third.</text>
+  <text id="capPartial" class="sub" x="24" y="276">Pod B only needs 2 cores right now. Pod A borrows the third.</text>
   <text id="capIdle" class="sub" x="24" y="276">Pod B went idle. Pod A uses the leftover cores.</text>
 
   <text class="tiny" x="24" y="302">When pod B needs CPU again, those cores go back. No limit was ever set.</text>
