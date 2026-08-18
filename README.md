@@ -181,6 +181,17 @@ difference accumulates. The graphs make it look like a memory
 leak, the fix people reach for is a bigger memory limit, and
 the actual cause is the CPU limit.
 
+The GC version is not left as an analogy. `scripts/gc.sh`
+reproduces it with no explicit queue at all: every request
+builds a reference-dense object graph and holds it only while
+doing real work, so the garbage collector is the thing the cap
+starves. Under a 100m limit the pod stopped answering its own
+stats endpoint, kept digesting its backlog after the load
+generator had already stopped, and was OOMKilled anyway (exit
+137, three runs out of three, on .NET 10 with DATAS on). The
+identical uncapped pod finished the same load with a 9 MiB
+heap and one request in flight. Numbers: [results/gc.md](results/gc.md).
+
 ## Conclusion
 
 ![Table of what to set: keep the CPU request, keep the memory limit, drop the CPU limit unless you really know what you are doing](assets/do.svg)

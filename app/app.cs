@@ -10,6 +10,19 @@ using System.Threading.Channels;
 
 var app = WebApplication.CreateBuilder(args).Build();
 
+// --- gc lab state ------------------------------------------------------
+// A fixed-size ring of managed buffers. Every /churn request allocates one
+// buffer and overwrites the oldest slot, so the *live* set is constant
+// (slots x size) and identical on both pods no matter how fast either one
+// is served. The evicted buffer is unreachable but has been alive long
+// enough to be promoted, so reclaiming it costs a gen2 collection. Any
+// heap growth past the live set is therefore garbage the collector has
+// not caught up with, not retention: this isolates GC lag from backlog.
+var gcRing = new byte[4096][];
+long gcSlot = -1, gcChurned = 0;
+var gcRingLock = new object();
+long gcInflight = 0, gcWorked = 0;
+
 // --- oom lab state -----------------------------------------------------
 // Work queue whose payloads live in *native* memory (malloc), so the .NET
 // GC heap hard limit never intervenes and the kernel OOM killer is the
@@ -87,6 +100,104 @@ app.MapGet("/burst", async (int? threads, int? ms) =>
     return Results.Text(
         $"{{\"threads\":{n},\"msEach\":{each},\"elapsedMs\":{F(sw.Elapsed.TotalMilliseconds)}}}",
         "application/json");
+});
+
+app.MapGet("/churn", (int? kb, int? slots, int? count) =>
+{
+    // 64 KiB default: comfortably under the 85,000-byte LOH threshold, so
+    // these are ordinary heap allocations that must survive gen0 and be
+    // promoted, which is the expensive path. LOH objects would skip
+    // straight to gen2 and tell a different story.
+    var size = Math.Clamp(kb ?? 64, 1, 4096) * 1024;
+    var ring = Math.Clamp(slots ?? 2048, 1, gcRing.Length);
+    // buffers per request: lets one modest request rate produce a real
+    // allocation rate, instead of needing thousands of HTTP requests/s
+    var n = Math.Clamp(count ?? 32, 1, 4096);
+
+    long slot = 0;
+    for (var k = 0; k < n; k++)
+    {
+        var buf = new byte[size];
+        // touch every page: an untouched array may never be committed
+        for (var i = 0; i < buf.Length; i += 4096) buf[i] = 1;
+        lock (gcRingLock)
+        {
+            slot = (gcSlot + 1) % ring;
+            gcSlot = slot;
+            gcRing[slot] = buf;   // evicts the previous occupant -> promoted garbage
+        }
+    }
+    var total = Interlocked.Add(ref gcChurned, n);
+    return Results.Text(
+        $"{{\"churned\":{total},\"perRequestBytes\":{(long)n * size},\"liveSetBytes\":{(long)ring * size}}}",
+        "application/json");
+});
+
+app.MapGet("/gcwork", async (int? nodes, int? cpuMs) =>
+{
+    // The churn ring above shows GC *lag*; this shows the GC *spiral*.
+    // Each request builds a reference-dense graph of small objects (mark
+    // cost scales with object count, not bytes - a byte[] is the cheapest
+    // thing a collector can trace) and holds it while doing real CPU
+    // work. Work arrives open-loop from outside, so on a capped pod the
+    // in-flight count grows, the live object count grows with it, every
+    // GC cycle gets more expensive, and the collector and the workload
+    // fight over the same shrinking quota. An uncapped pod holds a
+    // handful of requests in flight and never notices.
+    var n = Math.Clamp(nodes ?? 10_000, 1, 1_000_000);
+    var cost = Math.Clamp(cpuMs ?? 40, 0, 10_000);
+
+    var graph = new object[n][];
+    object[]? prev = null;
+    for (var i = 0; i < n; i++)
+    {
+        var node = new object[3];
+        node[0] = new string('x', 8 + (i & 31)); // distinct string per node
+        node[1] = prev;                          // reference chain: real mark work
+        node[2] = i;
+        prev = node;
+        graph[i] = node;
+    }
+
+    var inflight = Interlocked.Increment(ref gcInflight);
+    try
+    {
+        await Task.Run(() => SpinCpu(cost));     // hold the graph during the work
+    }
+    finally
+    {
+        Interlocked.Decrement(ref gcInflight);
+    }
+    // touch the graph after the work so the runtime cannot collect it early
+    var checksum = ((string)graph[n - 1][0]!).Length;
+    var total = Interlocked.Increment(ref gcWorked);
+    return Results.Text(
+        $"{{\"worked\":{total},\"nodes\":{n},\"cpuMs\":{cost},\"inflight\":{inflight},\"check\":{checksum}}}",
+        "application/json");
+});
+
+app.MapGet("/gcstats", () =>
+{
+    var info = GC.GetGCMemoryInfo();
+    var json = "{"
+        + $"\"churned\":{Interlocked.Read(ref gcChurned)},"
+        + $"\"worked\":{Interlocked.Read(ref gcWorked)},"
+        + $"\"inflight\":{Interlocked.Read(ref gcInflight)},"
+        + $"\"heapSizeBytes\":{info.HeapSizeBytes},"
+        + $"\"fragmentedBytes\":{info.FragmentedBytes},"
+        + $"\"committedBytes\":{info.TotalCommittedBytes},"
+        + $"\"heapHardLimitBytes\":{info.TotalAvailableMemoryBytes},"
+        + $"\"pauseTimePercentage\":{info.PauseTimePercentage.ToString("F2", CultureInfo.InvariantCulture)},"
+        + $"\"gen0\":{GC.CollectionCount(0)},"
+        + $"\"gen1\":{GC.CollectionCount(1)},"
+        + $"\"gen2\":{GC.CollectionCount(2)},"
+        + $"\"totalAllocatedBytes\":{GC.GetTotalAllocatedBytes(false)},"
+        + $"\"managedHeapBytes\":{GC.GetTotalMemory(false)},"
+        + $"\"workingSetBytes\":{Environment.WorkingSet},"
+        + $"\"memoryCurrent\":{J(ReadOrNa("/sys/fs/cgroup/memory.current"))},"
+        + $"\"memoryMax\":{J(ReadOrNa("/sys/fs/cgroup/memory.max"))}"
+        + "}";
+    return Results.Text(json, "application/json");
 });
 
 app.MapGet("/enqueue", (int? bytes, int? cpuMs) =>
