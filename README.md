@@ -204,17 +204,17 @@ removes the shortfall itself.
 
 ### Shape 2: GC starvation
 
-This is a different mechanism, not a variant of the first: no
-queue, no buffer, nothing held on purpose. Every request builds
-a reference-dense graph of 10,000 small objects (~1.5 MiB) and
-holds it only while doing real work; once the request finishes,
-the graph is garbage. What runs short here is the garbage
-collector's own CPU budget: on the capped pod (`limits.cpu:
-100m`, the same value as the production incident this test is
-based on), in-flight requests pile up, the live object count
-grows with them, each GC cycle gets more expensive, and the
-collector competes with the workload for the same shrinking
-quota.
+This is a completely different scenario, one that involves the
+garbage collector instead of a queue or buffer. Every request
+builds a reference-dense graph of 10,000 small objects (~1.5
+MiB) and holds it only while doing real work; once the request
+finishes, the graph is garbage. What runs short here is the
+garbage collector's own CPU budget: on the capped pod
+(`limits.cpu: 100m`, the same value as the production incident
+this test is based on), in-flight requests pile up, the live
+object count grows with them, each GC cycle gets more
+expensive, and the collector competes with the workload for
+the same shrinking quota.
 
 ![Animation of the GC starvation shape: two pods take the same 20 requests per second, each request holding a 10,000-object graph only while it works; the pod capped at 100m CPU accumulates in-flight requests, its garbage collector cannot keep up on the shared 100m budget, it stops answering its own stats endpoint and is OOMKilled, while the pod with no CPU limit stays at one request in flight and a 9 MiB heap](assets/gc-live.svg)
 
