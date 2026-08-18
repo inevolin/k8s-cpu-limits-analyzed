@@ -1,7 +1,5 @@
 # Kubernetes CPU limits: the mistake, the why, and proof
 
-> This analysis was co-produced with Claude Fable 5 and Grok 4.6.
-
 Most charts set two CPU numbers, a request and a limit, and
 people treat them like the same setting with a bit of headroom.
 The **request** is how much CPU is reserved for your pod if
@@ -17,7 +15,16 @@ fine the whole time.
 
 ![Sample values.yaml showing a requests.cpu of 250m and a limits.cpu of 500m, with an arrow pointing out that the limit is the dangerous one](assets/values-file.svg)
 
-## Why
+Contents: [why requests are enough](#why-cpu-requests-are-enough),
+[what average CPU hides](#what-average-cpu-hides),
+[the benchmark](#proof-the-same-app-with-and-without-a-cpu-limit),
+[.NET and thread pools](#net-looks-at-the-limit),
+[CPU limits and OOMKills](#how-cpu-limits-cause-memory-issues-and-oomkills),
+[conclusion](#conclusion-drop-cpu-limits-keep-requests),
+[common questions](#common-questions-about-kubernetes-cpu-limits),
+[run it yourself](#run-the-benchmark-yourself).
+
+## Why CPU requests are enough
 
 Linux already shares a busy node's CPU fairly among pods. That sharing is called CFS
 (Completely Fair Scheduler). A request is a weight in the
@@ -54,8 +61,8 @@ reserved core.**
 
 ## What average CPU hides
 
-Your CPU graph usually averages a minute. CPU throttling
-lasts a tenth of a second. So **the graph can look fine while
+The CPU graph on your Kubernetes dashboard usually averages
+a minute. CPU throttling lasts a tenth of a second. So **the graph can look fine while
 the app is being throttled all the time.** Watch
 `container_cpu_cfs_throttled_periods_total`, not average CPU.
 
@@ -80,7 +87,7 @@ the cap's distortion into the request. **Drop the limit first,
 let the app run for a while, then measure and set requests
 from numbers that were free to move.**
 
-## Proof
+## Proof: the same app with and without a CPU limit
 
 I ran the same .NET app twice on a local 8-CPU minikube. Both
 asked for 250m, and I pinned .NET to 4 CPUs on both so I was
@@ -235,7 +242,7 @@ bigger memory limit, and the actual cause is the CPU limit.
 Check `container_cpu_cfs_throttled_periods_total` before you
 raise `limits.memory`.
 
-## Conclusion
+## Conclusion: drop CPU limits, keep requests
 
 ![Table of what to set: keep the CPU request, keep the memory limit, drop the CPU limit unless you really know what you are doing](assets/do.svg)
 
@@ -268,7 +275,19 @@ limit. Removing the limit does not change that formula. Use
 can go higher, so you may get more replicas, which is
 usually fine.
 
-## Questions that come up
+## Common questions about Kubernetes CPU limits
+
+**Should I set CPU limits in Kubernetes?**
+For most services, no. Keep `requests.cpu` so CFS reserves
+your share, keep `limits.memory`, and drop `limits.cpu`. The
+exceptions (benchmarks, pinned cores, per-customer billing)
+are listed in the [conclusion](#conclusion-drop-cpu-limits-keep-requests).
+
+**How do I fix CPU throttling in Kubernetes?**
+Raise or remove `limits.cpu` on the throttled pod; nothing
+else stops it. Confirm with
+`container_cpu_cfs_throttled_periods_total` first, then check
+that the pod's request roughly matches its real baseline use.
 
 **Isn't your 4x latency just a request that was too low?**
 Partly, and that is the point. Burst above the request is
@@ -363,7 +382,7 @@ injects one. Check both before rolling this out. Quota on
 requests.cpu instead: that is the number the scheduler
 actually books.
 
-## Run it
+## Run the benchmark yourself
 
 Use a throwaway cluster. One of the pods will burn CPU on
 purpose.
@@ -430,3 +449,7 @@ The README is the argument; `docs/` is the reference material behind it:
 - [Kubernetes docs: resource requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) - how requests, limits, and CFS quota fit together.
 - Dave Chiluk, ["Throttling: New Developments in Application Performance with CPU Limits"](https://www.youtube.com/watch?v=UE7QX98-kO0) (KubeCon NA 2019) - the CFS throttling bug and why limits hurt more than the naive model suggests.
 - The kernel's CFS bandwidth burst feature (`cpu.max.burst`) lets a cgroup borrow a little unused budget from past periods, softening some of this without removing the limit.
+
+---
+
+*This analysis was co-produced with Claude Fable 5 and Grok 4.6.*
