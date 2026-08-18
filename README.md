@@ -1,38 +1,37 @@
 # Kubernetes CPU limits: the mistake, the why, and proof
 
-**TL;DR: set `requests.cpu`, `requests.memory`, and
-`limits.memory`, but remove `limits.cpu` (unless you hit one of
-the narrow exceptions in the
-[conclusion](#conclusion-drop-cpu-limits-keep-requests)).**
+**TL;DR:** set `requests.cpu`, `requests.memory`, and
+`limits.memory`, but remove `limits.cpu`.
 
 This isn't new advice. It's a best practice from Kubernetes
 and Google themselves:
 
-> "1) Always set memory limit == request 2) Never set CPU limit"
->
-> *Tim Hockin, Kubernetes co-founder, 2019 ([source](https://x.com/thockin/status/1134193838841401345))*
+> "Always set memory limit == request. Never set CPU limit"
+> ~ *Tim Hockin, Kubernetes co-founder ([source](https://x.com/thockin/status/1134193838841401345))*
 
-Google's own GKE docs say the same thing: for the CPU request,
-"specify the minimum CPU needed... according to your own SLOs,"
-then "set an unbounded CPU limit"
-([source](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling)).
+> Google's GKE docs say the same thing: for the CPU request,
+> "specify the minimum CPU needed... according to your own SLOs,"
+> then "set an unbounded CPU limit"
+> ([source](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling)).
+
 Most teams still set a CPU limit anyway, then spend their time
 fighting the throttling that follows. This analysis explains why
-the advice is right, and why so many people still get it wrong.
-
+the advice is right, and why so many people still get it wrong. 
 Most charts set two CPU numbers, a request and a limit, and
 people treat them like the same setting with a bit of headroom.
-The **request** is how much CPU is reserved for your pod if
-it needs it. The **limit** is a hard cap: hit it and the
+
+- The **request** is how much CPU is reserved for your pod if
+it needs it.
+- The **limit** is a hard cap: hit it and the
 kernel **throttles** the pod, even when the node still has
-spare CPU. This is the most common source of unexpected CPU
+spare CPU.
+
+This is the most common source of unexpected CPU
 throttling on Kubernetes. **A CPU limit does not protect
 neighboring pods; their protection comes from their own
-requests.** In a controlled burst test below, adding a CPU
-limit took typical latency from 23 ms to roughly 87 ms (about
-4x slower), with the limited pod throttled in half of all CFS
-windows, while the average CPU graph looked fine the whole
-time.
+requests.** There are exceptional use cases for using CPU limits (they exist for a reason),
+but your situation is unlikely one of them, meaning you probably should NOT set CPU limits, 
+see [conclusion](#conclusion-drop-cpu-limits-keep-requests).
 
 ![Sample values.yaml showing a requests.cpu of 250m and a limits.cpu of 500m, with an arrow pointing out that the limit is the dangerous one](assets/values-file.svg)
 
@@ -109,6 +108,12 @@ let the app run for a while, then measure and set requests
 from numbers that were free to move.**
 
 ## Proof: the same app with and without a CPU limit
+
+In a controlled burst test, adding a CPU
+limit took typical latency from 23 ms to roughly 87 ms (about
+4x slower), with the limited pod throttled in half of all CFS
+windows, while the average CPU graph looked fine the whole
+time.
 
 I ran the same .NET app twice on a local 8-CPU minikube. Both
 asked for 250m, and I pinned .NET to 4 CPUs on both so I was
