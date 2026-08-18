@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="270" viewBox="0 0 720 270">
   <rect width="720" height="270" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">what the values file looks like vs what it actually is</text>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">Two CPU numbers that look alike. Only one throttles your pod.</text>
 
   <rect x="24" y="48" width="320" height="198" fill="#f7f3ea" stroke="#b8b2a8"/>
   <text x="40" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">values.yaml</text>
@@ -14,11 +14,11 @@
 
   <rect x="400" y="48" width="296" height="92" fill="#e8f0e8" stroke="#5a9a5a"/>
   <text x="416" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#5a9a5a">request</text>
-  <text x="416" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">CPU reserved for the pod,</text>
-  <text x="416" y="114" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">plus leftover if idle</text>
+  <text x="416" y="96" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">CPU reserved for your pod,</text>
+  <text x="416" y="114" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">plus leftover when others idle</text>
 
   <rect x="400" y="152" width="296" height="94" fill="#f6eeea" stroke="#c4473a"/>
   <text x="416" y="178" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c4473a">limit</text>
-  <text x="416" y="200" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hard cap on CPU use</text>
-  <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">hit it and the pod throttles</text>
+  <text x="416" y="200" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">Hard cap. Hit it and the pod</text>
+  <text x="416" y="218" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">throttles, even on an idle node</text>
 </svg>

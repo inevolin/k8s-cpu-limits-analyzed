@@ -67,7 +67,7 @@
 
   <rect width="720" height="392" fill="#faf9f6"/>
   <text class="title" x="24" y="30">Same load, same memory limit, one CPU limit</text>
-  <text class="sub" x="24" y="50">20 jobs/s in, 2 MiB held until processed - a Kafka/RabbitMQ consumer buffer in miniature.</text>
+  <text class="sub" x="24" y="50">20 jobs/s in, 2 MiB held until processed — a Kafka or RabbitMQ consumer buffer.</text>
 
   <!-- ================= capped pod ================= -->
   <text class="limitctx" x="24" y="92">500m limit</text>
@@ -91,17 +91,17 @@
   <line x1="644" y1="98" x2="644" y2="146" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
   <text class="tiny" x="652" y="126" fill="#c4473a">1 GiB</text>
 
-  <text id="q0" class="tiny" x="24" y="162">backlog: 0 jobs waiting</text>
-  <text id="q1" class="tiny" x="24" y="162">backlog: 80 jobs waiting, 160 MiB of memory the pod cannot free</text>
-  <text id="q2" class="tiny" x="24" y="162">backlog: 160 jobs waiting, 320 MiB of memory the pod cannot free</text>
-  <text id="q3" class="tiny" x="24" y="162">backlog: 246 jobs waiting, 492 MiB of memory the pod cannot free</text>
-  <text id="qdead" class="tiny" x="24" y="162">backlog: gone, and so is the pod that was holding it</text>
+  <text id="q0" class="tiny" x="24" y="162">Backlog: 0 jobs waiting</text>
+  <text id="q1" class="tiny" x="24" y="162">Backlog: 80 jobs waiting, 160 MiB the pod is not allowed to free</text>
+  <text id="q2" class="tiny" x="24" y="162">Backlog: 160 jobs waiting, 320 MiB the pod is not allowed to free</text>
+  <text id="q3" class="tiny" x="24" y="162">Backlog: 246 jobs waiting, 492 MiB the pod is not allowed to free</text>
+  <text id="qdead" class="tiny" x="24" y="162">Backlog: gone, and so is the pod that was holding it.</text>
 
-  <text id="alivetag" class="muted" x="24" y="182">Nothing leaked. The backlog only shrinks with CPU the cap forbids.</text>
-  <text id="oomtag" class="dead" x="24" y="182">OOMKilled - exit 137 - restarted with every queued job lost</text>
+  <text id="alivetag" class="muted" x="24" y="182">Nothing leaked. The backlog only shrinks with CPU the limit forbids.</text>
+  <text id="oomtag" class="dead" x="24" y="182">OOMKilled (exit 137). Restarted, and every queued job is gone.</text>
 
   <!-- ================= uncapped pod ================= -->
-  <text class="openctx" x="24" y="240">no limit</text>
+  <text class="openctx" x="24" y="240">No limit</text>
   <text class="tiny" x="105" y="240">20 jobs/s in</text>
   <g class="jobs">
     <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-0.24s"/>
@@ -121,7 +121,7 @@
   <line x1="644" y1="246" x2="644" y2="294" stroke="#c8c2b8" stroke-width="1" stroke-dasharray="2,2"/>
   <text class="tiny" x="652" y="274" fill="#888888">1 GiB</text>
 
-  <text class="tiny" x="24" y="310">backlog: 0 to 1 job waiting, memory flat, 0 restarts</text>
+  <text class="tiny" x="24" y="310">Backlog: 0 to 1 job waiting, memory flat, 0 restarts.</text>
   <text class="muted" x="24" y="330">Same 1 GiB memory limit. It never gets close.</text>
 
   <line x1="24" y1="352" x2="696" y2="352" stroke="#e8e4dc" stroke-width="1"/>

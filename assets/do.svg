@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="326" viewBox="0 0 720 326">
   <rect width="720" height="326" fill="#faf9f6"/>
-  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">what to set - values.yaml</text>
+  <text x="24" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#111111">What to set in values.yaml</text>
 
   <rect x="24" y="48" width="672" height="250" fill="#f7f3ea" stroke="#b8b2a8"/>
   <text x="40" y="74" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#111111">values.yaml</text>
@@ -14,12 +14,12 @@
   <text x="40" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#7a756c" xml:space="preserve">    cpu: 500m</text>
   <line x1="74" y1="259" x2="150" y2="259" stroke="#c0685a" stroke-width="1.5"/>
 
-  <text x="340" y="160" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - reserves your share</text>
-  <text x="340" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - reserves memory for the pod</text>
-  <text x="340" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - same as the request, or higher</text>
-  <text x="340" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#c0685a">&#10007; drop - unless you really know why</text>
+  <text x="340" y="160" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep — reserves your share</text>
+  <text x="340" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep — reserves memory for the pod</text>
+  <text x="340" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep — same as the request, or higher</text>
+  <text x="340" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#c0685a">&#10007; drop — unless you are a rare exception</text>
 
   <line x1="130" y1="192" x2="130" y2="232" stroke="#8a8578" stroke-width="1" stroke-dasharray="2,2"/>
 
-  <text x="40" y="292" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#8a8578">no cpu limit line -&gt; no throttling on this pod</text>
+  <text x="40" y="292" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#8a8578">No limits.cpu line → no throttling on this pod.</text>
 </svg>

@@ -82,16 +82,16 @@
   <line x1="644" y1="98" x2="644" y2="146" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
   <text class="tiny" x="652" y="126" fill="#c4473a">512Mi</text>
 
-  <text id="c0" class="tiny" x="24" y="162">in-flight requests climbing - each stalled request keeps its whole graph alive</text>
-  <text id="c1" class="tiny" x="24" y="162">the GC must trace an ever larger live set with the CPU it wins from the workload</text>
-  <text id="c2" class="tiny" x="24" y="162">pod stopped answering /gcstats - too throttled to reply is what "monitoring went dark" looks like</text>
-  <text id="cdead" class="tiny" x="24" y="162">still digesting backlog after the load stopped - killed anyway</text>
+  <text id="c0" class="tiny" x="24" y="162">In-flight requests climbing. Each stalled request keeps its whole graph alive.</text>
+  <text id="c1" class="tiny" x="24" y="162">The GC must trace an ever larger live set with the CPU it wins from the workload.</text>
+  <text id="c2" class="tiny" x="24" y="162">Pod stopped answering /gcstats. Too throttled to reply is what monitoring going dark looks like.</text>
+  <text id="cdead" class="tiny" x="24" y="162">Still digesting the backlog after the load stopped. Killed anyway.</text>
 
   <text id="livetag" class="muted" x="24" y="182">Nothing leaked and nothing is queued: the memory is live in-flight requests.</text>
-  <text id="deadtag" class="dead" x="24" y="182">OOMKilled - exit 137 - three runs out of three, .NET 10 with DATAS on</text>
+  <text id="deadtag" class="dead" x="24" y="182">OOMKilled (exit 137). Three runs out of three, .NET 10 with DATAS on.</text>
 
   <!-- ================= uncapped pod ================= -->
-  <text class="openctx" x="24" y="240">no limit</text>
+  <text class="openctx" x="24" y="240">No limit</text>
   <text class="tiny" x="105" y="240">20 req/s in</text>
   <g>
     <rect class="req" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-0.24s"/>
@@ -110,7 +110,7 @@
   <line x1="644" y1="246" x2="644" y2="294" stroke="#c8c2b8" stroke-width="1" stroke-dasharray="2,2"/>
   <text class="tiny" x="652" y="274" fill="#888888">512Mi</text>
 
-  <text class="tiny" x="24" y="310">in-flight: 1, managed heap 9.3 MiB, restarts 0</text>
+  <text class="tiny" x="24" y="310">In-flight: 1, managed heap 9.3 MiB, restarts 0.</text>
   <text class="muted" x="24" y="330">Same code, same load, same memory limit. The collector just gets the CPU it needs.</text>
 
   <line x1="24" y1="352" x2="696" y2="352" stroke="#e8e4dc" stroke-width="1"/>
