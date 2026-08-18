@@ -284,12 +284,9 @@ memory is short, the app (or the node) dies.
 
 There are a few narrow exceptions:
 
-| Use a CPU limit | Don't use a CPU limit |
+| Use a CPU limit for: | Don't use a CPU limit for: |
 |---|---|
-| A benchmark that needs a hard, repeatable ceiling | A normal web service or frontend API |
-| A pod that pins whole cores on purpose (request equal to limit, with the static CPU manager) | A background worker or cron job |
-| A multi-tenant platform billing a fixed amount of CPU per customer | A database, Redis, or Kafka |
-| You want the app to behave the same on a quiet node and a busy one, and accept the throttling and wasted idle CPU that comes with it | Anything else not on the left |
+| <ul><li>A benchmark that needs a hard, repeatable ceiling</li><li>A pod that pins whole cores on purpose</li><li>A multi-tenant platform (e.g. a cloud provider)</li></ul> | <ul><li>A web service like a frontend UI, BFF, or API</li><li>A background worker or cron job</li><li>Databases and tooling (Redis, Kafka, RabbitMQ, etc.)</li><li>Anything else not in the list on the left</li></ul> |
 
 If you run one of the cases on the left, you already know
 it. **Everything else: don't set a CPU limit.**
