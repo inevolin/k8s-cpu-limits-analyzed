@@ -55,6 +55,20 @@ for that workload (and, transitively, for anything waiting on it: connection poo
 session timeouts, HTTP clients) and provides no additional isolation to the rest of the cluster,
 because the rest of the cluster was already protected by weight.
 
+## Hyperthreading does not change the quota math
+
+`cpu.max`'s quota is CPU-*time*, counted the same way regardless of whether a thread lands on a
+physical core or a hyperthread (SMT sibling). The kernel does not give a discount for running on a
+sibling of an already-busy core, and it does not charge extra either: the accounted time is
+wall-clock time the thread spent scheduled, full stop. What hyperthreading does change is how much
+real throughput that time buys. Two sibling threads contending for the same core's execution units
+finish their work slower, in wall-clock terms, than two threads on independent physical cores would
+- so a quota sized by counting logical CPUs (as `nproc` and most container runtimes report them)
+can be quietly optimistic about how much actual compute that quota represents, on a node where SMT
+siblings are busy. This is a capacity-planning wrinkle, not a reason to keep a limit: the quota
+still throttles on time, not "logical cores used," and a request still reserves a `cpu.weight`
+share of whatever real throughput the node has, siblings included.
+
 ## The one real exception: Guaranteed QoS + static CPU manager
 
 Kubernetes' kubelet `CPUManager` in `static` policy mode gives exclusive whole cores to containers
