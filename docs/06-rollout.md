@@ -54,7 +54,7 @@ implicit request from the API server; deleting the limit would delete that too).
 
 ## Step 4: drop CPU limits, namespace by namespace, env by env
 
-Order: `dev` -> `qa` -> `acc` -> `prod`. Within an env, roll out namespace by namespace (or service
+Order: dev -> staging -> prod (or whatever your environment chain is). Within an env, roll out namespace by namespace (or service
 by service for high-risk services), not fleet-wide in one PR. Each PR removes the `cpu` key under
 `resources.limits`; `resources.limits.memory` stays untouched. Where a request is obviously
 dishonest (e.g. 10m against 100m+ real usage), raise it toward measured P95 *in the same PR*: the

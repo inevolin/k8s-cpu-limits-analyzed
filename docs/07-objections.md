@@ -14,8 +14,9 @@ This repo's lab measures exactly this (`scripts/run.sh`, the hog and saturate le
 hog with no limit of its own lands on the node, and the unlimited victim's p99 barely moves, with
 no throttling - even when the hog is scaled up until the node is actually full. See
 `results/run.md`. A separate four-way run of the same shape (limited and unlimited victims, hog on
-and off) added one more data point: the limited victim under hog pressure was still slower than the
-unlimited victim under identical pressure. **The limit provides no benefit to its own pod.**
+and off; run while preparing this material, not part of this repo's lab) added one more data
+point: the limited victim under hog pressure was still slower than the unlimited victim under
+identical pressure. **The limit provides no benefit to its own pod.**
 
 ## What if a pod runs away and tries to use everything?
 

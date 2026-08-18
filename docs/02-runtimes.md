@@ -34,7 +34,9 @@ throttled in **98.9% of CFS periods** during the incident, threw in-process
 reclaim memory, turning a routine memory peak into a death spiral. The same starvation blew a
 downstream timeout on a config/flag read, so the app silently fell back to defaults in production.
 The dependency it was calling was healthy the whole time; the errors it emitted were symptoms of
-the starved pod, not a real outage on the other end. Fix applied: `cpu: 1`, `memory: 1Gi`. Two
+the starved pod, not a real outage on the other end. Immediate incident remediation raised the
+limit (`cpu: 1`, `memory: 1Gi`) to stop the bleeding; that is not the end state this chapter
+argues for, just what stopped the incident that day. Two
 lessons: a CPU limit can cause a *memory* incident, and throttling routinely presents as someone
 else's dependency failing.
 
@@ -71,10 +73,12 @@ Other knobs worth setting alongside dropping the limit:
 
 - `DOTNET_gcServer=0` for small pods (low CPU request): Server GC's per-core heap overhead isn't
   worth it below a few cores; Workstation GC is often the better default.
-- `DOTNET_GCHeapHardLimitPercent=75` (with the memory limit, which stays): caps the managed heap at
-  75% of the container's memory limit, so GC growth hits a controlled ceiling instead of racing the
-  kubelet OOM killer. 75 is a starting point, not a validated constant; tune it to the workload's
-  native-memory footprint.
+- A GC heap hard limit (with the memory limit, which stays): caps the managed heap at a fraction of
+  the container's memory limit, so GC growth hits a controlled ceiling instead of racing the
+  kubelet OOM killer. The `DOTNET_GCHeapHardLimitPercent` env var takes a **hex** value (`4B` for
+  75, not `75`, which means 117%) - easy to get wrong. Simpler to set `System.GC.HeapHardLimitPercent`
+  as a decimal in `runtimeconfig.json` instead. Either way, the percentage is a starting point, not
+  a validated constant; tune it to the workload's native-memory footprint.
 
 **Rule: never drop a CPU limit before pinning the runtime's processor-count knob.** Dropping the
 limit without setting `DOTNET_PROCESSOR_COUNT` swaps "sized for 1 core" for "sized for the whole
@@ -83,12 +87,15 @@ contention.
 
 ## Go: GOMAXPROCS sees the whole node
 
-Go's runtime sets `GOMAXPROCS` to the number of logical CPUs it detects, and by default that means
-the *node's* CPU count, not the container's quota or request - Go does not read `cpu.max` on its
-own. With a CPU limit in place this is already wrong (a 300m-limited pod scheduling goroutines
-across `GOMAXPROCS=16` invites the same quota-burn-in-milliseconds problem as .NET's ThreadPool).
-Without a limit it gets worse, not better: nothing constrains `GOMAXPROCS` at all. Set it
-explicitly, matched to the CPU request:
+Before Go 1.25 (August 2025), the runtime set `GOMAXPROCS` to the number of logical CPUs it
+detects on the *node*, ignoring the container's quota or request entirely. With a CPU limit in
+place this was already wrong (a 300m-limited pod scheduling goroutines across `GOMAXPROCS=16`
+invites the same quota-burn-in-milliseconds problem as .NET's ThreadPool); without a limit it got
+worse, since nothing constrained `GOMAXPROCS` at all.
+
+Go 1.25+ is cgroup-aware and sizes `GOMAXPROCS` from the CPU limit automatically - which is exactly
+what disappears the moment you drop the limit. Either way, on any Go version, pin it explicitly
+once the limit is gone, matched to the CPU request:
 
 ```yaml
 env:
@@ -96,16 +103,16 @@ env:
     value: "2"
 ```
 
-(Libraries like `uber-go/automaxprocs` do this automatically from cgroup limits at startup, but
-they read the limit - if you drop the limit, pin `GOMAXPROCS` directly or the library has nothing
-to read.)
+(`uber-go/automaxprocs` does the same cgroup-aware sizing as native Go 1.25+, for older Go
+versions - either way it reads the *limit*, so if you drop the limit, pin `GOMAXPROCS` directly or
+there's nothing left for it to read.)
 
 ## JVM: ActiveProcessorCount
 
-Modern JVMs (10+) are cgroup-aware and set `ActiveProcessorCount` from the container's CPU quota,
-which then feeds `ForkJoinPool.commonPool()`, the GC's parallel worker count, and any
-`Runtime.availableProcessors()` call. The same shrink-to-quota problem applies as .NET's
-`ProcessorCount`. If you drop the limit, pin it explicitly rather than let the JVM see the node:
+Modern JVMs (10+) are cgroup-aware and compute `Runtime.availableProcessors()` from the
+container's CPU quota, which then feeds `ForkJoinPool.commonPool()` and the GC's parallel worker
+count. The same shrink-to-quota problem applies as .NET's `ProcessorCount`. If you drop the limit,
+override the computed value explicitly rather than let the JVM see the node:
 
 ```
 -XX:ActiveProcessorCount=2
