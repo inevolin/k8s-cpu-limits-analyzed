@@ -282,21 +282,17 @@ the limit line by itself does not free any nodes.
 **Leave `limits.memory`.** If CPU is short, the app waits. If
 memory is short, the app (or the node) dies.
 
-There are a few narrow exceptions: a benchmark that needs a
-hard ceiling for repeatable numbers; pods that pin whole
-cores (request equal to limit on purpose, with the static
-CPU manager); and multi-tenant platforms where the cap is
-the product, because you sell or bill a fixed amount of CPU
-per customer. Some teams also keep limits purely for
-predictability: the app behaves the same on a quiet node
-and a busy one. That is a real trade, but you pay for it
-with throttling and wasted idle CPU. If you run one of
-these, you already know it. A normal web service, worker,
-or cron job is none of them. That covers most of a typical
-fleet: frontend APIs, background workers, cron jobs,
-databases, Redis, Kafka, and anything else outside the list
-above. **If that's what you're running, don't set a CPU
-limit on it.**
+There are a few narrow exceptions:
+
+| Use a CPU limit | Don't use a CPU limit |
+|---|---|
+| A benchmark that needs a hard, repeatable ceiling | A normal web service or frontend API |
+| A pod that pins whole cores on purpose (request equal to limit, with the static CPU manager) | A background worker or cron job |
+| A multi-tenant platform billing a fixed amount of CPU per customer | A database, Redis, or Kafka |
+| You want the app to behave the same on a quiet node and a busy one, and accept the throttling and wasted idle CPU that comes with it | Anything else not on the left |
+
+If you run one of the cases on the left, you already know
+it. **Everything else: don't set a CPU limit.**
 
 Autoscaling on CPU compares use to the *request*, not the
 limit. Removing the limit does not change that formula. Use
