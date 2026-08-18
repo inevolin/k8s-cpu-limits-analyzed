@@ -190,6 +190,22 @@ zero restarts. Numbers vary a little run to run (see the
 caveat on SDK-image page cache in
 [results/oom.md](results/oom.md)); the outcome doesn't.
 
+"But a real consumer has a bounded worker pool." A worker pool
+bounds CPU concurrency, not memory: the usual shape is a
+bounded pool fed by an unbounded handoff queue, and the lab's
+worker pool is size one. The buffer itself is unbounded more
+often than people think: RabbitMQ's prefetch is unlimited
+unless you set `basic.qos`, and Kafka consumers that hand
+records to an in-process queue so polling can continue (the
+standard way to stay under `max.poll.interval.ms` and avoid a
+rebalance) have reinvented the unbounded buffer one layer
+down. Even a properly bounded buffer is usually sized for the
+healthy drain rate, which the cap quietly halved. And a
+consumer with real backpressure everywhere does not escape the
+deficit, it relocates it: lag piles up in the broker instead
+of in RAM. The CPU limit picks which resource fills; only
+removing it removes the deficit.
+
 ### Shape 2: GC starvation, no queue at all
 
 The objection to shape 1 writes itself: "so bound your queue."
