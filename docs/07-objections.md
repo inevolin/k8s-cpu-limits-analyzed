@@ -10,12 +10,12 @@ CPU proportional to its request, same as every other pod. Worst case, an unlimit
 nobody else wants (idle capacity); it cannot take CPU another pod's weight entitles it to under
 contention.
 
-Measured in this repo's own lab: an 8-thread unlimited hog landing on the same node as an unlimited
-victim moved the victim's p99 only modestly, with 0% throttling. Under the same hog, a *limited*
-victim's p99 was worse and barely different from its own no-hog baseline: the hog added no
-measurable effect on top of the limit's own throttling. Even so, the limited victim's p99 with the
-hog was still worse than the unlimited victim's under identical hog pressure: **the limit provides
-no benefit to its own pod.** See `results/40-noisy-neighbor.md`.
+This repo's lab measures exactly this (`scripts/run.sh`, the hog and saturate legs): a CPU-burning
+hog with no limit of its own lands on the node, and the unlimited victim's p99 barely moves, with
+no throttling - even when the hog is scaled up until the node is actually full. See
+`results/run.md`. A separate four-way run of the same shape (limited and unlimited victims, hog on
+and off) added one more data point: the limited victim under hog pressure was still slower than the
+unlimited victim under identical pressure. **The limit provides no benefit to its own pod.**
 
 ## What if a pod runs away and tries to use everything?
 

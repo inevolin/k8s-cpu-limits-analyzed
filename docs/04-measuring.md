@@ -66,8 +66,8 @@ count(
 
 ## What you may find: an anonymized example fleet
 
-One real production fleet we measured, all namespaces, one snapshot re-verified over a full 24h
-window:
+One real production fleet, measured for this material and anonymized. All namespaces, one
+snapshot re-verified over a full 24h window:
 
 | Metric | Cores | % of allocatable | % of requests |
 |---|---|---|---|

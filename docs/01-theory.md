@@ -29,9 +29,9 @@ schedule them *at all* until the next period starts. From the app's perspective 
 would take 2ms takes 100ms, in one discontinuous jump. This is why throttling shows up as p99/p999
 latency spikes and probe flapping, not as a gradually rising baseline. Average CPU usage can look
 completely fine (well under the limit) while the tail is destroyed, because usage is averaged over
-the period and throttling is a binary state within it. The `/burst` profile in this repo's own lab
-(`scripts/20-latency.sh`) demonstrates this directly: average CPU stays below the limit, p99 still
-stalls hard.
+the period and throttling is a binary state within it. The burst leg of this repo's lab
+(`scripts/run.sh`, the `/burst` endpoint) demonstrates this directly: average CPU stays below the
+limit, p99 still stalls hard. See `results/run.md`.
 
 **Watch `container_cpu_cfs_throttled_periods_total`, not the average CPU graph** - see
 [04-measuring.md](04-measuring.md) for the queries.

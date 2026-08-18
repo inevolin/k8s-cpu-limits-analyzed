@@ -20,13 +20,14 @@ actually entitled to. Under a CPU limit, those extra parallel workers do not add
 compete with each other and the backend for the same small quota, spending more time context
 switching and stalling than a smaller, honest worker count would.
 
-This repo's own parallel-query test (`scripts/50-postgres.sh`, a single `generate_series` count
-scan) did not show this effect clearly: limited vs. unlimited runtime differed by well under 1%,
-within single-run noise. The mechanism above follows from Postgres reading node-wide core count
-regardless of cgroup quota (still true, see the section above), but a single sequential-scan-heavy
-query with default `max_parallel_workers_per_gather` may not create enough parallel-worker
-contention to make the effect visible. **Treat this section as mechanism derived from CFS quota
-theory** (same as [01-theory.md](01-theory.md)), **not as something measured and confirmed here.**
+A one-off parallel-query check run while preparing this material (a single `generate_series`
+count scan on limited vs unlimited Postgres pods; not part of this repo's lab) did not show this
+effect clearly: limited vs. unlimited runtime differed by well under 1%, within single-run noise.
+The mechanism above follows from Postgres reading node-wide core count regardless of cgroup quota
+(still true, see the section above), but a single sequential-scan-heavy query with default
+`max_parallel_workers_per_gather` may not create enough parallel-worker contention to make the
+effect visible. **Treat this section as mechanism derived from CFS quota theory** (same as
+[01-theory.md](01-theory.md)), **not as something measured and confirmed here.**
 
 ## Checkpointer, autovacuum, and bgwriter share the same throttled quota (mechanism, not measured)
 
@@ -57,12 +58,12 @@ No CPU limit on Postgres pods. Keep CPU requests honest, since they still drive 
 settings) to the CPU *request*, not to the node's detected core count, so the parallel-worker
 budget matches the CPU-time the pod can actually rely on.
 
-`scripts/50-postgres.sh` in this repo is the actual measured evidence, and it's mixed: a pgbench
-throughput run showed a modest (single-digit percent) drop on the limited variant in one run - real
+This repo's lab does not include a Postgres scenario. The measured evidence behind this chapter
+is one informal pgbench comparison from the same preparatory run as above, and it's mixed: pgbench
+throughput was a modest (single-digit percent) lower on the limited variant in one run - a real
 signal that limits can hurt Postgres throughput, but from one trial, not a repeated study. The
 parallel `generate_series` query showed no meaningful difference and should be read as a null
-result, not as confirmation of the parallel-worker-contention mechanism described above. See
-`results/50-postgres.md` after a run for the numbers behind this.
+result, not as confirmation of the parallel-worker-contention mechanism described above.
 
 Next: [04-measuring.md](04-measuring.md) - how to check whether any of this is actually happening
 in your own cluster.

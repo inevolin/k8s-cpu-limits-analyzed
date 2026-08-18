@@ -28,7 +28,7 @@ pod under memory pressure gets throttled precisely when it most needs to collect
 outruns reclamation and the pod dies out-of-memory. The CPU limit converts a routine memory peak
 into an OOM kill.
 
-This is not hypothetical. In one production incident, an API pod ran with `limits.cpu: 100m`, was
+This is not hypothetical. In one production incident (anonymized here), an API pod ran with `limits.cpu: 100m`, was
 throttled in **98.9% of CFS periods** during the incident, threw in-process
 `OutOfMemoryException`s, and was OOMKilled; root-cause analysis found the GC could not get CPU to
 reclaim memory, turning a routine memory peak into a death spiral. The same starvation blew a
@@ -73,7 +73,8 @@ Other knobs worth setting alongside dropping the limit:
   worth it below a few cores; Workstation GC is often the better default.
 - `DOTNET_GCHeapHardLimitPercent=75` (with the memory limit, which stays): caps the managed heap at
   75% of the container's memory limit, so GC growth hits a controlled ceiling instead of racing the
-  kubelet OOM killer.
+  kubelet OOM killer. 75 is a starting point, not a validated constant; tune it to the workload's
+  native-memory footprint.
 
 **Rule: never drop a CPU limit before pinning the runtime's processor-count knob.** Dropping the
 limit without setting `DOTNET_PROCESSOR_COUNT` swaps "sized for 1 core" for "sized for the whole
