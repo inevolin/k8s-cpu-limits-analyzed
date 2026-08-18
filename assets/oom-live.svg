@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="392" viewBox="0 0 720 392">
+  <title>A CPU limit turning a backlog into an OOMKilled pod</title>
+  <desc>Two pods take the same 20 jobs per second and have the same 1 GiB memory
+  limit. The pod capped at 500m CPU drains only about 10 jobs per second, so the
+  unprocessed jobs pile up in memory until the pod hits the memory limit and is
+  OOMKilled. The pod with no CPU limit drains the load as fast as it arrives, so
+  its memory never grows.</desc>
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .title { font-size: 14px; fill: #1a1a1a; }
+    .sub { font-size: 12px; fill: #111111; }
+    .tiny { font-size: 11px; fill: #111111; }
+    .muted { font-size: 11px; fill: #888888; }
+    .limitctx { font-size: 12px; fill: #c4473a; }
+    .openctx { font-size: 12px; fill: #5a9a5a; }
+    .dead { font-size: 12px; fill: #c4473a; }
+    .lane { fill: #ffffff; stroke: #c8c2b8; }
+
+    /* One 12s loop. The capped pod fills for 70% of it, dies, and stays
+       dead for the rest, which is the whole point: the load never
+       changed, only what the pod was allowed to do about it. */
+    #backlog   { animation: backlog 12s linear infinite; }
+    #flash     { animation: flash   12s linear infinite; }
+    #openq     { animation: openq 1.6s ease-in-out infinite; }
+    /* step-end: these are state swaps, not fades. Interpolating opacity
+       would render two captions on top of each other during the
+       handover, so hold each value until the next stop instead. */
+    #q0        { animation: q0      12s step-end infinite; }
+    #q1        { animation: q1      12s step-end infinite; }
+    #q2        { animation: q2      12s step-end infinite; }
+    #q3        { animation: q3      12s step-end infinite; }
+    #qdead     { animation: qdead   12s step-end infinite; }
+    #oomtag    { animation: oomtag  12s step-end infinite; }
+    #alivetag  { animation: oomgone 12s step-end infinite; }
+
+    /* Backlog grows 0 -> 279px (0.45 GiB on top of the app's own 0.55 GiB,
+       so the bar reaches the 1 GiB cap), then the kill frees all of it. */
+    @keyframes backlog {
+      0%   { width: 0; }
+      70%  { width: 279px; }
+      73%  { width: 279px; }
+      73.5%, 100% { width: 0; }
+    }
+    @keyframes flash {
+      0%, 71.5% { opacity: 0; }
+      73%       { opacity: 0.85; }
+      76%, 100% { opacity: 0; }
+    }
+    @keyframes q0    { 0% { opacity: 1; } 18% { opacity: 0; } }
+    @keyframes q1    { 0% { opacity: 0; } 18% { opacity: 1; } 40% { opacity: 0; } }
+    @keyframes q2    { 0% { opacity: 0; } 40% { opacity: 1; } 60% { opacity: 0; } }
+    @keyframes q3    { 0% { opacity: 0; } 60% { opacity: 1; } 73% { opacity: 0; } }
+    @keyframes qdead { 0% { opacity: 0; } 73% { opacity: 1; } }
+    @keyframes oomtag  { 0% { opacity: 0; } 73% { opacity: 1; } }
+    @keyframes oomgone { 0% { opacity: 1; } 73% { opacity: 0; } }
+    @keyframes openq { 0%, 100% { width: 6px; } 50% { width: 15px; } }
+
+    /* Arrivals: same stream into both pods, all the way through. The
+       load generator does not stop just because a pod died. */
+    .job { animation: arrive 2.4s linear infinite; }
+    #j1 { animation-delay: -0.00s; } #j2 { animation-delay: -0.48s; }
+    #j3 { animation-delay: -0.96s; } #j4 { animation-delay: -1.44s; }
+    #j5 { animation-delay: -1.92s; }
+    @keyframes arrive { 0% { x: 195; } 100% { x: 470; } }
+  </style>
+
+  <rect width="720" height="392" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">Same load, same memory limit, one CPU limit</text>
+  <text class="sub" x="24" y="50">20 jobs/s in. Each job holds 2 MiB until a worker has processed it.</text>
+
+  <!-- ================= capped pod ================= -->
+  <text class="limitctx" x="24" y="92">500m limit</text>
+  <text class="tiny" x="105" y="92">20 jobs/s in</text>
+  <g class="jobs">
+    <rect id="j1" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
+    <rect id="j2" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
+    <rect id="j3" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
+    <rect id="j4" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
+    <rect id="j5" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
+  </g>
+  <text class="tiny" x="486" y="92">drains 9.8/s</text>
+  <text class="limitctx" x="580" y="92">net +10/s</text>
+
+  <rect class="lane" x="24" y="104" width="620" height="36" rx="3"/>
+  <rect x="26" y="106" width="616" height="32" fill="#f6eeea"/>
+  <rect x="26" y="106" width="339" height="32" fill="#ddd6cb"/>
+  <rect id="backlog" x="365" y="106" width="0" height="32" fill="#c4473a"/>
+  <rect id="flash" x="26" y="106" width="616" height="32" fill="#c4473a" opacity="0"/>
+  <text class="muted" x="34" y="126">app</text>
+  <line x1="644" y1="98" x2="644" y2="146" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="tiny" x="652" y="126" fill="#c4473a">1 GiB</text>
+
+  <text id="q0" class="tiny" x="24" y="162">backlog: 0 jobs waiting</text>
+  <text id="q1" class="tiny" x="24" y="162">backlog: 80 jobs waiting, 160 MiB of memory the pod cannot free</text>
+  <text id="q2" class="tiny" x="24" y="162">backlog: 160 jobs waiting, 320 MiB of memory the pod cannot free</text>
+  <text id="q3" class="tiny" x="24" y="162">backlog: 243 jobs waiting, 486 MiB of memory the pod cannot free</text>
+  <text id="qdead" class="tiny" x="24" y="162">backlog: gone, and so is the pod that was holding it</text>
+
+  <text id="alivetag" class="muted" x="24" y="182">Nothing leaked. The backlog only shrinks with CPU the cap forbids.</text>
+  <text id="oomtag" class="dead" x="24" y="182">OOMKilled - exit 137 - restarted with every queued job lost</text>
+
+  <!-- ================= uncapped pod ================= -->
+  <text class="openctx" x="24" y="240">no limit</text>
+  <text class="tiny" x="105" y="240">20 jobs/s in</text>
+  <g class="jobs">
+    <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-0.24s"/>
+    <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-0.72s"/>
+    <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-1.20s"/>
+    <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-1.68s"/>
+    <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-2.16s"/>
+  </g>
+  <text class="tiny" x="486" y="240">drains 21.8/s</text>
+  <text class="openctx" x="580" y="240">net ~0</text>
+
+  <rect class="lane" x="24" y="252" width="620" height="36" rx="3"/>
+  <rect x="26" y="254" width="616" height="32" fill="#eef4ee"/>
+  <rect x="26" y="254" width="339" height="32" fill="#ddd6cb"/>
+  <rect id="openq" x="365" y="254" width="6" height="32" fill="#8fbf8f"/>
+  <text class="muted" x="34" y="274">app</text>
+  <line x1="644" y1="246" x2="644" y2="294" stroke="#c8c2b8" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="tiny" x="652" y="274" fill="#888888">1 GiB</text>
+
+  <text class="tiny" x="24" y="310">backlog: 0 to 1 job waiting, memory flat, 0 restarts</text>
+  <text class="muted" x="24" y="330">Same 1 GiB memory limit. It never gets close.</text>
+
+  <line x1="24" y1="352" x2="696" y2="352" stroke="#e8e4dc" stroke-width="1"/>
+  <text class="tiny" x="24" y="372">Measured, not drawn: scripts/oom.sh, numbers in results/oom.md.</text>
+</svg>
