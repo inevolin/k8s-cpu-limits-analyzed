@@ -1,8 +1,9 @@
 # Kubernetes CPU limits: the mistake, the why, and proof
 
-**TL;DR: set `requests.cpu` and `limits.memory`, but remove
-`limits.cpu` (unless you hit one of the narrow exceptions in
-the [conclusion](#conclusion-drop-cpu-limits-keep-requests)).**
+**TL;DR: set `requests.cpu`, `requests.memory`, and
+`limits.memory`, but remove `limits.cpu` (unless you hit one of
+the narrow exceptions in the
+[conclusion](#conclusion-drop-cpu-limits-keep-requests)).**
 
 This isn't new advice. It's a best practice from Kubernetes
 and Google themselves:
@@ -22,15 +23,16 @@ the advice is right, and why so many people still get it wrong.
 Most charts set two CPU numbers, a request and a limit, and
 people treat them like the same setting with a bit of headroom.
 The **request** is how much CPU is reserved for your pod if
-it needs it. The **limit** is a hard cap. Hit it and the
+it needs it. The **limit** is a hard cap: hit it and the
 kernel **throttles** the pod, even when the node still has
-spare CPU. That is the usual cause of CPU throttling on
-Kubernetes. **A CPU limit does not protect neighboring pods;
-their protection comes from their own requests.** (see the exceptions below). In the
-burst test below, adding a CPU limit took typical latency
-from 23 ms to 87 ms (making it ~4x slower), with the limited pod throttled
-in half of all CFS windows, and the average CPU graph looked
-fine the whole time.
+spare CPU. This is the most common source of unexpected CPU
+throttling on Kubernetes. **A CPU limit does not protect
+neighboring pods; their protection comes from their own
+requests.** In a controlled burst test below, adding a CPU
+limit took typical latency from 23 ms to roughly 87 ms (about
+4x slower), with the limited pod throttled in half of all CFS
+windows, while the average CPU graph looked fine the whole
+time.
 
 ![Sample values.yaml showing a requests.cpu of 250m and a limits.cpu of 500m, with an arrow pointing out that the limit is the dangerous one](assets/values-file.svg)
 
@@ -51,8 +53,8 @@ cgroup, not a pinned core. If the node is busy, CFS splits
 time in proportion to those weights: a 16 CPU request gets
 about sixteen times the CPU of a 1 CPU request. If the other
 pods are idle, a pod can use the leftover; when they need
-CPU again, those cores go back. **You do not need a CPU limit
-for any of that.**
+CPU again, those cores go back. **None of this requires a
+CPU limit.**
 
 One caveat: the request guarantees your proportion of CPU
 over time, not exactly when you get it. Under heavy
@@ -155,6 +157,11 @@ a 16-core node:
 - name: DOTNET_PROCESSOR_COUNT
   value: "4"
 ```
+
+The same idea applies to any runtime that reads the quota: Go
+reads it into `GOMAXPROCS`, the JVM has its own equivalent. Pin
+these once at the platform level after you drop limits. Do not
+keep a CPU limit just to shrink the runtime.
 
 A tight CPU limit can also look like a memory problem. The
 garbage collector needs CPU to free memory, and if it is
@@ -275,9 +282,11 @@ raise `limits.memory`.
 - drop `limits.cpu`: set it only if you really know what you are doing
 
 After you drop CPU limits, look at that throttling metric and
-at node CPU. Later you can shrink requests to what the apps
-really use, and **that is what can save machines.** Deleting
-the limit line by itself does not free any nodes.
+at node CPU. Dropping `limits.cpu` does not shrink the cluster
+by itself — it only removes the distortion that was blocking
+honest right-sizing of `requests.cpu`. **The savings come from
+the request right-sizing that follows, not from deleting the
+limit line.**
 
 **Leave `limits.memory`.** If CPU is short, the app waits. If
 memory is short, the app (or the node) dies.
