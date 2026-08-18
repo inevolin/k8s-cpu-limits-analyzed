@@ -292,7 +292,11 @@ predictability: the app behaves the same on a quiet node
 and a busy one. That is a real trade, but you pay for it
 with throttling and wasted idle CPU. If you run one of
 these, you already know it. A normal web service, worker,
-or cron job is none of them.
+or cron job is none of them. That covers most of a typical
+fleet: frontend APIs, background workers, cron jobs,
+databases, Redis, Kafka, and anything else outside the list
+above. **If that's what you're running, don't set a CPU
+limit on it.**
 
 Autoscaling on CPU compares use to the *request*, not the
 limit. Removing the limit does not change that formula. Use
