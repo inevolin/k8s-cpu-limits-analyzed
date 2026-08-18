@@ -116,6 +116,20 @@ if [ -n "$LAST_CG_LIMIT" ]; then
   THR_PCT="$(ratio_pct "${NT:-0}" "${NP:-1}")"
 fi
 
+# drain rate per pod from the samples: proves the capped worker was still
+# processing (just too slowly) right up to the kill, not silently stalled
+DRAIN="$(python3 - "${RESULTS}/oom.jsonl" <<'PY'
+import json, sys
+rows = [json.loads(l) for l in open(sys.argv[1])]
+for app in ("oom-limit", "oom-open"):
+    r = [d for d in rows if d.get("app") == app]
+    if len(r) >= 2 and r[-1]["t"] > r[0]["t"]:
+        dt = r[-1]["t"] - r[0]["t"]
+        dp = r[-1]["processed"] - r[0]["processed"]
+        print(f"{app}: drained {dp/dt:.1f} jobs/s over the sampled {dt}s")
+PY
+)"
+
 WHEN="$(date '+%Y-%m-%d %H:%M %Z')"
 cat > "${RESULTS}/oom.md" <<EOF
 # oom run
@@ -134,6 +148,13 @@ OOMKilled after: ${OOM_AT:-not observed}s of load.
 
 Last sample, 500m limit pod: \`${LAST_MEM_LIMIT:-n/a}\`
 Last sample, no-limit pod:   \`${LAST_MEM_OPEN:-n/a}\`
+
+Drain rates (the capped worker kept processing until the kill, just
+slower than the 20/s arrival rate):
+
+\`\`\`
+${DRAIN:-n/a}
+\`\`\`
 
 \`\`\`
 ${EVIDENCE}

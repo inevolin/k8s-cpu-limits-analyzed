@@ -91,7 +91,7 @@ app.MapGet("/burst", async (int? threads, int? ms) =>
 
 app.MapGet("/enqueue", (int? bytes, int? cpuMs) =>
 {
-    var size = Math.Clamp(bytes ?? (1 << 20), 1, 64 << 20);
+    var size = Math.Clamp(bytes ?? (2 << 20), 1, 64 << 20);
     var cost = Math.Clamp(cpuMs ?? 40, 0, 10_000);
     var ptr = Marshal.AllocHGlobal(size);
     // touch every page so the memory is actually committed, not just reserved
@@ -159,7 +159,15 @@ _ = Task.Run(async () =>
 {
     await foreach (var job in oomQueue.Reader.ReadAllAsync())
     {
-        SpinCpu(job.CpuMs);
+        try
+        {
+            SpinCpu(job.CpuMs);
+        }
+        catch (Exception ex)
+        {
+            // a dead worker would fake the backlog; keep draining, loudly
+            Console.Error.WriteLine($"oom worker: {ex}");
+        }
         Marshal.FreeHGlobal(job.Ptr);
         Interlocked.Add(ref oomQueuedBytes, -job.Bytes);
         Interlocked.Decrement(ref oomDepth);
@@ -193,7 +201,9 @@ static double ThreadCpuMs()
     return ts.Sec * 1000.0 + ts.Nsec / 1_000_000.0;
 }
 
-[DllImport("libc", EntryPoint = "clock_gettime", SetLastError = true)]
+// versioned soname: the unversioned libc.so symlink is a -dev package
+// nicety and not present on every base image
+[DllImport("libc.so.6", EntryPoint = "clock_gettime", SetLastError = true)]
 static extern int ClockGetTime(int clockId, out Timespec ts);
 
 static double Spin(double ms)

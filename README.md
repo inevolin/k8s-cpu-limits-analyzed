@@ -152,18 +152,21 @@ difference between the pods is `limits.cpu: 500m`.
 
 The uncapped pod does 800m worth of work, its queue stays
 empty, and its memory stays flat. The capped pod is only
-allowed 500m, so it finishes ~12.5 jobs per second while 20
-keep arriving. The backlog holds memory, the backlog only
+allowed 500m, so it finishes at most 12.5 jobs per second
+(a bit less in practice, since receiving and copying the
+payloads comes out of the same budget) while 20 keep
+arriving. The backlog holds memory, the backlog only
 shrinks with CPU it is not allowed to use, and the kernel
 OOMKills the pod. Nothing leaked. Every byte was accounted
 for and would have been freed; the pod just was not allowed
 to run the code that frees it.
 
-In this run the capped pod was OOMKilled after 25 seconds of
-load (exit code 137, `lastState.terminated.reason: OOMKilled`),
-throttled in 83% of CFS periods on the way down, while the
-uncapped pod processed the identical load with an empty queue,
-flat memory, and zero restarts. Numbers and the raw evidence: [results/oom.md](results/oom.md).
+In this run the capped pod drained 10 jobs per second against
+20 arriving and was OOMKilled after 23 seconds of load (exit
+code 137, `lastState.terminated.reason: OOMKilled`), throttled
+in 85% of CFS periods on the way down, while the uncapped pod
+processed the identical load with an empty queue, flat memory,
+and zero restarts. Numbers and the raw evidence: [results/oom.md](results/oom.md).
 
 The queue in the lab is explicit, but the shape is everywhere:
 a GC that cannot keep up with allocation, a Kafka consumer
