@@ -138,9 +138,9 @@ longer pauses. Check `container_cpu_cfs_throttled_periods_total`
 before you raise the memory limit.
 
 This repo reproduces it. See
-[the OOMKilled proof](#a-cpu-limit-can-end-in-oomkilled) below.
+[the OOMKilled proof](#how-cpu-limits-cause-memory-issues-and-oomkills) below.
 
-## A CPU limit can end in OOMKilled
+## How CPU limits cause memory issues and OOMKills
 
 This can seem backwards: CPU is the compressible resource,
 run out and you wait, nothing dies. But memory is
