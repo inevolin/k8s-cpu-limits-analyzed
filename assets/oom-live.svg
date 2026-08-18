@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="392" viewBox="0 0 720 392">
   <title>A CPU limit turning a backlog into an OOMKilled pod</title>
   <desc>Two pods take the same 20 jobs per second and have the same 1 GiB memory
-  limit. The pod capped at 500m CPU drains only about 10 jobs per second, so the
-  unprocessed jobs pile up in memory until the pod hits the memory limit and is
-  OOMKilled. The pod with no CPU limit drains the load as fast as it arrives, so
-  its memory never grows.</desc>
+  limit. Each job is held in memory until processed, like a consumer buffering
+  messages from Kafka or RabbitMQ. The pod capped at 500m CPU drains only about
+  10 jobs per second, so the unprocessed jobs pile up in memory until the pod
+  hits the memory limit and is OOMKilled. The pod with no CPU limit drains the
+  load as fast as it arrives, so its memory never grows.</desc>
   <style>
     text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .title { font-size: 14px; fill: #1a1a1a; }
@@ -66,7 +67,7 @@
 
   <rect width="720" height="392" fill="#faf9f6"/>
   <text class="title" x="24" y="30">Same load, same memory limit, one CPU limit</text>
-  <text class="sub" x="24" y="50">20 jobs/s in. Each job holds 2 MiB until a worker has processed it.</text>
+  <text class="sub" x="24" y="50">20 jobs/s in, 2 MiB held until processed - a Kafka/RabbitMQ consumer buffer in miniature.</text>
 
   <!-- ================= capped pod ================= -->
   <text class="limitctx" x="24" y="92">500m limit</text>
@@ -78,7 +79,7 @@
     <rect id="j4" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
     <rect id="j5" class="job" x="195" y="84" width="7" height="7" fill="#111111"/>
   </g>
-  <text class="tiny" x="486" y="92">drains 9.8/s</text>
+  <text class="tiny" x="486" y="92">drains 10.3/s</text>
   <text class="limitctx" x="580" y="92">net +10/s</text>
 
   <rect class="lane" x="24" y="104" width="620" height="36" rx="3"/>
@@ -93,7 +94,7 @@
   <text id="q0" class="tiny" x="24" y="162">backlog: 0 jobs waiting</text>
   <text id="q1" class="tiny" x="24" y="162">backlog: 80 jobs waiting, 160 MiB of memory the pod cannot free</text>
   <text id="q2" class="tiny" x="24" y="162">backlog: 160 jobs waiting, 320 MiB of memory the pod cannot free</text>
-  <text id="q3" class="tiny" x="24" y="162">backlog: 243 jobs waiting, 486 MiB of memory the pod cannot free</text>
+  <text id="q3" class="tiny" x="24" y="162">backlog: 246 jobs waiting, 492 MiB of memory the pod cannot free</text>
   <text id="qdead" class="tiny" x="24" y="162">backlog: gone, and so is the pod that was holding it</text>
 
   <text id="alivetag" class="muted" x="24" y="182">Nothing leaked. The backlog only shrinks with CPU the cap forbids.</text>
@@ -109,7 +110,7 @@
     <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-1.68s"/>
     <rect class="job" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-2.16s"/>
   </g>
-  <text class="tiny" x="486" y="240">drains 21.8/s</text>
+  <text class="tiny" x="486" y="240">drains 21.6/s</text>
   <text class="openctx" x="580" y="240">net ~0</text>
 
   <rect class="lane" x="24" y="252" width="620" height="36" rx="3"/>

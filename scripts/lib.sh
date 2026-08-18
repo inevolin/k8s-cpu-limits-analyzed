@@ -144,6 +144,33 @@ append_jsonl() {
   printf '%s\n' "$json" >> "$file"
 }
 
+# Replace the section between "<!-- BEGIN name -->" / "<!-- END name -->"
+# markers in $file with stdin, appending the section (and a header for a
+# brand-new file) when missing. Lets oom.sh and gc.sh share one results
+# file without clobbering each other's sections.
+write_section() {
+  local file="$1" name="$2"
+  mkdir -p "$(dirname "$file")"
+  SECTION_CONTENT="$(cat)" python3 - "$file" "$name" <<'PY'
+import os, re, sys
+path, name = sys.argv[1], sys.argv[2]
+begin, end = f"<!-- BEGIN {name} -->", f"<!-- END {name} -->"
+block = f"{begin}\n{os.environ['SECTION_CONTENT'].rstrip()}\n{end}"
+try:
+    text = open(path, encoding="utf-8").read()
+except FileNotFoundError:
+    text = ("# oom runs\n\nOne file, two experiments. Each section is rewritten by its own\n"
+            "script: scripts/oom.sh owns the backlog section, scripts/gc.sh owns\n"
+            "the gc section.\n")
+pat = re.compile(re.escape(begin) + r".*?" + re.escape(end), re.S)
+if pat.search(text):
+    text = pat.sub(lambda m: block, text)
+else:
+    text = text.rstrip() + "\n\n" + block + "\n"
+open(path, "w", encoding="utf-8", newline="\n").write(text)
+PY
+}
+
 # GET a path on the app inside its pod. sdk image may not ship curl/wget.
 http_get() {
   local pod="$1" path="$2"

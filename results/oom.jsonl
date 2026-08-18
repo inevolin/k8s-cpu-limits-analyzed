@@ -1,4 +1,4 @@
-{"kind":"oomsample","t":0,"app":"oom-limit","restarts":0,"queueDepth":118,"queuedBytes":247463936,"processed":70,"gcHeapBytes":3110856,"workingSetBytes":357076992,"memoryCurrent":"1068752896","memoryMax":"1073741824"}
-{"kind":"oomsample","t":0,"app":"oom-open","restarts":0,"queueDepth":0,"queuedBytes":0,"processed":149,"gcHeapBytes":2692888,"workingSetBytes":97026048,"memoryCurrent":"795418624","memoryMax":"1073741824"}
-{"kind":"oomsample","t":12,"app":"oom-limit","restarts":0,"queueDepth":243,"queuedBytes":509607936,"processed":187,"gcHeapBytes":4104280,"workingSetBytes":655503360,"memoryCurrent":"1073078272","memoryMax":"1073741824"}
-{"kind":"oomsample","t":12,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":411,"gcHeapBytes":3975120,"workingSetBytes":97677312,"memoryCurrent":"795136000","memoryMax":"1073741824"}
+{"kind":"oomsample","t":0,"app":"oom-limit","restarts":0,"queueDepth":119,"queuedBytes":249561088,"processed":63,"gcHeapBytes":3162000,"workingSetBytes":381685760,"memoryCurrent":"1073315840","memoryMax":"1073741824"}
+{"kind":"oomsample","t":0,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":145,"gcHeapBytes":2782648,"workingSetBytes":101642240,"memoryCurrent":"798674944","memoryMax":"1073741824"}
+{"kind":"oomsample","t":13,"app":"oom-limit","restarts":0,"queueDepth":246,"queuedBytes":515899392,"processed":197,"gcHeapBytes":1862000,"workingSetBytes":675426304,"memoryCurrent":"1072259072","memoryMax":"1073741824"}
+{"kind":"oomsample","t":13,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":426,"gcHeapBytes":4318792,"workingSetBytes":104464384,"memoryCurrent":"801529856","memoryMax":"1073741824"}
