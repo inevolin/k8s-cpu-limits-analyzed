@@ -34,13 +34,16 @@ CPU proportional to its request, same as every other pod. Worst case, an unlimit
 nobody else wants (idle capacity); it cannot take CPU another pod's weight entitles it to under
 contention.
 
-This repo's lab measures exactly this (`scripts/run.sh`, the hog and saturate legs): a CPU-burning
-hog with no limit of its own lands on the node, and the unlimited victim's p99 barely moves, with
-no throttling - even when the hog is scaled up until the node is actually full. See
-`results/run.md`. A separate four-way run of the same shape (limited and unlimited victims, hog on
-and off; run while preparing this material, not part of this repo's lab) added one more data
-point: the limited victim under hog pressure was still slower than the unlimited victim under
-identical pressure. **The limit provides no benefit to its own pod.**
+This repo's lab measures the light case (`scripts/run.sh`, the busy-neighbor test): a
+small CPU-burning pod with no limit of its own lands on the node, and the unlimited victim's p99
+barely moves, with no throttling. See `results/run.md`. The lab also has a harder test that fills
+the node completely with that busy neighbor before re-measuring, so the same claim gets tested
+with no spare CPU left anywhere. That harder test needs a real cluster run to produce numbers, so
+treat it as pending, not a result already in hand. A separate four-way run of the same shape
+(limited and unlimited victims, busy neighbor on and off; run while preparing this material, not
+part of this repo's lab) added one more data point: the limited victim under that pressure was
+still slower than the unlimited victim under identical pressure. **The limit provides no benefit
+to its own pod.**
 
 ## What if a pod runs away and tries to use everything?
 
@@ -96,7 +99,7 @@ Cluster-level protection against runaway *requests*, not runaway usage, is what 
 guarding: a `ResourceQuota` on `requests.cpu` per namespace caps how much a team can request in
 total, and a `LimitRange` can set default requests for containers that omit them. Both operate on
 requests, independent of whether CPU limits exist. If everything still runs in one shared namespace,
-a namespace-wide quota there is a fat-finger backstop, not per-team isolation - and that's fine: the
+a namespace-wide quota there is a backstop against mistakes, not per-team isolation - and that's fine: the
 scheduler already refuses pods whose requests don't fit, so a missing quota risks extra node cost,
 not an outage.
 
@@ -134,6 +137,20 @@ Burstable, which lowers their protection under node *memory* pressure. Most flee
 Guaranteed keeps its limit; the rest just keep an explicit request). Note also: the kubelet ranks
 pods for eviction by how far usage exceeds the *request*, not purely by QoS class, so an honest
 request matters here too.
+
+## Without a CPU limit, can a pod just hammer disk or network I/O instead?
+
+A CPU limit does not touch I/O bandwidth at all, so this isn't a tradeoff a CPU limit was ever
+making for you. A pod freed from CFS throttling can now issue I/O faster because it is not
+periodically frozen, but the ceiling on how much I/O it can push was always disk IOPS, network
+bandwidth, and any `ephemeral-storage` or PV throughput controls, not `limits.cpu`. If a workload
+can genuinely saturate shared disk or network, the fix is the resource-specific control: disk I/O
+weight (`io.weight` / `blkio` on cgroup v2, if your CSI driver and kernel expose it), a
+`NetworkPolicy` plus bandwidth shaping (CNI-dependent, e.g. Cilium bandwidth manager), or a request
+against the actual constrained resource if one exists (some clusters expose `ephemeral-storage`
+requests/limits). None of these live under `cpu.max`, and a CPU limit throttling the workload only
+slows down how fast it can generate I/O, it doesn't cap the I/O itself - a burst that fits in one
+CFS period still gets through at full I/O speed before the quota runs out.
 
 ## When do CPU limits actually make sense?
 

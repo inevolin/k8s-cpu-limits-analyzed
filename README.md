@@ -1,5 +1,27 @@
 # Kubernetes CPU limits: the mistake, the why, and proof
 
+> "This is why I always advise: 1) Always set memory limit ==
+> request 2) Never set CPU limit (for locally adjusted values
+> of 'always' and 'never')"
+>
+> Tim Hockin, Kubernetes co-founder, 2019 ([source](https://x.com/thockin/status/1134193838841401345))
+
+> "For the request, specify the minimum CPU needed to ensure
+> correct operation, according to your own SLOs. Set an
+> unbounded CPU limit."
+>
+> Google Kubernetes Engine docs, on right-sizing requests and limits ([source](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/vertical-pod-autoscaling))
+
+This isn't new advice. Tim Hockin said it in 2019, GKE's own
+docs say it today, and most teams still set CPU limits by
+default and spend their time fighting the throttling that
+follows. This analysis explains why the advice is right, and
+why so many people still get it wrong.
+
+**TL;DR: keep `requests.cpu`, keep `limits.memory`, drop
+`limits.cpu` unless you hit one of the narrow exceptions in
+the [conclusion](#conclusion-drop-cpu-limits-keep-requests).**
+
 Most charts set two CPU numbers, a request and a limit, and
 people treat them like the same setting with a bit of headroom.
 The **request** is how much CPU is reserved for your pod if
@@ -97,10 +119,13 @@ did not.
 
 The useful test is a burst that *on average* stays under 500m,
 but for a moment uses several threads at once, which uses up
-the limit budget inside one 100 ms window. Typical response
-time went up about **4x**, and the limited pod was throttled
-about half the time. There were no errors, and a normal CPU
-graph would have looked fine.
+the limit budget inside one 100 ms window. That is by design:
+it is the pattern that produces throttling while the average
+CPU graph stays green, which is the exact blind spot this
+whole article is about. Typical response time went
+up about **4x**, and the limited pod was throttled about half
+the time. There were no errors, and a normal CPU graph would
+have looked fine.
 
 ![Chart comparing the burst test on both pods: the 500m-limit pod has a p50 of 87 ms and a p99 of 102 ms, throttled half the time, while the no-limit pod has a p50 of 23 ms and a p99 of 44 ms, never throttled](assets/burst.svg)
 
@@ -108,9 +133,11 @@ I also sent a short traffic spike that *did* go over the cap,
 and the limited pod was throttled on almost every window. Then
 I put another pod on the same machine that just burns CPU in a
 loop, with no limit of its own. The app without a limit did
-not get slower. This machine still had spare cores, so it was
-not a packed production node. It only shows the direction:
-**the request was enough.**
+not get slower. That first test still had spare cores on the
+node, so [run.sh](scripts/run.sh) also fills the node
+completely with that busy neighbor pod, then measures the
+unlimited app again with no spare CPU left anywhere on the
+node. **The request was enough.**
 
 More numbers and charts: [results/run.md](results/run.md).
 
@@ -275,6 +302,24 @@ limit. Removing the limit does not change that formula. Use
 can go higher, so you may get more replicas, which is
 usually fine.
 
+Dropping `limits.cpu` moves a pod from Guaranteed to Burstable
+QoS. In practice this rarely matters: the kubelet evicts for
+memory pressure, not CPU, and it ranks pods by how far usage
+exceeds the request, not by QoS class alone. Keep
+`requests.memory` equal to `limits.memory` and eviction
+exposure barely moves. Full answer, with the eviction docs
+link, in the
+[FAQ](#common-questions-about-kubernetes-cpu-limits).
+
+Before you drop a limit: pin the runtime's own CPU-count knob
+(`DOTNET_PROCESSOR_COUNT`, `GOMAXPROCS`, the JVM's
+`-XX:ActiveProcessorCount`) so it does not size itself off a
+number that is about to disappear, and check the kubelet has
+`--system-reserved` / `--kube-reserved` set so its own
+daemons keep their share. [Rollout](docs/06-rollout.md) has
+the full staged plan: pin runtimes first, add observability,
+add guardrails, then drop limits namespace by namespace.
+
 ## Common questions about Kubernetes CPU limits
 
 **Should I set CPU limits in Kubernetes?**
@@ -341,8 +386,9 @@ You pay for that with throttling. Most services should use idle CPU when it's th
 **Is this a reserved core?** Only if the node pins whole
 cores (`cpuManagerPolicy: static`, integer request, request
 equal to limit). Setting request equal to limit by itself
-does not pin. That is the Uber-style cpuset setup. Leave
-those alone.
+does not pin. Pinning is a separate setup some large
+companies use to give a pod exclusive physical cores. Leave
+that alone unless you already use it.
 
 **Doesn't dropping the limit lose Guaranteed QoS?** Yes, the pod becomes Burstable. In practice this matters
 less than it sounds: the kubelet evicts pods under memory
@@ -407,9 +453,9 @@ Needs `kubectl` and `python3`. First run downloads the .NET
 SDK image, which is multi-GB, so give it a minute. After that
 the whole thing takes roughly 5-10 minutes. `NS` and `KCTX`
 change the namespace and cluster if you need to. The run
-ends with a saturate leg that scales the hog until the node
-is actually full, then measures the unlimited app again, and
-it regenerates the results charts from the fresh numbers.
+ends by filling the node completely with a busy neighbor pod,
+then measuring the unlimited app again, and it regenerates
+the results charts from the fresh numbers.
 
 Expect output like this as it runs:
 
@@ -423,7 +469,7 @@ Expect output like this as it runs:
 ## Repo layout
 
 - `app/` - the .NET test app (burst, mixed, enqueue, gcwork, and info endpoints)
-- `k8s/` - manifests for the pods, the load job, the hog, and the stats probe
+- `k8s/` - manifests for the pods, the load job, the busy neighbor pod, and the stats probe
 - `scripts/` - `run.sh` drives the latency lab, `oom.sh` and `gc.sh` the OOMKilled proofs, `lib.sh` holds shared helpers
 - `results/` - output of the last run, including `run.md`, `oom.md`, and raw JSONL
 - `assets/` - diagrams and charts used in this README
@@ -448,6 +494,7 @@ The README is the argument; `docs/` is the reference material behind it:
 - Datadog, ["When to set CPU limits"](https://www.datadoghq.com/blog/kubernetes-cpu-requests-limits/)
 - [Kubernetes docs: resource requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) - how requests, limits, and CFS quota fit together.
 - Dave Chiluk, ["Throttling: New Developments in Application Performance with CPU Limits"](https://www.youtube.com/watch?v=UE7QX98-kO0) (KubeCon NA 2019) - the CFS throttling bug and why limits hurt more than the naive model suggests.
+- Numerator Engineering, ["Requests are all you need"](https://www.numeratorengineering.com/requests-are-all-you-need-cpu-limits-and-throttling-in-kubernetes/) - a production case study: an NGINX pod on a 96-core node dropped to 37% throughput under a 100m CPU limit.
 - The kernel's CFS bandwidth burst feature (`cpu.max.burst`) lets a cgroup borrow a little unused budget from past periods, softening some of this without removing the limit.
 
 ---
