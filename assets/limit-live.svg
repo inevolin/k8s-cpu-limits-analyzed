@@ -77,9 +77,9 @@
   <rect x="80" y="142" width="600" height="20" fill="#f6eeea"/>
   <rect id="run4" x="80" y="142" width="0" height="20" fill="#8fbf8f"/>
   <line x1="155" y1="134" x2="155" y2="170" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
-  <text class="limitctx" x="214" y="132">budget gone ~12 ms</text>
-  <text id="tagRun" class="ink" x="90" y="156">running</text>
-  <text id="tagPause" class="wait" x="163" y="156">throttled</text>
+  <text class="limitctx" x="214" y="132">Budget gone ~12 ms</text>
+  <text id="tagRun" class="ink" x="90" y="156">Running</text>
+  <text id="tagPause" class="wait" x="163" y="156">Throttled</text>
   <text class="tiny" x="80" y="184">4 threads split the 50 ms budget, so it's gone in ~12 ms.</text>
 
   <text class="sub" x="24" y="214">1 thread, 500m limit</text>
@@ -87,12 +87,12 @@
   <rect x="80" y="228" width="600" height="20" fill="#f6eeea"/>
   <rect id="run1" x="80" y="228" width="0" height="20" fill="#8fbf8f"/>
   <line x1="380" y1="220" x2="380" y2="256" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
-  <text class="limitctx" x="384" y="218">budget gone 50 ms</text>
-  <text id="tagRun1" class="ink" x="90" y="242">running</text>
-  <text id="tagPause1" class="wait" x="390" y="242">throttled</text>
+  <text class="limitctx" x="384" y="218">Budget gone 50 ms</text>
+  <text id="tagRun1" class="ink" x="90" y="242">Running</text>
+  <text id="tagPause1" class="wait" x="390" y="242">Throttled</text>
   <text class="tiny" x="80" y="270">One thread alone takes the full 50 ms to spend the budget.</text>
 
-  <text class="sub openctx" x="24" y="298">no limit</text>
+  <text class="sub openctx" x="24" y="298">No limit</text>
   <rect class="lane" x="80" y="308" width="600" height="28" rx="3"/>
   <rect x="80" y="312" width="600" height="20" fill="#eef4ee"/>
   <rect id="runOpen" x="80" y="312" width="0" height="20" fill="#8fbf8f"/>

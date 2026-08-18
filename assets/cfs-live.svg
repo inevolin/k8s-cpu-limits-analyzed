@@ -69,11 +69,11 @@
   <text id="labA4b" class="tiny" x="590" y="160" text-anchor="middle">unused core</text>
 
   <rect x="40" y="230" width="16" height="16" fill="#6aa96a" stroke="#111"/>
-  <text class="tiny" x="64" y="243">pod A request (1 core)</text>
+  <text class="tiny" x="64" y="243">Pod A request (1 core)</text>
   <rect x="300" y="230" width="16" height="16" fill="#a3cfa3" stroke="#111"/>
-  <text class="tiny" x="324" y="243">pod B request (3 cores)</text>
+  <text class="tiny" x="324" y="243">Pod B request (3 cores)</text>
   <rect x="560" y="230" width="16" height="16" fill="none" stroke="#4878a8" stroke-width="2" stroke-dasharray="4,3"/>
-  <text class="tiny" x="584" y="243">borrowed by pod A</text>
+  <text class="tiny" x="584" y="243">Borrowed by pod A</text>
 
   <text id="capBusy" class="sub" x="24" y="276">Both busy. Each gets its request. No CPU limit.</text>
   <text id="capPartial" class="sub" x="24" y="276">Pod B only needs 2 cores right now. Pod A borrows the third.</text>
