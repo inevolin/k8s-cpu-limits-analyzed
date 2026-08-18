@@ -1,5 +1,17 @@
 # Kubernetes CPU limits: the mistake, the why, and proof
 
+> "This is why I always advise: 1) Always set memory limit ==
+> request 2) Never set CPU limit (for locally adjusted values
+> of 'always' and 'never')"
+>
+> Tim Hockin, Kubernetes co-founder, 2019 ([source](https://x.com/thockin/status/1134193838841401345))
+
+This isn't new advice. It's been public since 2019, and most
+teams still set CPU limits by default and spend their time
+fighting the throttling that follows. This analysis explains
+why the advice is right, and why so many people still get it
+wrong.
+
 Most charts set two CPU numbers, a request and a limit, and
 people treat them like the same setting with a bit of headroom.
 The **request** is how much CPU is reserved for your pod if
