@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+# Prove that a CPU limit alone can end in OOMKilled.
+#
+# Two pods run the same app with the same 1Gi memory limit; the only
+# YAML delta is limits.cpu (500m vs none). Work arrives at OOM_RPS,
+# every job costs OOM_CPU_MS of CPU-time and holds OOM_BYTES of native
+# memory until a worker has processed it. Demand is
+# OOM_RPS * OOM_CPU_MS = 800m of CPU. The uncapped pod drains at that
+# speed and its memory stays flat. The capped pod can only drain 500m
+# worth, the backlog holds more and more memory, and the kernel
+# OOMKills it. Nothing leaks; the pod just isn't allowed to do the
+# work that would free the memory. Same mechanism as a GC that can't
+# keep up, a Kafka consumer falling behind, or any in-memory queue.
+#
+# Env knobs:
+#   OOM_RPS      default 20 (jobs per second)
+#   OOM_CPU_MS   default 40 (CPU-time per job -> demand 20*40 = 800m)
+#   OOM_BYTES    default 2097152 (2MiB held per queued job)
+#   OOM_SEC      default 240 (max load duration; stops at first OOMKill)
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+
+OOM_RPS="${OOM_RPS:-20}"
+OOM_CPU_MS="${OOM_CPU_MS:-40}"
+OOM_BYTES="${OOM_BYTES:-2097152}"
+OOM_SEC="${OOM_SEC:-240}"
+
+guard
+ensure_ns
+ensure_src
+
+log "applying manifests"
+kc apply -f "${ROOT}/k8s/oom-limit.yaml"
+kc apply -f "${ROOT}/k8s/oom-open.yaml"
+wait_deploy oom-limit 600
+wait_deploy oom-open 600
+
+mkdir -p "$RESULTS"
+: > "${RESULTS}/oom.jsonl"
+
+INFO_LIMIT="$(http_get "$(pod_of oom-limit)" /info || true)"
+INFO_OPEN="$(http_get "$(pod_of oom-open)" /info || true)"
+log "info limit: ${INFO_LIMIT}"
+log "info open:  ${INFO_OPEN}"
+
+pod_restarts() {
+  kc get pods -l "app=$1" -o jsonpath='{.items[0].status.containerStatuses[0].restartCount}' 2>/dev/null || echo ""
+}
+pod_last_reason() {
+  kc get pods -l "app=$1" -o jsonpath='{.items[0].status.containerStatuses[0].lastState.terminated.reason}' 2>/dev/null || echo ""
+}
+pod_last_exit() {
+  kc get pods -l "app=$1" -o jsonpath='{.items[0].status.containerStatuses[0].lastState.terminated.exitCode}' 2>/dev/null || echo ""
+}
+memsample() {
+  # /memstats via the pod, tolerant of the pod being mid-OOM
+  local app="$1" pod
+  pod="$(kc get pods -l "app=${app}" --field-selector=status.phase=Running \
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+  [ -n "$pod" ] || { echo ""; return 0; }
+  http_get "$pod" /memstats 2>/dev/null || echo ""
+}
+
+DEMAND_M=$(( OOM_RPS * OOM_CPU_MS ))
+URL_PATH="/enqueue?bytes=${OOM_BYTES}&cpuMs=${OOM_CPU_MS}"
+log "=== oom  demand ~${DEMAND_M}m vs 500m cap, ${OOM_BYTES}B held per job, ${OOM_RPS} rps, up to ${OOM_SEC}s ==="
+apply_load oom-load-limit "http://oom-limit${URL_PATH}" "$OOM_RPS" "$OOM_SEC" 5
+apply_load oom-load-open  "http://oom-open${URL_PATH}"  "$OOM_RPS" "$OOM_SEC" 5
+
+T0=$SECONDS
+DEADLINE=$(( SECONDS + OOM_SEC + 120 ))
+OOM_AT="" LAST_CG_LIMIT="" LAST_MEM_LIMIT="" LAST_MEM_OPEN=""
+while [ "$SECONDS" -lt "$DEADLINE" ]; do
+  T=$(( SECONDS - T0 ))
+  for app in oom-limit oom-open; do
+    ms="$(memsample "$app")"
+    if [ -n "$ms" ]; then
+      case "$app" in
+        oom-limit) LAST_MEM_LIMIT="$ms" ;;
+        oom-open)  LAST_MEM_OPEN="$ms" ;;
+      esac
+      r="$(pod_restarts "$app")"
+      append_jsonl "${RESULTS}/oom.jsonl" \
+        "$(printf '{"kind":"oomsample","t":%s,"app":"%s","restarts":%s,%s' \
+          "$T" "$app" "${r:-0}" "${ms#\{}")"
+    fi
+  done
+  cg="$(cgstats oom-limit 2>/dev/null || true)"
+  [ -n "$cg" ] && LAST_CG_LIMIT="$cg"
+
+  REASON="$(pod_last_reason oom-limit)"
+  if [ "$REASON" = "OOMKilled" ]; then
+    OOM_AT="$T"
+    log "oom-limit OOMKilled after ${T}s"
+    break
+  fi
+  # the uncapped pod must never die; fail fast if it does
+  OPEN_REASON="$(pod_last_reason oom-open)"
+  [ -n "$OPEN_REASON" ] && die "oom-open terminated (${OPEN_REASON}) - test invalid"
+  sleep 3
+done
+
+kc delete job oom-load-limit oom-load-open --ignore-not-found >/dev/null 2>&1 || true
+
+LIMIT_RESTARTS="$(pod_restarts oom-limit)"
+OPEN_RESTARTS="$(pod_restarts oom-open)"
+LIMIT_EXIT="$(pod_last_exit oom-limit)"
+EVIDENCE="$(kc get pods -l 'app in (oom-limit,oom-open)' \
+  -o custom-columns=NAME:.metadata.name,RESTARTS:.status.containerStatuses[0].restartCount,LAST_REASON:.status.containerStatuses[0].lastState.terminated.reason,EXIT:.status.containerStatuses[0].lastState.terminated.exitCode --no-headers || true)"
+log "evidence:"$'\n'"${EVIDENCE}"
+
+THR_PCT="?"
+if [ -n "$LAST_CG_LIMIT" ]; then
+  NP="$(cg_field "$LAST_CG_LIMIT" nr_periods)"
+  NT="$(cg_field "$LAST_CG_LIMIT" nr_throttled)"
+  THR_PCT="$(ratio_pct "${NT:-0}" "${NP:-1}")"
+fi
+
+WHEN="$(date '+%Y-%m-%d %H:%M %Z')"
+cat > "${RESULTS}/oom.md" <<EOF
+# oom run
+
+${WHEN}. context \`${KCTX}\`, namespace \`${NS}\`.
+Same app, same 1Gi memory limit, same ${OOM_RPS} rps of jobs
+(${OOM_CPU_MS}ms CPU each, ${OOM_BYTES} bytes of native memory held
+until processed). Demand ~${DEMAND_M}m. Only delta: \`limits.cpu: 500m\`.
+
+| | restarts | last termination | throttle before death |
+|---|---|---|---|
+| 500m limit | ${LIMIT_RESTARTS:-?} | ${REASON:-none} (exit ${LIMIT_EXIT:-n/a}) | ${THR_PCT}% of CFS periods |
+| no limit | ${OPEN_RESTARTS:-0} | none | - |
+
+OOMKilled after: ${OOM_AT:-not observed}s of load.
+
+Last sample, 500m limit pod: \`${LAST_MEM_LIMIT:-n/a}\`
+Last sample, no-limit pod:   \`${LAST_MEM_OPEN:-n/a}\`
+
+\`\`\`
+${EVIDENCE}
+\`\`\`
+
+Raw samples: \`results/oom.jsonl\`.
+EOF
+log "wrote ${RESULTS}/oom.md"
+
+[ -n "$OOM_AT" ] || die "expected oom-limit to be OOMKilled, it wasn't"
+[ "${OPEN_RESTARTS:-0}" = "0" ] || die "oom-open restarted, test invalid"
+log "PROVEN: identical pods, identical load; the CPU-limited one was OOMKilled, the other never restarted."

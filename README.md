@@ -137,6 +137,43 @@ shows how a GC burst over the limit turns into throttling and
 longer pauses. Check `container_cpu_cfs_throttled_periods_total`
 before you raise the memory limit.
 
+This is not hand-waving; this repo reproduces it. See
+[the OOMKilled proof](#a-cpu-limit-can-end-in-oomkilled) below.
+
+## A CPU limit can end in OOMKilled
+
+The claim sounds backwards, so here is the experiment. Two
+pods run the same app with the same 1Gi memory limit. Work
+arrives at 20 jobs per second; every job costs 40 ms of
+CPU-time (measured on the thread CPU clock, so throttling
+cannot deflate it) and holds 2 MiB of memory until a worker
+has processed it. That is ~800m of CPU demand. The only YAML
+difference between the pods is `limits.cpu: 500m`.
+
+The uncapped pod does 800m worth of work, its queue stays
+empty, and its memory stays flat. The capped pod is only
+allowed 500m, so it finishes ~12.5 jobs per second while 20
+keep arriving. The backlog holds memory, the backlog only
+shrinks with CPU it is not allowed to use, and the kernel
+OOMKills the pod. Nothing leaked. Every byte was accounted
+for and would have been freed; the pod just was not allowed
+to run the code that frees it.
+
+In this run the capped pod was OOMKilled after 25 seconds of
+load (exit code 137, `lastState.terminated.reason: OOMKilled`),
+throttled in 83% of CFS periods on the way down, while the
+uncapped pod processed the identical load with an empty queue,
+flat memory, and zero restarts. Numbers and the raw evidence: [results/oom.md](results/oom.md).
+
+The queue in the lab is explicit, but the shape is everywhere:
+a GC that cannot keep up with allocation, a Kafka consumer
+falling behind its partition, requests piling up in the server
+while each one holds buffers. Anywhere work arrives faster
+than a throttled pod may process it, memory is where the
+difference accumulates. The graphs make it look like a memory
+leak, the fix people reach for is a bigger memory limit, and
+the actual cause is the CPU limit.
+
 ## Conclusion
 
 ![Table of what to set: keep the CPU request, keep the memory limit, drop the CPU limit unless you really know what you are doing](assets/do.svg)
@@ -275,8 +312,13 @@ minikube start --driver=docker --cpus=8 --memory=8192
 kubectl config use-context minikube
 
 ./scripts/run.sh
+./scripts/oom.sh
 ./scripts/cleanup.sh
 ```
+
+`run.sh` is the latency/throttling lab. `oom.sh` is the
+OOMKilled proof; it takes a few minutes and ends as soon as
+the capped pod dies.
 
 Needs `kubectl` and `python3`. First run downloads the .NET
 SDK image, which is multi-GB, so give it a minute. After that
@@ -297,10 +339,10 @@ Expect output like this as it runs:
 
 ## Repo layout
 
-- `app/` - the .NET test app (burst, mixed, and info endpoints)
-- `k8s/` - manifests for the two pods, the load job, and the hog
-- `scripts/` - `run.sh` drives the lab, `lib.sh` holds shared helpers
-- `results/` - output of the last run, including `run.md` and raw JSONL
+- `app/` - the .NET test app (burst, mixed, enqueue, and info endpoints)
+- `k8s/` - manifests for the pods, the load job, and the hog
+- `scripts/` - `run.sh` drives the latency lab, `oom.sh` the OOMKilled proof, `lib.sh` holds shared helpers
+- `results/` - output of the last run, including `run.md`, `oom.md`, and raw JSONL
 - `assets/` - diagrams and charts used in this README
 
 ## Further reading

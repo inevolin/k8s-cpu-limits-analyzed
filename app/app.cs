@@ -4,9 +4,22 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 
 var app = WebApplication.CreateBuilder(args).Build();
+
+// --- oom lab state -----------------------------------------------------
+// Work queue whose payloads live in *native* memory (malloc), so the .NET
+// GC heap hard limit never intervenes and the kernel OOM killer is the
+// only backstop, same as a queue in Node/Python/Go/C++ or any native
+// buffer pool. One worker drains it; each job costs cpuMs of CPU-time.
+var oomQueue = Channel.CreateUnbounded<(IntPtr Ptr, int Bytes, int CpuMs)>(
+    new UnboundedChannelOptions { SingleReader = true });
+long oomQueuedBytes = 0, oomDepth = 0, oomProcessed = 0;
+var oomTemplate = new byte[1 << 20];
+new Random(1).NextBytes(oomTemplate);
 
 app.MapGet("/healthz", () => "ok");
 
@@ -76,6 +89,43 @@ app.MapGet("/burst", async (int? threads, int? ms) =>
         "application/json");
 });
 
+app.MapGet("/enqueue", (int? bytes, int? cpuMs) =>
+{
+    var size = Math.Clamp(bytes ?? (1 << 20), 1, 64 << 20);
+    var cost = Math.Clamp(cpuMs ?? 40, 0, 10_000);
+    var ptr = Marshal.AllocHGlobal(size);
+    // touch every page so the memory is actually committed, not just reserved
+    for (var off = 0; off < size; off += oomTemplate.Length)
+    {
+        var n = Math.Min(oomTemplate.Length, size - off);
+        Marshal.Copy(oomTemplate, 0, IntPtr.Add(ptr, off), n);
+    }
+    Interlocked.Add(ref oomQueuedBytes, size);
+    var depth = Interlocked.Increment(ref oomDepth);
+    if (!oomQueue.Writer.TryWrite((ptr, size, cost)))
+    {
+        Marshal.FreeHGlobal(ptr);
+        Interlocked.Add(ref oomQueuedBytes, -size);
+        Interlocked.Decrement(ref oomDepth);
+        return Results.Text("{\"error\":\"queue closed\"}", "application/json", statusCode: 503);
+    }
+    return Results.Text($"{{\"queued\":{depth},\"bytes\":{size},\"cpuMs\":{cost}}}", "application/json");
+});
+
+app.MapGet("/memstats", () =>
+{
+    var json = "{"
+        + $"\"queueDepth\":{Interlocked.Read(ref oomDepth)},"
+        + $"\"queuedBytes\":{Interlocked.Read(ref oomQueuedBytes)},"
+        + $"\"processed\":{Interlocked.Read(ref oomProcessed)},"
+        + $"\"gcHeapBytes\":{GC.GetTotalMemory(false)},"
+        + $"\"workingSetBytes\":{Environment.WorkingSet},"
+        + $"\"memoryCurrent\":{J(ReadOrNa("/sys/fs/cgroup/memory.current"))},"
+        + $"\"memoryMax\":{J(ReadOrNa("/sys/fs/cgroup/memory.max"))}"
+        + "}";
+    return Results.Text(json, "application/json");
+});
+
 app.MapGet("/cgstats", () =>
 {
     long periods = 0, throttled = 0, usec = 0;
@@ -104,7 +154,47 @@ app.MapGet("/cgstats", () =>
     return Results.Text(json, "application/json");
 });
 
+// oom lab worker: drain the queue at whatever speed the CPU quota allows.
+_ = Task.Run(async () =>
+{
+    await foreach (var job in oomQueue.Reader.ReadAllAsync())
+    {
+        SpinCpu(job.CpuMs);
+        Marshal.FreeHGlobal(job.Ptr);
+        Interlocked.Add(ref oomQueuedBytes, -job.Bytes);
+        Interlocked.Decrement(ref oomDepth);
+        Interlocked.Increment(ref oomProcessed);
+    }
+});
+
 app.Run();
+
+// Burn `ms` of thread CPU-time, measured with CLOCK_THREAD_CPUTIME_ID.
+// Spin() below measures wall-clock, so under CFS throttling the throttled
+// gaps count toward the spin and the job's real CPU cost shrinks to fit
+// the quota. For the oom lab each job must cost a fixed amount of CPU
+// regardless of throttling, like real work would.
+static void SpinCpu(double ms)
+{
+    var start = ThreadCpuMs();
+    double x = 1.0;
+    while (ThreadCpuMs() - start < ms)
+    {
+        for (var i = 0; i < 10_000; i++)
+            x = Math.Sqrt(x + 1.0);
+    }
+    if (double.IsNaN(x)) throw new InvalidOperationException("unreachable");
+}
+
+static double ThreadCpuMs()
+{
+    if (ClockGetTime(3 /* CLOCK_THREAD_CPUTIME_ID */, out var ts) != 0)
+        throw new InvalidOperationException("clock_gettime failed");
+    return ts.Sec * 1000.0 + ts.Nsec / 1_000_000.0;
+}
+
+[DllImport("libc", EntryPoint = "clock_gettime", SetLastError = true)]
+static extern int ClockGetTime(int clockId, out Timespec ts);
 
 static double Spin(double ms)
 {
@@ -149,3 +239,10 @@ static string J(string s)
 }
 
 static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+
+[StructLayout(LayoutKind.Sequential)]
+struct Timespec
+{
+    public long Sec;
+    public long Nsec;
+}
