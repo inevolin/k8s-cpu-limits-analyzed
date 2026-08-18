@@ -202,7 +202,7 @@ the broker instead of in RAM. The CPU limit decides which
 resource absorbs the shortfall; only removing the limit
 removes the shortfall itself.
 
-### Shape 2: GC starvation, no queue at all
+### Shape 2: GC starvation
 
 This is a different mechanism, not a variant of the first: no
 queue, no buffer, nothing held on purpose. Every request builds
