@@ -137,103 +137,100 @@ shows how a GC burst over the limit turns into throttling and
 longer pauses. Check `container_cpu_cfs_throttled_periods_total`
 before you raise the memory limit.
 
-This is not hand-waving; this repo reproduces it. See
+This repo reproduces it. See
 [the OOMKilled proof](#a-cpu-limit-can-end-in-oomkilled) below.
 
 ## A CPU limit can end in OOMKilled
 
-The claim sounds backwards. CPU is the compressible resource:
-run out and you wait, nothing dies. But memory is where a CPU
-deficit accumulates. Anywhere work arrives faster than a
-throttled pod is allowed to process it, the difference has to
-sit somewhere, and it sits in RAM until the kernel ends the
-pod. The lab reproduces the two common shapes of this, always
-as an A/B pair: two pods running the same app with the same
-memory limit and the same load, where the only YAML difference
-is `limits.cpu`. Nothing leaks in either experiment; every
-byte would have been freed, the pod just is not allowed to run
-the code that frees it. Both evidence files live in
-[results/oom.md](results/oom.md).
+This can seem backwards: CPU is the compressible resource,
+run out and you wait, nothing dies. But memory is
+where a CPU deficit accumulates. Wherever work arrives faster
+than a throttled pod can process it, the difference sits in
+RAM until the kernel ends the pod. The lab reproduces two
+common shapes of this, each as an A/B pair: two pods running
+the same app, the same memory limit, the same load, with
+`limits.cpu` as the only difference in the YAML. Nothing leaks
+in either case; every byte would have been freed if the pod
+had been allowed to run the code that frees it. Both evidence
+files are in [results/oom.md](results/oom.md).
 
 ### Shape 1: the backlog
 
-This is the shape of every in-memory queue: a consumer
-buffering messages it pulled from Kafka or RabbitMQ faster
-than it may process them, an unbounded channel between two
-components, a server holding request payloads while handlers
-run behind.
+This is the shape of any in-memory queue: a consumer buffering
+messages from Kafka or RabbitMQ faster than it can process
+them, an unbounded channel between two components, a server
+holding request payloads while handlers run behind.
 
-Work arrives at 20 jobs per second; every job costs 40 ms of
-CPU-time (measured on the thread CPU clock, so throttling
-cannot deflate it) and holds 2 MiB of memory until a worker
-has processed it. That is ~800m of CPU demand against a
+Work arrives at 20 jobs per second; each job costs 40 ms of
+CPU time (measured on the thread CPU clock, so throttling
+can't hide it) and holds 2 MiB of memory until a worker
+finishes it. That is ~800m of CPU demand against a
 `limits.cpu: 500m` cap, with 1Gi of memory on both pods.
 
-The uncapped pod does 800m worth of work, its queue stays
-empty, and its memory stays flat. The capped pod is only
-allowed 500m, so it finishes at most 12.5 jobs per second
-(a bit less in practice, since receiving and copying the
-payloads comes out of the same budget) while 20 keep
-arriving. The backlog holds memory, the backlog only
-shrinks with CPU it is not allowed to use, and the kernel
-OOMKills the pod.
+The uncapped pod handles the full 800m of work, so its queue
+stays empty and memory stays flat. The capped pod is limited
+to 500m, so it clears at most 12.5 jobs per second (a bit less
+in practice, since receiving and copying payloads draws from
+the same budget) while 20 keep arriving. The backlog holds
+memory, the backlog only shrinks with CPU the pod isn't
+allowed to use, and the kernel eventually OOMKills it.
 
 ![Animation of the backlog shape, framed as a message-consumer buffer like Kafka or RabbitMQ: two pods take the same 20 jobs per second with the same 1 GiB memory limit; the pod capped at 500m CPU drains only 10.3 jobs per second, so the buffered backlog and its memory grow until the pod is OOMKilled, while the pod with no CPU limit drains 21.6 jobs per second and its memory stays flat](assets/oom-live.svg)
 
-In the recorded run (`scripts/oom.sh`) the capped pod drained
+In the recorded run (`scripts/oom.sh`), the capped pod drained
 10.3 jobs per second against 20 arriving and was OOMKilled
 after 29 seconds of load (exit code 137,
 `lastState.terminated.reason: OOMKilled`), throttled in 96% of
-CFS periods during that window, while the uncapped pod drained
-21.6 jobs per second with an empty queue, flat memory, and
-zero restarts. Numbers vary a little run to run (see the
-caveat on SDK-image page cache in
-[results/oom.md](results/oom.md)); the outcome doesn't.
+CFS periods during that window. The uncapped pod drained 21.6
+jobs per second with an empty queue, flat memory, and zero
+restarts. Numbers vary slightly run to run (see the note on
+SDK-image page cache in [results/oom.md](results/oom.md)); the
+outcome doesn't.
 
-"But a real consumer has a bounded worker pool." A worker pool
-bounds CPU concurrency, not memory: the usual shape is a
-bounded pool fed by an unbounded handoff queue, and the lab's
-worker pool is size one. The buffer itself is unbounded more
-often than people think: RabbitMQ's prefetch is unlimited
-unless you set `basic.qos`, and Kafka consumers that hand
-records to an in-process queue so polling can continue (the
-standard way to stay under `max.poll.interval.ms` and avoid a
-rebalance) have reinvented the unbounded buffer one layer
-down. Even a properly bounded buffer is usually sized for the
-healthy drain rate, which the cap quietly halved. And a
-consumer with real backpressure everywhere does not escape the
-deficit, it relocates it: lag piles up in the broker instead
-of in RAM. The CPU limit picks which resource fills; only
-removing it removes the deficit.
+A bounded worker pool doesn't prevent this: it bounds CPU
+concurrency, not memory. The common shape is a bounded pool
+fed by an unbounded handoff queue, and the lab's own worker
+pool is size one. Unbounded buffers are also more common than
+they look: RabbitMQ's prefetch is unlimited unless `basic.qos`
+is set, and Kafka consumers that hand records to an in-process
+queue to keep polling within `max.poll.interval.ms` and avoid
+a rebalance have effectively rebuilt the unbounded buffer one
+layer down. Even a properly bounded buffer is usually sized
+for the healthy drain rate, which the cap just cut in half.
+And a consumer with real backpressure everywhere does not
+remove the deficit, it relocates it: lag piles up in the
+broker instead of in RAM. The CPU limit decides which
+resource absorbs the shortfall; only removing the limit
+removes the shortfall itself.
 
-### Shape 2: GC starvation, no queue at all
+### Shape 2: GC starvation
 
-The objection to shape 1 writes itself: "so bound your queue."
-Fine. This experiment has no queue. Every request builds a
-reference-dense graph of 10,000 small objects (~1.5 MiB) and
-holds it only while doing real work; the moment a request
-finishes, its graph is garbage. Nothing is retained anywhere,
-on purpose. The thing the cap starves now is the garbage
-collector itself: on the capped pod (`limits.cpu: 100m`, the
-same value as the production incident this claim traces back
-to) in-flight requests pile up, the live object count grows
-with them, every GC cycle gets more expensive, and the
-collector fights the workload for the same shrinking quota.
+This is a completely different scenario, one that involves the
+garbage collector instead of a queue or buffer. Every request
+builds a reference-dense graph of 10,000 small objects (~1.5
+MiB) and holds it only while doing real work; once the request
+finishes, the graph is garbage. Nothing is retained anywhere,
+on purpose. What runs short here is the garbage collector's
+own CPU budget: on the capped pod (`limits.cpu: 100m`, the
+same value as the production incident this test is based on),
+in-flight requests pile up, the live object count grows with
+them, each GC cycle gets more expensive, and the collector
+fights the workload for the same shrinking quota.
 
 ![Animation of the GC starvation shape: two pods take the same 20 requests per second, each request holding a 10,000-object graph only while it works; the pod capped at 100m CPU accumulates in-flight requests, its garbage collector cannot keep up on the shared 100m budget, it stops answering its own stats endpoint and is OOMKilled, while the pod with no CPU limit stays at one request in flight and a 9 MiB heap](assets/gc-live.svg)
 
-In the recorded runs (`scripts/gc.sh`, three out of three, on
-.NET 10 with its adaptive DATAS GC enabled) the capped pod
-stopped answering its own stats endpoint, kept digesting its
-backlog after the load generator had already stopped, and was
+In the recorded runs (`scripts/gc.sh`, three of three, on .NET
+10 with adaptive DATAS GC enabled), the capped pod stopped
+answering its own stats endpoint, kept digesting its backlog
+after the load generator had already stopped, and was
 OOMKilled anyway (exit 137). The identical uncapped pod
 finished the same load with a 9.3 MiB heap and one request in
 flight. This is also the shape where monitoring goes dark
 first: a pod too throttled to answer a stats scrape is a pod
-whose dashboards and probes are lying to you.
+whose dashboards and probes are already lying.
 
-Both shapes end the same way on a graph: memory climbing into
-the limit. It looks like a leak, the fix people reach for is a
+Both shapes end the same way on a graph: memory climbing
+into the limit. It looks like a leak, the usual fix is a
 bigger memory limit, and the actual cause is the CPU limit.
 Check `container_cpu_cfs_throttled_periods_total` before you
 raise `limits.memory`.
