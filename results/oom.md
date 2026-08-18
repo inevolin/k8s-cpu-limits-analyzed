@@ -1,6 +1,13 @@
-# oom run
+# oom runs
 
-2026-08-18 12:30 UTC. context `rancher-desktop`, namespace `cpu-lab`.
+One file, two experiments. Each section is rewritten by its own
+script: scripts/oom.sh owns the backlog section, scripts/gc.sh owns
+the gc section.
+
+<!-- BEGIN backlog -->
+## Backlog run (scripts/oom.sh)
+
+2026-08-18 14:15 UTC. context `rancher-desktop`, namespace `cpu-lab`.
 Same app, same 1Gi memory limit, same 20 rps of jobs
 (40ms CPU each, 2097152 bytes of native memory held
 until processed). Demand ~800m. Only delta: `limits.cpu: 500m`.
@@ -15,25 +22,62 @@ this image, not a universal constant.
 
 | | restarts | last termination | throttle during load |
 |---|---|---|---|
-| 500m limit | 1 | OOMKilled (exit 137) | 97.31% of CFS periods |
+| 500m limit | 1 | OOMKilled (exit 137) | 96.01% of CFS periods |
 | no limit | 0 | none | - |
 
-OOMKilled after: 26s of load.
+OOMKilled after: 29s of load.
 
-Last sample, 500m limit pod: `{"queueDepth":243,"queuedBytes":509607936,"processed":187,"gcHeapBytes":4104280,"workingSetBytes":655503360,"memoryCurrent":"1073078272","memoryMax":"1073741824"}`
-Last sample, no-limit pod:   `{"queueDepth":1,"queuedBytes":2097152,"processed":411,"gcHeapBytes":3975120,"workingSetBytes":97677312,"memoryCurrent":"795136000","memoryMax":"1073741824"}`
+Last sample, 500m limit pod: `{"queueDepth":246,"queuedBytes":515899392,"processed":197,"gcHeapBytes":1862000,"workingSetBytes":675426304,"memoryCurrent":"1072259072","memoryMax":"1073741824"}`
+Last sample, no-limit pod:   `{"queueDepth":1,"queuedBytes":2097152,"processed":426,"gcHeapBytes":4318792,"workingSetBytes":104464384,"memoryCurrent":"801529856","memoryMax":"1073741824"}`
 
 Drain rates (the capped worker kept processing until the kill, just
 slower than the 20/s arrival rate):
 
 ```
-oom-limit: drained 9.8 jobs/s over the sampled 12s
-oom-open: drained 21.8 jobs/s over the sampled 12s
+oom-limit: drained 10.3 jobs/s over the sampled 13s
+oom-open: drained 21.6 jobs/s over the sampled 13s
 ```
 
 ```
-oom-limit-75cc47b647-c4nv8   1     OOMKilled   137
-oom-open-689c68ff7d-4zrpc    0     <none>      <none>
+oom-limit-75cc47b647-gdh8b   1     OOMKilled   137
+oom-open-689c68ff7d-p6lwp    0     <none>      <none>
 ```
 
 Raw samples: `results/oom.jsonl`.
+<!-- END backlog -->
+
+<!-- BEGIN gc -->
+## GC starvation run (scripts/gc.sh)
+
+2026-08-18 13:51 UTC. context `rancher-desktop`, namespace `cpu-lab`.
+Same app, same 512Mi memory limit (384Mi .NET heap hard limit), same
+20 rps. Only YAML delta: `limits.cpu: 100m` (both pods request 100m).
+
+Nothing is queued explicitly here. Each request builds a 10000-node
+reference-dense object graph (~1.5 MiB) and holds it while burning
+40ms of CPU: ~800m of demand against the 100m cap. On the
+capped pod, in-flight requests pile up, live object count grows, every GC
+cycle gets more expensive, and the collector fights the workload for the
+same shrinking quota.
+
+| | pause | gen0 / gen1 / gen2 | managed heap | alloc rate | peak in-flight |
+|---|---|---|---|---|---|
+| 100m limit | unresponsive: too throttled to answer /gcstats before it died | | | | |
+| no limit | 0.16% | 248 / 201 / 0 | 10.7 MiB | 12.2 MiB/s | 1 |
+
+Outcome, 100m limit pod: OOMKilled after 225s (OutOfMemoryException lines: 0), restarts 1.
+Outcome, no limit pod: survived, restarts 0, OutOfMemoryException lines: 0.
+
+Caveats: the pod compiles the app in-container at startup, so part of
+memory.current is SDK page cache (same caveat as results/oom.md), and a
+pod this throttled often cannot answer /gcstats in time, so samples from
+the capped pod can be sparse; the kill evidence below is from the
+kubelet, not from sampling.
+
+```
+gc-limit-6685cc8b5f-8krzm   1     OOMKilled   137
+gc-open-7b6776f9cd-zvmqb    0     <none>      <none>
+```
+
+Raw samples: `results/gc.jsonl`.
+<!-- END gc -->

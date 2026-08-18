@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420">
+  <title>A CPU limit starving the garbage collector</title>
+  <desc>Two pods take the same 20 requests per second. Each request holds a
+  10,000-object graph only while it works; nothing is queued or retained. The
+  pod capped at 100m CPU cannot finish requests as fast as they arrive, so
+  in-flight requests pile up, the garbage collector has to trace an ever larger
+  live set on the same starved budget, the pod stops answering its own stats
+  endpoint, and it is OOMKilled. The pod with no CPU limit stays at one request
+  in flight and a 9 MiB heap.</desc>
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .title { font-size: 14px; fill: #1a1a1a; }
+    .sub { font-size: 12px; fill: #111111; }
+    .tiny { font-size: 11px; fill: #111111; }
+    .muted { font-size: 11px; fill: #888888; }
+    .limitctx { font-size: 12px; fill: #c4473a; }
+    .openctx { font-size: 12px; fill: #5a9a5a; }
+    .dead { font-size: 12px; fill: #c4473a; }
+    .lane { fill: #ffffff; stroke: #c8c2b8; }
+
+    /* One 12s loop: the heap climbs for 70% of it (in-flight requests,
+       each holding a live graph the GC must trace on a starved budget),
+       the pod dies, and stays dead for the rest of the loop. */
+    #heap    { animation: heap  12s linear infinite; }
+    #flash   { animation: flash 12s linear infinite; }
+    #openHeap{ animation: openHeap 1.6s ease-in-out infinite; }
+    /* step-end: state swaps, not fades - interpolating opacity would
+       draw two captions on top of each other during the handover */
+    #c0      { animation: c0 12s step-end infinite; }
+    #c1      { animation: c1 12s step-end infinite; }
+    #c2      { animation: c2 12s step-end infinite; }
+    #cdead   { animation: cdead 12s step-end infinite; }
+    #livetag { animation: livegone 12s step-end infinite; }
+    #deadtag { animation: cdead 12s step-end infinite; }
+
+    @keyframes heap {
+      0%   { width: 0; }
+      70%  { width: 355px; }
+      73%  { width: 355px; }
+      73.5%, 100% { width: 0; }
+    }
+    @keyframes flash {
+      0%, 71.5% { opacity: 0; }
+      73%       { opacity: 0.85; }
+      76%, 100% { opacity: 0; }
+    }
+    @keyframes c0    { 0% { opacity: 1; } 25% { opacity: 0; } }
+    @keyframes c1    { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes c2    { 0% { opacity: 0; } 50% { opacity: 1; } 73% { opacity: 0; } }
+    @keyframes cdead { 0% { opacity: 0; } 73% { opacity: 1; } }
+    @keyframes livegone { 0% { opacity: 1; } 73% { opacity: 0; } }
+    @keyframes openHeap { 0%, 100% { width: 8px; } 50% { width: 12px; } }
+
+    /* Arrivals: the same request stream into both pods, all the way
+       through - the load generator sits outside and never slows down. */
+    .req { animation: arrive 2.4s linear infinite; }
+    @keyframes arrive { 0% { x: 195; } 100% { x: 470; } }
+  </style>
+
+  <rect width="720" height="420" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">No queue this time: starve the collector instead</text>
+  <text class="sub" x="24" y="50">20 req/s in. Each holds a 10,000-object graph only while it works. Nothing is retained.</text>
+
+  <!-- ================= capped pod ================= -->
+  <text class="limitctx" x="24" y="92">100m limit</text>
+  <text class="tiny" x="105" y="92">20 req/s in</text>
+  <g>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-0.00s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-0.48s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-0.96s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-1.44s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-1.92s"/>
+  </g>
+  <text class="limitctx" x="486" y="92">work + GC share 100m</text>
+
+  <rect class="lane" x="24" y="104" width="620" height="36" rx="3"/>
+  <rect x="26" y="106" width="616" height="32" fill="#f6eeea"/>
+  <rect x="26" y="106" width="260" height="32" fill="#ddd6cb"/>
+  <rect id="heap" x="286" y="106" width="0" height="32" fill="#c4473a"/>
+  <rect id="flash" x="26" y="106" width="616" height="32" fill="#c4473a" opacity="0"/>
+  <text class="muted" x="34" y="126">runtime</text>
+  <line x1="644" y1="98" x2="644" y2="146" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="tiny" x="652" y="126" fill="#c4473a">512Mi</text>
+
+  <text id="c0" class="tiny" x="24" y="162">in-flight requests climbing - each stalled request keeps its whole graph alive</text>
+  <text id="c1" class="tiny" x="24" y="162">the GC must trace an ever larger live set with the CPU it wins from the workload</text>
+  <text id="c2" class="tiny" x="24" y="162">pod stopped answering /gcstats - too throttled to reply is what "monitoring went dark" looks like</text>
+  <text id="cdead" class="tiny" x="24" y="162">still digesting backlog after the load stopped - killed anyway</text>
+
+  <text id="livetag" class="muted" x="24" y="182">Nothing leaked and nothing is queued: the memory is live in-flight requests.</text>
+  <text id="deadtag" class="dead" x="24" y="182">OOMKilled - exit 137 - three runs out of three, .NET 10 with DATAS on</text>
+
+  <!-- ================= uncapped pod ================= -->
+  <text class="openctx" x="24" y="240">no limit</text>
+  <text class="tiny" x="105" y="240">20 req/s in</text>
+  <g>
+    <rect class="req" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-0.24s"/>
+    <rect class="req" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-0.72s"/>
+    <rect class="req" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-1.20s"/>
+    <rect class="req" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-1.68s"/>
+    <rect class="req" x="195" y="232" width="7" height="7" fill="#111111" style="animation-delay:-2.16s"/>
+  </g>
+  <text class="openctx" x="486" y="240">GC keeps up easily</text>
+
+  <rect class="lane" x="24" y="252" width="620" height="36" rx="3"/>
+  <rect x="26" y="254" width="616" height="32" fill="#eef4ee"/>
+  <rect x="26" y="254" width="260" height="32" fill="#ddd6cb"/>
+  <rect id="openHeap" x="286" y="254" width="8" height="32" fill="#8fbf8f"/>
+  <text class="muted" x="34" y="274">runtime</text>
+  <line x1="644" y1="246" x2="644" y2="294" stroke="#c8c2b8" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="tiny" x="652" y="274" fill="#888888">512Mi</text>
+
+  <text class="tiny" x="24" y="310">in-flight: 1, managed heap 9.3 MiB, restarts 0</text>
+  <text class="muted" x="24" y="330">Same code, same load, same memory limit. The collector just gets the CPU it needs.</text>
+
+  <line x1="24" y1="352" x2="696" y2="352" stroke="#e8e4dc" stroke-width="1"/>
+  <text class="tiny" x="24" y="372">The red bar is live objects held by stalled requests, not a queue and not a leak.</text>
+  <text class="tiny" x="24" y="392">Measured, not drawn: scripts/gc.sh, numbers in results/oom.md.</text>
+</svg>

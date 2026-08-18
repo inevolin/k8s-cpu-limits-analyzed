@@ -152,8 +152,8 @@ PY
 )"
 
 WHEN="$(date -u '+%Y-%m-%d %H:%M UTC')"
-cat > "${RESULTS}/gc.md" <<EOF
-# gc run
+write_section "${RESULTS}/oom.md" gc <<EOF
+## GC starvation run (scripts/gc.sh)
 
 ${WHEN}. context \`${KCTX}\`, namespace \`${NS}\`.
 Same app, same 512Mi memory limit (384Mi .NET heap hard limit), same
@@ -174,7 +174,7 @@ Outcome, 100m limit pod: ${DIED:-survived} (OutOfMemoryException lines: ${OOMEX:
 Outcome, no limit pod: survived, restarts $(pod_restarts gc-open), OutOfMemoryException lines: $(oomex_count gc-open).
 
 Caveats: the pod compiles the app in-container at startup, so part of
-memory.current is SDK page cache (same caveat as results/oom.md), and a
+memory.current is SDK page cache (same caveat as the backlog section above), and a
 pod this throttled often cannot answer /gcstats in time, so samples from
 the capped pod can be sparse; the kill evidence below is from the
 kubelet, not from sampling.
@@ -185,7 +185,7 @@ ${EVIDENCE}
 
 Raw samples: \`results/gc.jsonl\`.
 EOF
-log "wrote ${RESULTS}/gc.md"
+log "wrote the gc section of ${RESULTS}/oom.md"
 
 OPEN_RESTARTS="$(pod_restarts gc-open)"
 [ "${OPEN_RESTARTS:-0}" = "0" ] || die "gc-open restarted - test invalid, the uncapped pod must survive"

@@ -118,8 +118,13 @@ while [ "$SECONDS" -lt "$DEADLINE" ]; do
           "$T" "$app" "${r:-0}" "${ms#\{}")"
     fi
   done
-  cg="$(cgstats oom-limit 2>/dev/null || true)"
-  [ -n "$cg" ] && LAST_CG_LIMIT="$cg"
+  # restart-guard cpu.stat too: after the kill, cgstats would read the
+  # fresh container's counters (dominated by its startup compile) and
+  # poison the load-phase throttle number
+  if [ "$(pod_restarts oom-limit)" = "0" ]; then
+    cg="$(cgstats oom-limit 2>/dev/null || true)"
+    [ -n "$cg" ] && LAST_CG_LIMIT="$cg"
+  fi
 
   sleep 3
 done
@@ -133,7 +138,7 @@ EVIDENCE="$(kc get pods -l 'app in (oom-limit,oom-open)' \
   -o custom-columns=NAME:.metadata.name,RESTARTS:.status.containerStatuses[0].restartCount,LAST_REASON:.status.containerStatuses[0].lastState.terminated.reason,EXIT:.status.containerStatuses[0].lastState.terminated.exitCode --no-headers || true)"
 log "evidence:"$'\n'"${EVIDENCE}"
 
-THR_PCT="?"
+THR_PCT="?" THR_NOTE=""
 if [ -n "$LAST_CG_LIMIT" ]; then
   NP="$(cg_field "$LAST_CG_LIMIT" nr_periods)"; NP="${NP:-0}"
   NT="$(cg_field "$LAST_CG_LIMIT" nr_throttled)"; NT="${NT:-0}"
@@ -143,10 +148,10 @@ if [ -n "$LAST_CG_LIMIT" ]; then
   if [ "$D_NP" -gt 0 ] && [ "$D_NT" -ge 0 ]; then
     THR_PCT="$(ratio_pct "$D_NT" "$D_NP")"
   else
-    # baseline sample raced with the pod's own startup and landed after
-    # the load-phase snapshot; fall back to the cumulative since-start
-    # ratio rather than print nonsense
-    THR_PCT="$(ratio_pct "$NT" "${NP:-1}") (cumulative since start, baseline sample was inconsistent)"
+    # the pre-load baseline was lost or inconsistent; report the
+    # cumulative since-start ratio and say so rather than print nonsense
+    THR_PCT="$(ratio_pct "$NT" "${NP:-1}")"
+    THR_NOTE=" (cumulative since container start; load-phase baseline was lost)"
   fi
 fi
 
@@ -165,8 +170,8 @@ PY
 )"
 
 WHEN="$(date -u '+%Y-%m-%d %H:%M UTC')"
-cat > "${RESULTS}/oom.md" <<EOF
-# oom run
+write_section "${RESULTS}/oom.md" backlog <<EOF
+## Backlog run (scripts/oom.sh)
 
 ${WHEN}. context \`${KCTX}\`, namespace \`${NS}\`.
 Same app, same 1Gi memory limit, same ${OOM_RPS} rps of jobs
@@ -183,7 +188,7 @@ this image, not a universal constant.
 
 | | restarts | last termination | throttle during load |
 |---|---|---|---|
-| 500m limit | ${LIMIT_RESTARTS:-?} | ${REASON:-none} (exit ${LIMIT_EXIT:-n/a}) | ${THR_PCT}% of CFS periods |
+| 500m limit | ${LIMIT_RESTARTS:-?} | ${REASON:-none} (exit ${LIMIT_EXIT:-n/a}) | ${THR_PCT}% of CFS periods${THR_NOTE} |
 | no limit | ${OPEN_RESTARTS:-0} | none | - |
 
 OOMKilled after: ${OOM_AT:-not observed}s of load.

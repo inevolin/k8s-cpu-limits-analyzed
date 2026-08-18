@@ -2,6 +2,30 @@
 
 The README's FAQ covers the quick version of these. This goes further into the ones that come up once a team is actually planning a rollout.
 
+## A throttled message consumer shouldn't OOM - doesn't it have a bounded worker pool and prefetch?
+
+A worker pool bounds how many messages are *processed* concurrently, not how many are *held*. The
+common architecture is a bounded pool fed from an in-process handoff queue, and that queue is the
+part nobody bounded. Concretely, per broker:
+
+- **RabbitMQ** pushes. Prefetch is unlimited unless the consumer sets `basic.qos`; with the default,
+  a slow consumer's client library buffers every pushed-but-unacked message in memory. A CPU
+  throttle makes the consumer slow, the broker keeps pushing, and the buffer is the OOM.
+- **Kafka** pulls, and the fetch itself is bounded (`max.poll.records`, `fetch.max.bytes`). The trap
+  is the rebalance timer: stop polling while workers catch up and `max.poll.interval.ms` ejects you
+  from the group. The standard dodge - keep polling, hand records to an internal queue or executor -
+  reinvents the unbounded buffer one layer down, where no broker setting can see it.
+- **Any broker**, bounded buffer edition: buffers get sized against the healthy drain rate
+  ("prefetch 500 is fine, we process 20/s"). A CPU limit halves the drain rate without touching the
+  config, and a buffer that was safe at 20/s fills at 10/s.
+
+The honest steady state: a consumer with real backpressure at every stage does not OOM - it
+converts the CPU deficit into broker-side lag instead (consumer group falling behind, retention
+windows aging messages out). The deficit never disappears; the CPU limit only picks which resource
+fills up and which alert fires. The lab's backlog experiment (`scripts/oom.sh`, and the README's
+"Shape 1") is exactly this mechanism with the buffer made explicit, and its worker pool is size one:
+the pool was never the problem.
+
 ## Won't a noisy neighbor eat all the CPU without a limit?
 
 No. CPU requests set cgroup `cpu.weight`, which governs proportional access to CPU *only when the
