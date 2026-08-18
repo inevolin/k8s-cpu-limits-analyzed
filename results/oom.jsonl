@@ -1,0 +1,4 @@
+{"kind":"oomsample","t":0,"app":"oom-limit","restarts":0,"queueDepth":118,"queuedBytes":247463936,"processed":70,"gcHeapBytes":3110856,"workingSetBytes":357076992,"memoryCurrent":"1068752896","memoryMax":"1073741824"}
+{"kind":"oomsample","t":0,"app":"oom-open","restarts":0,"queueDepth":0,"queuedBytes":0,"processed":149,"gcHeapBytes":2692888,"workingSetBytes":97026048,"memoryCurrent":"795418624","memoryMax":"1073741824"}
+{"kind":"oomsample","t":12,"app":"oom-limit","restarts":0,"queueDepth":243,"queuedBytes":509607936,"processed":187,"gcHeapBytes":4104280,"workingSetBytes":655503360,"memoryCurrent":"1073078272","memoryMax":"1073741824"}
+{"kind":"oomsample","t":12,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":411,"gcHeapBytes":3975120,"workingSetBytes":97677312,"memoryCurrent":"795136000","memoryMax":"1073741824"}
