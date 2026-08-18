@@ -20,7 +20,6 @@
   <text x="340" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#c0685a">&#10007; drop - unless you really know why</text>
 
   <line x1="130" y1="192" x2="130" y2="232" stroke="#8a8578" stroke-width="1" stroke-dasharray="2,2"/>
-  <text x="136" y="216" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#8a8578">==</text>
 
   <text x="40" y="292" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#8a8578">no cpu limit line -&gt; no throttling on this pod</text>
 </svg>
