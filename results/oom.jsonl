@@ -1,6 +1,4 @@
-{"kind":"oomsample","t":0,"app":"oom-limit","restarts":0,"queueDepth":79,"queuedBytes":165675008,"processed":47,"gcHeapBytes":2193752,"workingSetBytes":253648896,"memoryCurrent":"978272256","memoryMax":"1073741824"}
-{"kind":"oomsample","t":0,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":88,"gcHeapBytes":1801976,"workingSetBytes":96911360,"memoryCurrent":"802926592","memoryMax":"1073741824"}
-{"kind":"oomsample","t":11,"app":"oom-limit","restarts":0,"queueDepth":199,"queuedBytes":417333248,"processed":151,"gcHeapBytes":2959424,"workingSetBytes":565456896,"memoryCurrent":"1073221632","memoryMax":"1073741824"}
-{"kind":"oomsample","t":11,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":313,"gcHeapBytes":2537704,"workingSetBytes":99672064,"memoryCurrent":"805355520","memoryMax":"1073741824"}
-{"kind":"oomsample","t":23,"app":"oom-limit","restarts":0,"queueDepth":306,"queuedBytes":641728512,"processed":276,"gcHeapBytes":3786536,"workingSetBytes":809771008,"memoryCurrent":"1073307648","memoryMax":"1073741824"}
-{"kind":"oomsample","t":23,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":555,"gcHeapBytes":3515416,"workingSetBytes":99704832,"memoryCurrent":"805658624","memoryMax":"1073741824"}
+{"kind":"oomsample","t":0,"app":"oom-limit","restarts":0,"queueDepth":118,"queuedBytes":247463936,"processed":70,"gcHeapBytes":3110856,"workingSetBytes":357076992,"memoryCurrent":"1068752896","memoryMax":"1073741824"}
+{"kind":"oomsample","t":0,"app":"oom-open","restarts":0,"queueDepth":0,"queuedBytes":0,"processed":149,"gcHeapBytes":2692888,"workingSetBytes":97026048,"memoryCurrent":"795418624","memoryMax":"1073741824"}
+{"kind":"oomsample","t":12,"app":"oom-limit","restarts":0,"queueDepth":243,"queuedBytes":509607936,"processed":187,"gcHeapBytes":4104280,"workingSetBytes":655503360,"memoryCurrent":"1073078272","memoryMax":"1073741824"}
+{"kind":"oomsample","t":12,"app":"oom-open","restarts":0,"queueDepth":1,"queuedBytes":2097152,"processed":411,"gcHeapBytes":3975120,"workingSetBytes":97677312,"memoryCurrent":"795136000","memoryMax":"1073741824"}

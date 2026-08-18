@@ -161,12 +161,14 @@ OOMKills the pod. Nothing leaked. Every byte was accounted
 for and would have been freed; the pod just was not allowed
 to run the code that frees it.
 
-In this run the capped pod drained 10 jobs per second against
-20 arriving and was OOMKilled after 23 seconds of load (exit
+In this run the capped pod drained 9.8 jobs per second against
+20 arriving and was OOMKilled after 26 seconds of load (exit
 code 137, `lastState.terminated.reason: OOMKilled`), throttled
-in 85% of CFS periods on the way down, while the uncapped pod
-processed the identical load with an empty queue, flat memory,
-and zero restarts. Numbers and the raw evidence: [results/oom.md](results/oom.md).
+in 97% of CFS periods during that load window, while the
+uncapped pod drained 21.8 jobs per second with an empty queue,
+flat memory, and zero restarts. Numbers vary a little run to
+run (see the caveat on SDK-image page cache in
+[results/oom.md](results/oom.md)); the outcome doesn't. Numbers and the raw evidence: [results/oom.md](results/oom.md).
 
 The queue in the lab is explicit, but the shape is everywhere:
 a GC that cannot keep up with allocation, a Kafka consumer

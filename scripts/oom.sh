@@ -61,6 +61,17 @@ memsample() {
   http_get "$pod" /memstats 2>/dev/null || echo ""
 }
 
+# baseline cpu.stat right before load starts, so the reported throttle %
+# is load-phase only and does not include the in-pod dotnet compile at
+# startup (which is itself throttled under the 500m cap and would
+# otherwise inflate the number)
+BASE_CG_LIMIT="$(cgstats oom-limit 2>/dev/null || true)"
+BASE_NP=0 BASE_NT=0
+if [ -n "$BASE_CG_LIMIT" ]; then
+  BASE_NP="$(cg_field "$BASE_CG_LIMIT" nr_periods)"; BASE_NP="${BASE_NP:-0}"
+  BASE_NT="$(cg_field "$BASE_CG_LIMIT" nr_throttled)"; BASE_NT="${BASE_NT:-0}"
+fi
+
 DEMAND_M=$(( OOM_RPS * OOM_CPU_MS ))
 URL_PATH="/enqueue?bytes=${OOM_BYTES}&cpuMs=${OOM_CPU_MS}"
 log "=== oom  demand ~${DEMAND_M}m vs 500m cap, ${OOM_BYTES}B held per job, ${OOM_RPS} rps, up to ${OOM_SEC}s ==="
@@ -69,17 +80,39 @@ apply_load oom-load-open  "http://oom-open${URL_PATH}"  "$OOM_RPS" "$OOM_SEC" 5
 
 T0=$SECONDS
 DEADLINE=$(( SECONDS + OOM_SEC + 120 ))
-OOM_AT="" LAST_CG_LIMIT="" LAST_MEM_LIMIT="" LAST_MEM_OPEN=""
+OOM_AT="" LAST_CG_LIMIT="$BASE_CG_LIMIT" LAST_MEM_LIMIT="" LAST_MEM_OPEN=""
 while [ "$SECONDS" -lt "$DEADLINE" ]; do
   T=$(( SECONDS - T0 ))
+
+  # check termination BEFORE sampling: kubelet can restart a killed
+  # container within seconds, and a sample taken after that restart
+  # would read the fresh container's near-zero counters, silently
+  # deflating the evidence (drain rate, throttle %, memory) instead of
+  # reflecting the pod that actually died.
+  REASON="$(pod_last_reason oom-limit)"
+  EXIT_CODE="$(pod_last_exit oom-limit)"
+  # some runtimes surface a killed non-init process as reason=Error
+  # rather than OOMKilled; exit 137 (128+SIGKILL) catches that too
+  if [ "$REASON" = "OOMKilled" ] || [ "${EXIT_CODE:-}" = "137" ]; then
+    OOM_AT="$T"
+    log "oom-limit killed after ${T}s (reason=${REASON:-?} exit=${EXIT_CODE:-?})"
+    break
+  fi
+  OPEN_REASON="$(pod_last_reason oom-open)"
+  # the uncapped pod must never die; fail fast if it does
+  [ -n "$OPEN_REASON" ] && die "oom-open terminated (${OPEN_REASON}) - test invalid"
+
   for app in oom-limit oom-open; do
+    r="$(pod_restarts "$app")"
+    # a restart mid-iteration means this sample would belong to a fresh
+    # container, not the one under test - skip it rather than record it
+    [ "${r:-0}" = "0" ] || continue
     ms="$(memsample "$app")"
     if [ -n "$ms" ]; then
       case "$app" in
         oom-limit) LAST_MEM_LIMIT="$ms" ;;
         oom-open)  LAST_MEM_OPEN="$ms" ;;
       esac
-      r="$(pod_restarts "$app")"
       append_jsonl "${RESULTS}/oom.jsonl" \
         "$(printf '{"kind":"oomsample","t":%s,"app":"%s","restarts":%s,%s' \
           "$T" "$app" "${r:-0}" "${ms#\{}")"
@@ -88,15 +121,6 @@ while [ "$SECONDS" -lt "$DEADLINE" ]; do
   cg="$(cgstats oom-limit 2>/dev/null || true)"
   [ -n "$cg" ] && LAST_CG_LIMIT="$cg"
 
-  REASON="$(pod_last_reason oom-limit)"
-  if [ "$REASON" = "OOMKilled" ]; then
-    OOM_AT="$T"
-    log "oom-limit OOMKilled after ${T}s"
-    break
-  fi
-  # the uncapped pod must never die; fail fast if it does
-  OPEN_REASON="$(pod_last_reason oom-open)"
-  [ -n "$OPEN_REASON" ] && die "oom-open terminated (${OPEN_REASON}) - test invalid"
   sleep 3
 done
 
@@ -111,9 +135,19 @@ log "evidence:"$'\n'"${EVIDENCE}"
 
 THR_PCT="?"
 if [ -n "$LAST_CG_LIMIT" ]; then
-  NP="$(cg_field "$LAST_CG_LIMIT" nr_periods)"
-  NT="$(cg_field "$LAST_CG_LIMIT" nr_throttled)"
-  THR_PCT="$(ratio_pct "${NT:-0}" "${NP:-1}")"
+  NP="$(cg_field "$LAST_CG_LIMIT" nr_periods)"; NP="${NP:-0}"
+  NT="$(cg_field "$LAST_CG_LIMIT" nr_throttled)"; NT="${NT:-0}"
+  # delta since just-before-load, so compile-time throttling at pod
+  # startup doesn't get folded into the load-phase throttle percentage
+  D_NP=$(( NP - BASE_NP )); D_NT=$(( NT - BASE_NT ))
+  if [ "$D_NP" -gt 0 ] && [ "$D_NT" -ge 0 ]; then
+    THR_PCT="$(ratio_pct "$D_NT" "$D_NP")"
+  else
+    # baseline sample raced with the pod's own startup and landed after
+    # the load-phase snapshot; fall back to the cumulative since-start
+    # ratio rather than print nonsense
+    THR_PCT="$(ratio_pct "$NT" "${NP:-1}") (cumulative since start, baseline sample was inconsistent)"
+  fi
 fi
 
 # drain rate per pod from the samples: proves the capped worker was still
@@ -130,7 +164,7 @@ for app in ("oom-limit", "oom-open"):
 PY
 )"
 
-WHEN="$(date '+%Y-%m-%d %H:%M %Z')"
+WHEN="$(date -u '+%Y-%m-%d %H:%M UTC')"
 cat > "${RESULTS}/oom.md" <<EOF
 # oom run
 
@@ -139,7 +173,15 @@ Same app, same 1Gi memory limit, same ${OOM_RPS} rps of jobs
 (${OOM_CPU_MS}ms CPU each, ${OOM_BYTES} bytes of native memory held
 until processed). Demand ~${DEMAND_M}m. Only delta: \`limits.cpu: 500m\`.
 
-| | restarts | last termination | throttle before death |
+Note: both pods run \`dotnet run app.cs\`, which compiles on every
+start inside the SDK image. The page cache from that compile counts
+against \`memory.max\` alongside the queue, so part of the capped
+pod's headroom before OOMKilled is SDK-image cache, not pure queue
+growth; the direction of the result (only the capped pod dies) does
+not depend on it, but treat the exact seconds-to-death as specific to
+this image, not a universal constant.
+
+| | restarts | last termination | throttle during load |
 |---|---|---|---|
 | 500m limit | ${LIMIT_RESTARTS:-?} | ${REASON:-none} (exit ${LIMIT_EXIT:-n/a}) | ${THR_PCT}% of CFS periods |
 | no limit | ${OPEN_RESTARTS:-0} | none | - |
