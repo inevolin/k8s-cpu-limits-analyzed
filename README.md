@@ -133,12 +133,11 @@ I also sent a short traffic spike that *did* go over the cap,
 and the limited pod was throttled on almost every window. Then
 I put another pod on the same machine that just burns CPU in a
 loop, with no limit of its own. The app without a limit did
-not get slower. That first pass had spare cores on the node,
-so [run.sh](scripts/run.sh) also has a saturate leg that scales
-the hog until the node is actually full, then re-measures the
-unlimited app under real contention, so the "request protects
-you" claim gets tested with no idle capacity left to hide
-behind. **The request was enough.**
+not get slower. That first test still had spare cores on the
+node, so [run.sh](scripts/run.sh) also fills the node
+completely with that busy neighbor pod, then measures the
+unlimited app again with no spare CPU left anywhere on the
+node. **The request was enough.**
 
 More numbers and charts: [results/run.md](results/run.md).
 
@@ -387,8 +386,9 @@ You pay for that with throttling. Most services should use idle CPU when it's th
 **Is this a reserved core?** Only if the node pins whole
 cores (`cpuManagerPolicy: static`, integer request, request
 equal to limit). Setting request equal to limit by itself
-does not pin. That is the Uber-style cpuset setup. Leave
-those alone.
+does not pin. Pinning is a separate setup some large
+companies use to give a pod exclusive physical cores. Leave
+that alone unless you already use it.
 
 **Doesn't dropping the limit lose Guaranteed QoS?** Yes, the pod becomes Burstable. In practice this matters
 less than it sounds: the kubelet evicts pods under memory
@@ -453,9 +453,9 @@ Needs `kubectl` and `python3`. First run downloads the .NET
 SDK image, which is multi-GB, so give it a minute. After that
 the whole thing takes roughly 5-10 minutes. `NS` and `KCTX`
 change the namespace and cluster if you need to. The run
-ends with a saturate leg that scales the hog until the node
-is actually full, then measures the unlimited app again, and
-it regenerates the results charts from the fresh numbers.
+ends by filling the node completely with a busy neighbor pod,
+then measuring the unlimited app again, and it regenerates
+the results charts from the fresh numbers.
 
 Expect output like this as it runs:
 
@@ -469,7 +469,7 @@ Expect output like this as it runs:
 ## Repo layout
 
 - `app/` - the .NET test app (burst, mixed, enqueue, gcwork, and info endpoints)
-- `k8s/` - manifests for the pods, the load job, the hog, and the stats probe
+- `k8s/` - manifests for the pods, the load job, the busy neighbor pod, and the stats probe
 - `scripts/` - `run.sh` drives the latency lab, `oom.sh` and `gc.sh` the OOMKilled proofs, `lib.sh` holds shared helpers
 - `results/` - output of the last run, including `run.md`, `oom.md`, and raw JSONL
 - `assets/` - diagrams and charts used in this README

@@ -34,14 +34,14 @@ CPU proportional to its request, same as every other pod. Worst case, an unlimit
 nobody else wants (idle capacity); it cannot take CPU another pod's weight entitles it to under
 contention.
 
-This repo's lab measures the light-neighbor case (`scripts/run.sh`, the hog leg): a small
-CPU-burning hog with no limit of its own lands on the node, and the unlimited victim's p99 barely
-moves, with no throttling. See `results/run.md`. The lab also has a saturate leg that scales the
-hog until the node is actually full before re-measuring, so the same claim gets tested with no
-idle capacity left to hide behind; that leg needs a real cluster run to produce numbers, so treat
-it as the harder test still pending, not a result already in hand. A separate four-way run of the
-same shape (limited and unlimited victims, hog on and off; run while preparing this material, not
-part of this repo's lab) added one more data point: the limited victim under hog pressure was
+This repo's lab measures the light case (`scripts/run.sh`, the busy-neighbor test): a
+small CPU-burning pod with no limit of its own lands on the node, and the unlimited victim's p99
+barely moves, with no throttling. See `results/run.md`. The lab also has a harder test that fills
+the node completely with that busy neighbor before re-measuring, so the same claim gets tested
+with no spare CPU left anywhere. That harder test needs a real cluster run to produce numbers, so
+treat it as pending, not a result already in hand. A separate four-way run of the same shape
+(limited and unlimited victims, busy neighbor on and off; run while preparing this material, not
+part of this repo's lab) added one more data point: the limited victim under that pressure was
 still slower than the unlimited victim under identical pressure. **The limit provides no benefit
 to its own pod.**
 
@@ -99,7 +99,7 @@ Cluster-level protection against runaway *requests*, not runaway usage, is what 
 guarding: a `ResourceQuota` on `requests.cpu` per namespace caps how much a team can request in
 total, and a `LimitRange` can set default requests for containers that omit them. Both operate on
 requests, independent of whether CPU limits exist. If everything still runs in one shared namespace,
-a namespace-wide quota there is a fat-finger backstop, not per-team isolation - and that's fine: the
+a namespace-wide quota there is a backstop against mistakes, not per-team isolation - and that's fine: the
 scheduler already refuses pods whose requests don't fit, so a missing quota risks extra node cost,
 not an outage.
 
