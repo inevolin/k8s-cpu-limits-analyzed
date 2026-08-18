@@ -302,6 +302,19 @@ Expect output like this as it runs:
 - `scripts/` - `run.sh` drives the lab, `lib.sh` holds shared helpers
 - `results/` - output of the last run, including `run.md` and raw JSONL
 - `assets/` - diagrams and charts used in this README
+- `docs/` - deep-dive reference chapters (theory, runtimes, databases, measuring, cost, rollout, objections)
+
+## Deep dives
+
+The README is the argument; `docs/` is the reference material behind it:
+
+- [Theory: CFS quota mechanics](docs/01-theory.md) - quota/period, multi-thread quota burn, why throttling is a stall not a slowdown, what `cpu.weight` actually protects.
+- [Runtimes](docs/02-runtimes.md) - what a CPU limit does to .NET's ThreadPool and GC, Go's `GOMAXPROCS`, the JVM's `ActiveProcessorCount`, and an OOMKilled incident caused by GC starvation.
+- [Databases](docs/03-databases.md) - why Postgres sizes itself from node cores regardless of quota, and what that does to parallel workers, autovacuum, and connection counts.
+- [Measuring](docs/04-measuring.md) - PromQL for throttle ratios, severity bands, and what "after" should look like in your own cluster.
+- [Cost](docs/05-cost.md) - why requests (not limits or usage) drive node count, a worked right-sizing model, and the memory floor on savings.
+- [Rollout](docs/06-rollout.md) - a staged, reversible plan: pin runtimes, add observability, add guardrails, drop limits env by env, right-size requests, one-line rollback.
+- [Objections](docs/07-objections.md) - the deeper FAQ: noisy neighbors, the "limit as circuit breaker" dilemma, multi-tenant quotas, QoS/eviction nuance, and when limits do make sense.
 
 ## Further reading
 
