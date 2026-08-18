@@ -15,8 +15,8 @@
   <line x1="74" y1="259" x2="150" y2="259" stroke="#c0685a" stroke-width="1.5"/>
 
   <text x="340" y="160" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - reserves your share</text>
-  <text x="340" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - equal to the limit below</text>
-  <text x="340" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - or a leak takes the node</text>
+  <text x="340" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - reserves memory for the pod</text>
+  <text x="340" y="238" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#5a8a5a">&#10003; keep - same as the request, or higher</text>
   <text x="340" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#c0685a">&#10007; drop - unless you really know why</text>
 
   <line x1="130" y1="192" x2="130" y2="232" stroke="#8a8578" stroke-width="1" stroke-dasharray="2,2"/>
