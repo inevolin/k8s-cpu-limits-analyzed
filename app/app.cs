@@ -34,6 +34,21 @@ long oomQueuedBytes = 0, oomDepth = 0, oomProcessed = 0;
 var oomTemplate = new byte[1 << 20];
 new Random(1).NextBytes(oomTemplate);
 
+// --- web lab state -----------------------------------------------------
+// Nothing here is a queue, a buffer, or a background worker. The /render
+// handler below allocates its working memory, uses it, and frees it before
+// it returns; no request's memory outlives the request. What holds memory
+// is only the *number of requests running at once*, which is Little's Law
+// (in flight = arrival rate x service time) and which a CPU limit sets by
+// stretching service time. Nothing in ASP.NET Core bounds it by default:
+// Kestrel's MaxConcurrentConnections is null (unlimited) and there is no
+// request-concurrency cap unless the app adds rate limiting itself.
+// webCompleted counts handlers that ran to completion, faulted ones
+// included: the increment is in the finally. It is not a count of
+// responses delivered - a client that timed out long ago still has its
+// handler running here, which is the point of the shape.
+long webInflight = 0, webPeakInflight = 0, webCompleted = 0, webHeldBytes = 0;
+
 app.MapGet("/healthz", () => "ok");
 
 app.MapGet("/info", () =>
@@ -265,6 +280,102 @@ app.MapGet("/cgstats", () =>
     return Results.Text(json, "application/json");
 });
 
+app.MapGet("/render", async (int? bytes, int? cpuMs, int? ioMs, bool? native) =>
+{
+    // One ordinary async request handler, shaped like a real one: build the
+    // working set (a decoded image, a deserialized result set, a report
+    // being assembled), await a downstream dependency, then do the CPU work
+    // on it and free it. Both pods run byte-identical code with an
+    // identical per-request footprint. A CPU limit cannot change the
+    // footprint (that is the code) or the arrival rate (that is the
+    // client), so it changes service time - and in-flight count rises to
+    // match, because in flight = arrival rate x service time.
+    //
+    // The await is what makes this shape: it releases the thread while the buffer
+    // stays allocated, so the pile-up is *not* bounded by ThreadPool size:
+    // the continuation waits in the ThreadPool queue still holding its
+    // memory. Allocating after the await instead would put the backlog in
+    // the queue as a few hundred bytes per entry and nothing would grow -
+    // which is exactly what an app that streams instead of buffering gets.
+    var size = Math.Clamp(bytes ?? (8 << 20), 1, 64 << 20); // matches web.sh's documented default
+    var cost = Math.Clamp(cpuMs ?? 40, 0, 10_000);
+    var io = Math.Clamp(ioMs ?? 200, 0, 60_000);
+    // Native by default, for the same reason the backlog lab uses malloc:
+    // .NET caps its own managed heap at 75% of memory.max, so a managed
+    // buffer runs into GC pressure (that is shape 2, scripts/gc.sh) before
+    // the kernel OOM killer is ever reached. Native memory has no such
+    // backstop, and it is what a handler holding an image, a decompressed
+    // payload, a pooled pinned buffer or a native driver's result set
+    // actually looks like. Pass native=false to see the managed variant
+    // hit the GC wall instead of the kernel: same cause, different symptom.
+    var useNative = native ?? true;
+
+    var inflight = Interlocked.Increment(ref webInflight);
+    long peak;
+    while ((peak = Interlocked.Read(ref webPeakInflight)) < inflight
+        && Interlocked.CompareExchange(ref webPeakInflight, inflight, peak) != peak) { }
+    Interlocked.Add(ref webHeldBytes, size);
+
+    var ptr = IntPtr.Zero;
+    byte[]? managed = null;
+    try
+    {
+        if (useNative)
+        {
+            ptr = Marshal.AllocHGlobal(size);
+            // touch every page so the memory is actually committed
+            for (var off = 0; off < size; off += oomTemplate.Length)
+                Marshal.Copy(oomTemplate, 0, IntPtr.Add(ptr, off),
+                    Math.Min(oomTemplate.Length, size - off));
+        }
+        else
+        {
+            managed = GC.AllocateUninitializedArray<byte>(size);
+            for (var i = 0; i < managed.Length; i += 4096) managed[i] = 1;
+        }
+
+        // downstream dependency: releases the thread, keeps the buffer
+        await Task.Delay(io);
+
+        // CPU work on the buffer. No cancellation check on purpose: a
+        // client timing out does not stop a handler that already started,
+        // which is how most real handlers behave and is why client-side
+        // timeouts do not bound server memory.
+        SpinCpu(cost);
+
+        return Results.Text(
+            $"{{\"bytes\":{size},\"cpuMs\":{cost},\"ioMs\":{io},\"native\":{(useNative ? "true" : "false")},\"inflight\":{inflight}}}",
+            "application/json");
+    }
+    finally
+    {
+        if (ptr != IntPtr.Zero) Marshal.FreeHGlobal(ptr);
+        GC.KeepAlive(managed);
+        Interlocked.Add(ref webHeldBytes, -size);
+        Interlocked.Decrement(ref webInflight);
+        Interlocked.Increment(ref webCompleted);
+    }
+});
+
+app.MapGet("/webstats", () =>
+{
+    var json = "{"
+        + $"\"inflight\":{Interlocked.Read(ref webInflight)},"
+        + $"\"peakInflight\":{Interlocked.Read(ref webPeakInflight)},"
+        + $"\"completed\":{Interlocked.Read(ref webCompleted)},"
+        + $"\"heldBytes\":{Interlocked.Read(ref webHeldBytes)},"
+        + $"\"threadPoolThreads\":{ThreadPool.ThreadCount},"
+        + $"\"pendingWorkItems\":{ThreadPool.PendingWorkItemCount},"
+        + $"\"gcHeapBytes\":{GC.GetTotalMemory(false)},"
+        + $"\"workingSetBytes\":{Environment.WorkingSet},"
+        + $"\"memoryCurrent\":{J(ReadOrNa("/sys/fs/cgroup/memory.current"))},"
+        + $"\"memoryAnon\":{J(CgStatField("anon"))},"
+        + $"\"memoryFile\":{J(CgStatField("file"))},"
+        + $"\"memoryMax\":{J(ReadOrNa("/sys/fs/cgroup/memory.max"))}"
+        + "}";
+    return Results.Text(json, "application/json");
+});
+
 // oom lab worker: drain the queue at whatever speed the CPU quota allows.
 _ = Task.Run(async () =>
 {
@@ -328,6 +439,24 @@ static double Spin(double ms)
     }
     if (double.IsNaN(x)) throw new InvalidOperationException("unreachable");
     return sw.Elapsed.TotalMilliseconds;
+}
+
+// memory.current includes reclaimable page cache; `anon` is the part the
+// kernel cannot reclaim. The SDK image's in-pod compile leaves
+// several hundred MiB of file cache behind, so reporting only
+// memory.current would bury the in-flight set under startup noise.
+static string CgStatField(string key)
+{
+    try
+    {
+        foreach (var line in File.ReadAllLines("/sys/fs/cgroup/memory.stat"))
+        {
+            var p = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (p.Length == 2 && p[0] == key) return p[1];
+        }
+    }
+    catch { }
+    return "n/a";
 }
 
 static string ReadOrNa(string path)

@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="412" viewBox="0 0 720 412">
+  <title>A CPU limit filling an API server until it is OOMKilled</title>
+  <desc>Two pods run the same API and take the same 20 requests per second.
+  Each request holds 8 MiB only while it runs. On the pod capped at 100m CPU
+  every request is about eight times slower, so more and more requests are
+  running at the same time, each holding its memory, until the pod hits its
+  512Mi memory limit and is OOMKilled. The pod with no CPU limit finishes
+  requests on time, peaks at 11 running at once, and its memory stays flat.</desc>
+  <defs>
+    <!-- one 9px cell = one request running right now -->
+    <pattern id="reqs" width="9" height="8" patternUnits="userSpaceOnUse">
+      <rect width="6" height="8" fill="#c4473a"/>
+    </pattern>
+    <pattern id="reqsOpen" width="9" height="8" patternUnits="userSpaceOnUse">
+      <rect width="6" height="8" fill="#5a9a5a"/>
+    </pattern>
+  </defs>
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .title { font-size: 14px; fill: #1a1a1a; }
+    .sub { font-size: 12px; fill: #111111; }
+    .tiny { font-size: 11px; fill: #111111; }
+    .muted { font-size: 11px; fill: #888888; }
+    .limitctx { font-size: 12px; fill: #c4473a; }
+    .openctx { font-size: 12px; fill: #5a9a5a; }
+    .dead { font-size: 12px; fill: #c4473a; }
+    .lane { fill: #ffffff; stroke: #c8c2b8; }
+
+    /* One 12s loop: requests (and their memory) pile up for 70% of it,
+       the pod dies, and stays dead for the rest of the loop. */
+    #mem1   { animation: mem1 12s linear infinite; }
+    #infl1  { animation: infl1 12s linear infinite; }
+    #flash  { animation: flash 12s linear infinite; }
+    #memO   { animation: memO 1.6s ease-in-out infinite; }
+    #inflO  { animation: inflO 1.6s ease-in-out infinite; }
+    /* step-end: state swaps, not fades - interpolating opacity would
+       draw two captions on top of each other during the handover */
+    #w0     { animation: w0 12s step-end infinite; }
+    #w1     { animation: w1 12s step-end infinite; }
+    #w2     { animation: w2 12s step-end infinite; }
+    #wdead  { animation: wdead 12s step-end infinite; }
+    #livetag{ animation: livegone 12s step-end infinite; }
+    #deadtag{ animation: wdead 12s step-end infinite; }
+
+    @keyframes mem1 {
+      0%   { width: 0; }
+      70%  { width: 355px; }
+      73%  { width: 355px; }
+      73.5%, 100% { width: 0; }
+    }
+    @keyframes infl1 {
+      0%   { width: 9px; }
+      70%  { width: 270px; }
+      73%  { width: 270px; }
+      73.5%, 100% { width: 0; }
+    }
+    @keyframes flash {
+      0%, 71.5% { opacity: 0; }
+      73%       { opacity: 0.85; }
+      76%, 100% { opacity: 0; }
+    }
+    @keyframes w0    { 0% { opacity: 1; } 25% { opacity: 0; } }
+    @keyframes w1    { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes w2    { 0% { opacity: 0; } 50% { opacity: 1; } 73% { opacity: 0; } }
+    @keyframes wdead { 0% { opacity: 0; } 73% { opacity: 1; } }
+    @keyframes livegone { 0% { opacity: 1; } 73% { opacity: 0; } }
+    /* uncapped pod: 5 to 11 requests running (45-99px of 9px cells) */
+    @keyframes inflO { 0%, 100% { width: 45px; } 50% { width: 99px; } }
+    @keyframes memO  { 0%, 100% { width: 40px; } 50% { width: 48px; } }
+
+    /* Arrivals: the same request stream into both pods, all the way
+       through - the load generator sits outside and never slows down. */
+    .req { animation: arrive 2.4s linear infinite; }
+    @keyframes arrive { 0% { x: 195; } 100% { x: 470; } }
+  </style>
+
+  <rect width="720" height="412" fill="#faf9f6"/>
+  <text class="title" x="24" y="30">The CPU limit doesn't just slow the API down - it fills it up</text>
+  <text class="sub" x="24" y="50">20 requests/s in. Each holds 8 MiB only while it runs. Slower requests = more running at once.</text>
+
+  <!-- ================= capped pod ================= -->
+  <text class="limitctx" x="24" y="92">100m limit</text>
+  <text class="tiny" x="105" y="92">20 req/s in</text>
+  <g>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-0.00s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-0.48s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-0.96s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-1.44s"/>
+    <rect class="req" x="195" y="84" width="7" height="7" fill="#111111" style="animation-delay:-1.92s"/>
+  </g>
+  <text class="limitctx" x="486" y="92">every request ~8x slower</text>
+
+  <rect class="lane" x="24" y="104" width="620" height="36" rx="3"/>
+  <rect x="26" y="106" width="616" height="32" fill="#f6eeea"/>
+  <rect x="26" y="106" width="260" height="32" fill="#ddd6cb"/>
+  <rect id="mem1" x="286" y="106" width="0" height="32" fill="#c4473a"/>
+  <rect id="flash" x="26" y="106" width="616" height="32" fill="#c4473a" opacity="0"/>
+  <text class="muted" x="34" y="126">runtime</text>
+  <line x1="644" y1="98" x2="644" y2="158" stroke="#c4473a" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="tiny" x="652" y="126" fill="#c4473a">512Mi</text>
+
+  <text class="muted" x="24" y="154">running now:</text>
+  <rect id="infl1" x="110" y="146" width="9" height="8" fill="url(#reqs)"/>
+
+  <text id="w0" class="tiny" x="24" y="176">requests pile up: each one finishes ~8x later, and holds its 8 MiB the whole time</text>
+  <text id="w1" class="tiny" x="24" y="176">so much is running at once that the pod can't even answer its own stats endpoint</text>
+  <text id="w2" class="tiny" x="24" y="176">memory = requests running x 8 MiB, climbing into the limit</text>
+  <text id="wdead" class="tiny" x="24" y="176">OOMKilled - exit 137 - 24 seconds after the load started</text>
+
+  <text id="livetag" class="muted" x="24" y="196">Nothing leaks. Every request frees its memory - if it ever gets to finish.</text>
+  <text id="deadtag" class="dead" x="24" y="196">The requests never got the CPU to finish. Their memory is what killed the pod.</text>
+
+  <!-- ================= uncapped pod ================= -->
+  <text class="openctx" x="24" y="248">no limit</text>
+  <text class="tiny" x="105" y="248">20 req/s in</text>
+  <g>
+    <rect class="req" x="195" y="240" width="7" height="7" fill="#111111" style="animation-delay:-0.24s"/>
+    <rect class="req" x="195" y="240" width="7" height="7" fill="#111111" style="animation-delay:-0.72s"/>
+    <rect class="req" x="195" y="240" width="7" height="7" fill="#111111" style="animation-delay:-1.20s"/>
+    <rect class="req" x="195" y="240" width="7" height="7" fill="#111111" style="animation-delay:-1.68s"/>
+    <rect class="req" x="195" y="240" width="7" height="7" fill="#111111" style="animation-delay:-2.16s"/>
+  </g>
+  <text class="openctx" x="486" y="248">requests finish on time</text>
+
+  <rect class="lane" x="24" y="260" width="620" height="36" rx="3"/>
+  <rect x="26" y="262" width="616" height="32" fill="#eef4ee"/>
+  <rect x="26" y="262" width="260" height="32" fill="#ddd6cb"/>
+  <rect id="memO" x="286" y="262" width="40" height="32" fill="#8fbf8f"/>
+  <text class="muted" x="34" y="282">runtime</text>
+  <line x1="644" y1="254" x2="644" y2="314" stroke="#c8c2b8" stroke-width="1" stroke-dasharray="2,2"/>
+  <text class="tiny" x="652" y="282" fill="#888888">512Mi</text>
+
+  <text class="muted" x="24" y="310">running now:</text>
+  <rect id="inflO" x="110" y="302" width="45" height="8" fill="url(#reqsOpen)"/>
+
+  <text class="tiny" x="24" y="332">peaked at 11 running at once, 40 MiB held, memory flat, 0 restarts</text>
+  <text class="muted" x="24" y="352">Same code, same load, same memory limit. Requests just finish on time.</text>
+
+  <line x1="24" y1="368" x2="696" y2="368" stroke="#e8e4dc" stroke-width="1"/>
+  <text class="tiny" x="24" y="388">Measured, not drawn: scripts/web.sh, numbers in results/oom.md.</text>
+</svg>

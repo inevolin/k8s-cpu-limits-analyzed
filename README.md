@@ -189,13 +189,13 @@ This can seem backwards: CPU is the compressible resource,
 run out and you wait, nothing dies. But memory is
 where a CPU deficit accumulates. Wherever work arrives faster
 than a throttled pod can process it, the difference sits in
-RAM until the kernel ends the pod. The lab reproduces two
+RAM until the kernel ends the pod. The lab reproduces three
 common shapes of this, each as an A/B pair: two pods running
 the same app, the same memory limit, the same load, with
 `limits.cpu` as the only difference in the YAML. Nothing leaks
-in either case; every byte would have been freed if the pod
-had been allowed to run the code that frees it. Both evidence
-files are in [results/oom.md](results/oom.md).
+in any of them; every byte would have been freed if the pod
+had been allowed to run the code that frees it. All three
+evidence files are in [results/oom.md](results/oom.md).
 
 ### Shape 1: the backlog
 
@@ -272,7 +272,62 @@ flight. This is also the shape where monitoring goes dark
 first: a pod too throttled to answer a stats scrape is a pod
 whose dashboards and probes are already lying.
 
-Both shapes end the same way on a graph: memory climbing
+### Shape 3: API server
+
+No queue, no buffer, no background worker. Every request:
+
+1. allocates its working memory (think: an image being decoded,
+   a report being built),
+2. awaits one downstream call,
+3. does its CPU work,
+4. frees everything and returns.
+
+No request's memory outlives the request. So what memory kills
+the pod? The requests that are *running at the same time*:
+
+```
+requests in flight = arrival rate x time per request
+memory held        = requests in flight x memory per request
+```
+
+The client decides the arrival rate. The code decides the memory
+per request. The only thing a CPU limit can change is the time
+per request: it makes every request slower. So more requests are
+running at once, and each one is holding its memory. Nothing
+stops the pile-up: web frameworks (ASP.NET Core, Node, Go, and
+friends) do not cap how many requests may run at once, and the
+`await` hands the thread back but keeps the buffer, so the
+thread pool does not cap it either.
+
+The lab: 20 requests per second, each costing 40 ms of CPU,
+awaiting a 200 ms downstream call, and holding 8 MiB while it
+runs. That needs ~800m of CPU against a `limits.cpu: 100m` cap -
+eight times more than the pod is allowed - with 512Mi of memory
+on both pods.
+
+![Animation of two API pods taking the same 20 requests per second: on the pod capped at 100m CPU every request runs about eight times slower, so more and more requests are running at once, each holding 8 MiB, until memory hits the 512Mi limit and the pod is OOMKilled; the pod with no CPU limit finishes requests on time, peaks at 11 running at once, and its memory stays flat](assets/web-live.svg)
+
+Recorded run (`scripts/web.sh`): the capped pod was OOMKilled
+after 24 seconds of load (exit 137), throttled essentially 100%
+of the time, and too starved to answer its own stats endpoint
+even once. The uncapped pod peaked at 11 requests in flight, held
+40 MiB, and never restarted. Across runs the time to death
+varied (23-52s); which pod dies never did.
+
+Two honest caveats:
+
+- **The 8 MiB per request is why it dies in seconds.** That is
+  an export, image, or report endpoint. A small JSON API under
+  the same cap fails slower and softer: rising latency,
+  timeouts, probes going dark - a brownout instead of a kill.
+  Same cause, milder symptom.
+- **Allocate *after* the `await` and memory plateaus instead**,
+  because the backlog then sits in the thread-pool queue at a
+  few hundred bytes per entry. That is what streaming instead
+  of buffering buys you, and the lab measured that variant too
+  (76 MiB held, no death).
+
+All three shapes end the same way on a graph: memory climbing
 into the limit. It looks like a leak, the usual fix is a
 bigger memory limit, and the actual cause is the CPU limit.
 Check `container_cpu_cfs_throttled_periods_total` before you
@@ -448,14 +503,15 @@ kubectl config use-context minikube
 ./scripts/run.sh
 ./scripts/oom.sh
 ./scripts/gc.sh
+./scripts/web.sh
 ./scripts/cleanup.sh
 ```
 
-`run.sh` is the latency/throttling lab. `oom.sh` and `gc.sh`
-are the two OOMKilled proofs (the backlog and the starved
-collector); each takes a few minutes and ends as soon as the
-capped pod dies. Run `cleanup.sh` between them: `gc.sh`
-insists on fresh pods.
+`run.sh` is the latency/throttling lab. `oom.sh`, `gc.sh` and
+`web.sh` are the three OOMKilled proofs (the backlog, the
+starved collector, and the web API); each ends as soon as the
+capped pod dies, `web.sh` within a minute of load. Run
+`cleanup.sh` between them: `gc.sh` insists on fresh pods.
 
 Needs `kubectl` and `python3`. First run downloads the .NET
 SDK image, which is multi-GB, so give it a minute. After that
@@ -476,9 +532,9 @@ Expect output like this as it runs:
 
 ## Repo layout
 
-- `app/` - the .NET test app (burst, mixed, enqueue, gcwork, and info endpoints)
+- `app/` - the .NET test app (burst, mixed, enqueue, gcwork, render, and info endpoints)
 - `k8s/` - manifests for the pods, the load job, the busy neighbor pod, and the stats probe
-- `scripts/` - `run.sh` drives the latency lab, `oom.sh` and `gc.sh` the OOMKilled proofs, `lib.sh` holds shared helpers
+- `scripts/` - `run.sh` drives the latency lab, `oom.sh`, `gc.sh` and `web.sh` the OOMKilled proofs, `lib.sh` holds shared helpers
 - `results/` - output of the last run, including `run.md`, `oom.md`, and raw JSONL
 - `assets/` - diagrams and charts used in this README
 - `docs/` - deep-dive reference chapters (theory, runtimes, databases, measuring, cost, rollout, objections)
@@ -493,7 +549,7 @@ The README is the argument; `docs/` is the reference material behind it:
 - [Measuring](docs/04-measuring.md) - PromQL for throttle ratios, severity bands, and what "after" should look like in your own cluster.
 - [Cost](docs/05-cost.md) - why requests (not limits or usage) drive node count, a worked right-sizing model, and the memory floor on savings.
 - [Rollout](docs/06-rollout.md) - a staged, reversible plan: pin runtimes, add observability, add guardrails, drop limits env by env, right-size requests, one-line rollback.
-- [Objections](docs/07-objections.md) - the deeper FAQ: noisy neighbors, the "limit as circuit breaker" dilemma, multi-tenant quotas, QoS/eviction nuance, and when limits do make sense.
+- [Objections](docs/07-objections.md) - the deeper FAQ: message consumers, plain HTTP APIs, noisy neighbors, the "limit as circuit breaker" dilemma, multi-tenant quotas, QoS/eviction nuance, and when limits do make sense.
 
 ## Further reading
 

@@ -26,6 +26,50 @@ fills up and which alert fires. The lab's backlog experiment (`scripts/oom.sh`, 
 "Shape 1") is exactly this mechanism with the buffer made explicit, and its worker pool is size one:
 the pool was never the problem.
 
+## We don't run consumers or queues, just a plain HTTP API - does any of this apply?
+
+A default web stack accumulates work in several places, none of them written by the application.
+Stock defaults, per layer:
+
+| Layer | ASP.NET Core / Kestrel | FastAPI / uvicorn |
+|---|---|---|
+| kernel accept backlog | `SocketTransportOptions.Backlog` 512 | `--backlog` 2048 |
+| concurrent connections | `MaxConcurrentConnections` **null (unlimited)** | unlimited |
+| in-flight requests | no cap | `--limit-concurrency` **None** |
+| handoff to workers | ThreadPool global queue | anyio `CapacityLimiter(40)` + unbounded waiters |
+| per-request buffer | Kestrel streams; `MaxRequestBodySize` 30 MB is a 413 threshold, not a buffer | `await request.body()` buffers it all |
+
+None of that is needed for the failure, though. Even with every buffer bounded, memory is in-flight
+count x per-request footprint, and in flight = arrival rate x service time. A CPU limit cannot
+change the arrival rate (the client owns it) or the footprint (the code owns it), so it stretches
+service time and the in-flight count rises to match. `scripts/web.sh` and the README's "Shape 3"
+reproduce that: a handler that frees every byte it allocates before it returns, in a pod
+OOMKilled 24 seconds into the load at a 100m cap, next to an identical uncapped pod that peaked at
+11 requests in flight and never restarted.
+
+Three caveats specific to this shape:
+
+**Per-request footprint decides how fast, and whether the kill is the symptom at all.** The lab
+holds 8 MiB per request - an export, image, or report endpoint - and dies in seconds. A small JSON
+API under the same cap accumulates in-flight requests at a few hundred KB each, so it fails slower
+and softer: rising latency, timeouts, probes going dark - a brownout instead of an OOMKill. Same
+cause, milder symptom; do not read a missing OOMKill as proof the limit was harmless.
+
+**Where the memory attaches decides whether it grows.** A handler that allocates *after* its first
+`await` puts the backlog in the ThreadPool queue at a few hundred bytes per entry; in-flight count
+then tracks ThreadPool thread injection, not the arrival deficit, and memory plateaus at threads x
+footprint. That is what streaming rather than buffering buys you, and it is the one real mitigation
+here that is not "remove the limit" or "add a concurrency cap".
+
+**The runtime decides which symptom you get.** .NET and the JVM size their heaps against the
+container memory limit (.NET's GC hard limit defaults to 75% of `memory.max`), so a handler
+buffering on the *managed* heap hits GC pressure - the shape 2 death spiral, probe blackouts,
+`OutOfMemoryException` - before the kernel OOM killer is reached. `/render?native=false` flips
+the lab's handler to managed allocation to show it; on that path the buffer becomes collectible
+rather than freed, so its bytes outlive the return until a collection runs. Python and Node have no such backstop: nothing
+sits between the allocation and the kernel, so they go straight to exit 137. The cause is identical;
+only the symptom, and therefore which dashboard lies to you, differs.
+
 ## Won't a noisy neighbor eat all the CPU without a limit?
 
 No. CPU requests set cgroup `cpu.weight`, which governs proportional access to CPU *only when the

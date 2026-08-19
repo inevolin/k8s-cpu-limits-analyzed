@@ -1,8 +1,8 @@
 # oom runs
 
-One file, two experiments. Each section is rewritten by its own
+One file, three experiments. Each section is rewritten by its own
 script: scripts/oom.sh owns the backlog section, scripts/gc.sh owns
-the gc section.
+the gc section, scripts/web.sh owns the web section.
 
 <!-- BEGIN backlog -->
 ## Backlog run (scripts/oom.sh)
@@ -81,3 +81,53 @@ gc-open-7b6776f9cd-zvmqb    0     <none>      <none>
 
 Raw samples: `results/gc.jsonl`.
 <!-- END gc -->
+
+<!-- BEGIN web -->
+## Web API run (scripts/web.sh)
+
+2026-08-19 09:59 UTC. context `minikube`, namespace `cpu-lab`.
+Same app, same 512Mi memory limit, same 20 rps of HTTP requests
+(40ms CPU and a 200ms awaited downstream call each,
+8388608 bytes of working memory allocated and freed inside the
+request). Demand ~800m. Only delta: `limits.cpu`.
+
+No queue, no buffer, no background worker: the handler frees every byte it
+allocates before it returns. The memory that kills the capped pod belongs
+to requests it has not been allowed to finish.
+
+Note: both pods run `dotnet run app.cs`, which compiles on every start
+inside the SDK image. That compile inflates `memory.current` with several
+hundred MiB of reclaimable page cache, which the kernel evicts under
+pressure rather than OOMKilling for - the figures above therefore track
+`anon`. What the compile does cost is anon baseline and CPU, both of which
+are specific to this image, so treat the exact seconds-to-death as a
+property of this setup rather than a universal constant.
+
+| | restarts | last termination | throttle during load |
+|---|---|---|---|
+| 100m limit | 1 | OOMKilled (exit 137) | 100.00% of CFS periods |
+| no limit | 0 | none | - |
+
+OOMKilled after: 24s of load.
+
+```
+web-limit: anon memory 241 MiB at t=0s -> peak 339 MiB at t=14s
+web-limit: 1 post-restart sample(s) excluded from the curve (container was replaced; raw series in results/web.jsonl)
+web-limit: /webstats never answered during load - too starved to serve its own stats endpoint, so every number above came from the cgroup instead
+web-open: anon memory 277 MiB at t=0s -> peak 293 MiB at t=14s
+web-open: last /webstats at t=14s - in flight 5, peak 11, completed 418, holding 40 MiB, threadPoolThreads 7, queued work items 0
+web-open: reclaimable page cache at that sample 174 MiB
+```
+
+Last /webstats, 100m limit pod: `never answered during load`
+Last /webstats, no-limit pod:   `{"inflight":5,"peakInflight":11,"completed":418,"heldBytes":41943040,"threadPoolThreads":7,"pendingWorkItems":0,"gcHeapBytes":2253680,"workingSetBytes":207376384,"memoryCurrent":"487981056","memoryAnon":"292139008","memoryFile":"182370304","memoryMax":"536870912"}`
+Last cgroup read, 100m limit pod: `cur=536203264 anon=355729408`
+Last cgroup read, no-limit pod:   `cur=478433280 anon=282615808`
+
+```
+web-limit-f84774698-t8jqg   1     OOMKilled   137
+web-open-6dd8cd85b7-gsbk4   0     <none>      <none>
+```
+
+Raw samples: `results/web.jsonl`.
+<!-- END web -->
