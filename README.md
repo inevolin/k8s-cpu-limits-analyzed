@@ -267,73 +267,57 @@ flight. This is also the shape where monitoring goes dark
 first: a pod too throttled to answer a stats scrape is a pod
 whose dashboards and probes are already lying.
 
-### Shape 3: Web API
+### Shape 3: a plain web API
 
-This is a plain HTTP API: no queue, no buffer, and no background
-worker anywhere in it.
+No queue, no buffer, no background worker. Every request:
 
-Every request allocates its working set (a decoded image, a
-deserialized result set, a report being assembled), awaits a
-downstream call, does its CPU work on it, and frees the buffer
-before returning. Nothing is retained, and both pods run
-byte-identical handler code with the same per-request footprint.
+1. allocates its working memory (think: an image being decoded,
+   a report being built),
+2. awaits one downstream call,
+3. does its CPU work,
+4. frees everything and returns.
 
-The await is what makes this shape. It releases the thread while
-the buffer stays allocated, so the pile-up is not bounded by
-ThreadPool size: the continuation waits its turn still holding
-its memory.
+No request's memory outlives the request. So what memory kills
+the pod? The requests that are *running at the same time*:
 
-What differs is only how many requests exist at once. Little's
-Law: in flight = arrival rate x service time. A CPU limit cannot
-touch the arrival rate (that belongs to the client) or the
-footprint (that belongs to the code), so it stretches service
-time, and the in-flight count rises to match. Memory is
-in-flight count x footprint. Nothing in ASP.NET Core bounds it
-by default: Kestrel's `MaxConcurrentConnections` is `null`, and
-there is no request-concurrency cap unless the app adds rate
-limiting itself.
+```
+requests in flight = arrival rate x time per request
+memory held        = requests in flight x memory per request
+```
 
-Work arrives at 20 requests per second; each request costs 40 ms
-of CPU time, awaits a 200 ms downstream call, and holds 8 MiB
-while it does. That is ~800m of CPU demand against a
-`limits.cpu: 100m` cap, with 512Mi of memory on both pods.
+The client decides the arrival rate. The code decides the memory
+per request. The only thing a CPU limit can change is the time
+per request: it makes every request slower. So more requests are
+in flight at once, and each one is holding its memory. Nothing
+stops the pile-up: web frameworks do not cap how many requests
+may run at once by default (Kestrel's `MaxConcurrentConnections`
+is `null`), and the `await` hands the thread back but keeps the
+buffer, so the thread pool does not cap it either.
 
-In the recorded run (`scripts/web.sh`), the capped pod's
-anonymous memory climbed from 241 MiB to a peak of 339 MiB and
-it was OOMKilled after 24 seconds of load (exit code 137,
-`lastState.terminated.reason: OOMKilled`), throttled in 100% of
-CFS periods. The identical uncapped pod peaked at 11 requests in
-flight, held 40 MiB, and never restarted. Across runs
-seconds-to-death ranged from 23 to 52 seconds; which pod dies
-did not vary.
+The lab: 20 requests per second, each costing 40 ms of CPU,
+awaiting a 200 ms downstream call, and holding 8 MiB while it
+runs. That is ~800m of demand against a `limits.cpu: 100m` cap,
+with 512Mi of memory on both pods.
 
-Two implementation details matter.
+Recorded run (`scripts/web.sh`): the capped pod was OOMKilled
+after 24 seconds of load (exit 137), throttled in 100% of CFS
+periods, and too starved to answer its own stats endpoint even
+once. The uncapped pod peaked at 11 requests in flight, held
+40 MiB, and never restarted. Across runs the time to death
+varied (23-52s); which pod dies never did.
 
-The handler has to allocate *before* its first `await`. Allocate
-after it and the backlog lands in the ThreadPool queue at a few
-hundred bytes per entry, the in-flight count tracks ThreadPool
-thread injection (order of a thread per second) instead of the
-arrival deficit, and memory plateaus at threads x footprint. The
-first version of this lab allocated after the await and measured
-exactly that: in-flight pinned to thread count, 76 MiB held, no
-death. It is what an app that streams rather than buffers gets,
-and it is a different shape, not the run recorded here.
+Two honest caveats:
 
-The cap is not what sets time-to-death; the per-request
-footprint is. This system self-throttles: as the ThreadPool
-queue grows, Kestrel's accept loop competes for the same
-shrinking quota, so the rate at which new requests reach a
-handler collapses alongside the drain rate. Tightening
-`limits.cpu` slows accumulation about as much as it slows
-draining. In side runs while building the lab, none of them
-recorded here, 500m to 100m barely moved the runway, while
-2 MiB to 8 MiB per request took it from minutes to under half a
-minute.
-
-The capped pod never answered `/webstats` during the load, so
-every figure above for that pod was read from the cgroup by a
-separately exec'd process. A pod too throttled to serve its own
-stats endpoint cannot serve a metrics scrape or a probe either.
+- **The 8 MiB per request is why it dies in seconds.** That is
+  an export, image, or report endpoint. A small JSON API under
+  the same cap fails slower and softer: rising latency,
+  timeouts, probes going dark - a brownout instead of a kill.
+  Same cause, milder symptom.
+- **Allocate *after* the `await` and memory plateaus instead**,
+  because the backlog then sits in the thread-pool queue at a
+  few hundred bytes per entry. That is what streaming instead
+  of buffering buys you, and the lab measured that variant too
+  (76 MiB held, no death).
 
 All three shapes end the same way on a graph: memory climbing
 into the limit. It looks like a leak, the usual fix is a
@@ -517,10 +501,9 @@ kubectl config use-context minikube
 
 `run.sh` is the latency/throttling lab. `oom.sh`, `gc.sh` and
 `web.sh` are the three OOMKilled proofs (the backlog, the
-starved collector, and the web API); each ends as
-soon as the capped pod dies, `web.sh` in about 20 seconds of
-load. Run `cleanup.sh` between them: `gc.sh` insists on fresh
-pods.
+starved collector, and the web API); each ends as soon as the
+capped pod dies, `web.sh` within a minute of load. Run
+`cleanup.sh` between them: `gc.sh` insists on fresh pods.
 
 Needs `kubectl` and `python3`. First run downloads the .NET
 SDK image, which is multi-GB, so give it a minute. After that

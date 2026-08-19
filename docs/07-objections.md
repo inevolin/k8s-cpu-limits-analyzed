@@ -47,7 +47,13 @@ reproduce that: a handler that frees every byte it allocates before it returns, 
 OOMKilled 24 seconds into the load at a 100m cap, next to an identical uncapped pod that peaked at
 11 requests in flight and never restarted.
 
-Two caveats specific to this shape:
+Three caveats specific to this shape:
+
+**Per-request footprint decides how fast, and whether the kill is the symptom at all.** The lab
+holds 8 MiB per request - an export, image, or report endpoint - and dies in seconds. A small JSON
+API under the same cap accumulates in-flight requests at a few hundred KB each, so it fails slower
+and softer: rising latency, timeouts, probes going dark - a brownout instead of an OOMKill. Same
+cause, milder symptom; do not read a missing OOMKill as proof the limit was harmless.
 
 **Where the memory attaches decides whether it grows.** A handler that allocates *after* its first
 `await` puts the backlog in the ThreadPool queue at a few hundred bytes per entry; in-flight count

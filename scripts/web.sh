@@ -135,8 +135,19 @@ webstat() {
   # /webstats via the pod, tolerant of the pod being mid-OOM
   local pod; pod="$(running_pod "$1")"
   [ -n "$pod" ] || { echo ""; return 0; }
-  kcq exec "pod/${pod}" -- curl -fsS --max-time "$SAMPLE_TIMEOUT" \
-    http://127.0.0.1:8080/webstats 2>/dev/null || echo ""
+  # curl-with-fallback, same reason lib.sh's http_get has one: the SDK
+  # image is not guaranteed to ship curl forever
+  kcq exec "pod/${pod}" -- bash -lc "
+    if command -v curl >/dev/null 2>&1; then
+      curl -fsS --max-time ${SAMPLE_TIMEOUT} http://127.0.0.1:8080/webstats
+    elif command -v wget >/dev/null 2>&1; then
+      wget -qO- -T ${SAMPLE_TIMEOUT} http://127.0.0.1:8080/webstats
+    else
+      exec 3<>/dev/tcp/127.0.0.1/8080
+      printf 'GET /webstats HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3
+      awk 'BEGIN{h=1} h && \$0==\"\" {h=0; next} !h {print}' <&3
+    fi
+  " 2>/dev/null || echo ""
 }
 # cpu.stat via the short-timeout exec. lib.sh's cgstats() is unusable in
 # this loop for two reasons: it goes through `kc` (20s), which alone thins

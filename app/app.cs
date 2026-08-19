@@ -297,7 +297,7 @@ app.MapGet("/render", async (int? bytes, int? cpuMs, int? ioMs, bool? native) =>
     // memory. Allocating after the await instead would put the backlog in
     // the queue as a few hundred bytes per entry and nothing would grow -
     // which is exactly what an app that streams instead of buffering gets.
-    var size = Math.Clamp(bytes ?? (2 << 20), 1, 64 << 20);
+    var size = Math.Clamp(bytes ?? (8 << 20), 1, 64 << 20); // matches web.sh's documented default
     var cost = Math.Clamp(cpuMs ?? 40, 0, 10_000);
     var io = Math.Clamp(ioMs ?? 200, 0, 60_000);
     // Native by default, for the same reason the backlog lab uses malloc:
