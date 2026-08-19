@@ -1,0 +1,6 @@
+{"kind":"websample","t":0,"app":"web-limit","restarts":0,"memoryCurrent":536080384,"memoryAnon":270061568,"stats":null}
+{"kind":"websample","t":0,"app":"web-open","restarts":0,"memoryCurrent":511365120,"memoryAnon":237105152,"stats":{"inflight":5,"peakInflight":6,"served":177,"heldBytes":41943040,"threadPoolThreads":4,"pendingWorkItems":0,"gcHeapBytes":3398304,"workingSetBytes":147615744,"memoryCurrent":"504360960","memoryAnon":"229986304","memoryFile":"259395584","memoryMax":"536870912"}}
+{"kind":"websample","t":11,"app":"web-limit","restarts":0,"memoryCurrent":536326144,"memoryAnon":383467520,"stats":null}
+{"kind":"websample","t":11,"app":"web-open","restarts":0,"memoryCurrent":503947264,"memoryAnon":229515264,"stats":null}
+{"kind":"websample","t":18,"app":"web-limit","restarts":0,"memoryCurrent":12677120,"memoryAnon":6537216,"stats":null}
+{"kind":"websample","t":18,"app":"web-open","restarts":0,"memoryCurrent":519372800,"memoryAnon":245334016,"stats":null}

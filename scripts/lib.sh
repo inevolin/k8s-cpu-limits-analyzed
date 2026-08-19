@@ -146,8 +146,8 @@ append_jsonl() {
 
 # Replace the section between "<!-- BEGIN name -->" / "<!-- END name -->"
 # markers in $file with stdin, appending the section (and a header for a
-# brand-new file) when missing. Lets oom.sh and gc.sh share one results
-# file without clobbering each other's sections.
+# brand-new file) when missing. Lets oom.sh, gc.sh and web.sh share one
+# results file without clobbering each other's sections.
 write_section() {
   local file="$1" name="$2"
   mkdir -p "$(dirname "$file")"
@@ -159,9 +159,9 @@ block = f"{begin}\n{os.environ['SECTION_CONTENT'].rstrip()}\n{end}"
 try:
     text = open(path, encoding="utf-8").read()
 except FileNotFoundError:
-    text = ("# oom runs\n\nOne file, two experiments. Each section is rewritten by its own\n"
+    text = ("# oom runs\n\nOne file, three experiments. Each section is rewritten by its own\n"
             "script: scripts/oom.sh owns the backlog section, scripts/gc.sh owns\n"
-            "the gc section.\n")
+            "the gc section, scripts/web.sh owns the in-flight section.\n")
 pat = re.compile(re.escape(begin) + r".*?" + re.escape(end), re.S)
 if pat.search(text):
     text = pat.sub(lambda m: block, text)

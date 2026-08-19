@@ -81,3 +81,52 @@ gc-open-7b6776f9cd-zvmqb    0     <none>      <none>
 
 Raw samples: `results/gc.jsonl`.
 <!-- END gc -->
+
+<!-- BEGIN web -->
+## In-flight run (scripts/web.sh)
+
+2026-08-19 08:54 UTC. context `minikube`, namespace `cpu-lab`.
+Same app, same 512Mi memory limit, same 20 rps of HTTP requests
+(40ms CPU each, 200ms awaited downstream call each,
+8388608 bytes of working memory allocated and freed inside the
+request). Demand ~800m. Only delta: `limits.cpu`.
+
+No queue, no buffer, no background worker: the handler frees every byte it
+allocates before it returns. The memory that kills the capped pod is the
+set of requests it has not been allowed to finish.
+
+Note: both pods run `dotnet run app.cs`, which compiles on every start
+inside the SDK image. The page cache from that compile counts against
+`memory.max` alongside the in-flight set, so part of the capped pod's
+headroom before OOMKilled is SDK-image cache; the direction of the result
+(only the capped pod dies) does not depend on it, but treat the exact
+seconds-to-death as specific to this image, not a universal constant.
+
+| | restarts | last termination | throttle during load |
+|---|---|---|---|
+| 100m limit | 1 | OOMKilled (exit 137) | 84.43% of CFS periods |
+| no limit | 0 | none | - |
+
+OOMKilled after: 20s of load.
+
+```
+web-limit: anon memory 258 MiB -> 366 MiB over 11s (peak 366 MiB)
+web-limit: 1 post-restart sample(s) excluded from the curve (container was replaced; raw series in results/web.jsonl)
+web-limit: /webstats never answered during load - too starved to serve its own stats endpoint, so every number above came from the cgroup instead
+web-open: anon memory 226 MiB -> 234 MiB over 18s (peak 234 MiB)
+web-open: last /webstats at t=0s - in flight 5, peak 6, served 177, holding 40 MiB, threadPoolThreads 4, queued work items 0
+web-open: reclaimable page cache at that sample 247 MiB
+```
+
+Last /webstats, 100m limit pod: `never answered during load`
+Last /webstats, no-limit pod:   `{"inflight":5,"peakInflight":6,"served":177,"heldBytes":41943040,"threadPoolThreads":4,"pendingWorkItems":0,"gcHeapBytes":3398304,"workingSetBytes":147615744,"memoryCurrent":"504360960","memoryAnon":"229986304","memoryFile":"259395584","memoryMax":"536870912"}`
+Last cgroup read, 100m limit pod: `cur=12677120 anon=6537216`
+Last cgroup read, no-limit pod:   `cur=519372800 anon=245334016`
+
+```
+web-limit-6d4697566-m85kp   1     OOMKilled   137
+web-open-7cfffbcc5-wjsfp    0     <none>      <none>
+```
+
+Raw samples: `results/web.jsonl`.
+<!-- END web -->

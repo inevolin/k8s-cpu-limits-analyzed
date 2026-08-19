@@ -184,13 +184,13 @@ This can seem backwards: CPU is the compressible resource,
 run out and you wait, nothing dies. But memory is
 where a CPU deficit accumulates. Wherever work arrives faster
 than a throttled pod can process it, the difference sits in
-RAM until the kernel ends the pod. The lab reproduces two
+RAM until the kernel ends the pod. The lab reproduces three
 common shapes of this, each as an A/B pair: two pods running
 the same app, the same memory limit, the same load, with
 `limits.cpu` as the only difference in the YAML. Nothing leaks
-in either case; every byte would have been freed if the pod
-had been allowed to run the code that frees it. Both evidence
-files are in [results/oom.md](results/oom.md).
+in any of them; every byte would have been freed if the pod
+had been allowed to run the code that frees it. All three
+evidence files are in [results/oom.md](results/oom.md).
 
 ### Shape 1: the backlog
 
@@ -267,7 +267,69 @@ flight. This is also the shape where monitoring goes dark
 first: a pod too throttled to answer a stats scrape is a pod
 whose dashboards and probes are already lying.
 
-Both shapes end the same way on a graph: memory climbing
+### Shape 3: in-flight requests
+
+This is the shape with no queue in it anywhere, and it is the
+answer to "we don't run consumers, we run a plain HTTP API."
+
+Every request allocates its working set (a decoded image, a
+deserialized result set, a report being assembled), awaits a
+downstream call, does its CPU work on it, and frees the buffer
+before returning. Nothing is retained: no request's memory
+outlives the request, and both pods run byte-identical handler
+code with an identical per-request footprint.
+
+What differs is only how many requests exist at once, which is
+Little's Law: in flight = arrival rate x service time. A CPU
+limit cannot touch the arrival rate (that belongs to the
+client) or the footprint (that belongs to the code), so it
+stretches service time, and the in-flight count rises to match.
+Memory is in-flight count x footprint. Nothing in ASP.NET Core
+bounds it by default: Kestrel's `MaxConcurrentConnections` is
+`null`, and there is no request-concurrency cap unless the app
+adds rate limiting itself.
+
+In the recorded run (`scripts/web.sh`, 100m cap, 512Mi memory,
+20 rps of requests costing 40ms of CPU and holding 8 MiB), the
+capped pod's anonymous memory climbed from 258 MiB to 366 MiB
+and it was OOMKilled after 20 seconds of load (exit code 137,
+`lastState.terminated.reason: OOMKilled`), throttled in 100% of
+CFS periods. The identical uncapped pod held 5 requests in
+flight and 40 MiB for the entire run and never restarted.
+Seconds-to-death moves by a few either way between runs; which
+pod dies does not.
+
+Two things this lab got wrong before it got them right, both
+worth knowing if you reproduce it:
+
+The handler has to allocate *before* its first `await`.
+Allocate after it and the backlog lands in the ThreadPool queue
+at a few hundred bytes per entry, the in-flight count tracks
+ThreadPool thread injection (roughly one thread per second)
+instead of the arrival deficit, and memory plateaus at threads
+x footprint. That is what the first run measured: in-flight
+pinned to thread count, 76 MiB held, no death. It is a real
+result, and it is what an app that streams rather than buffers
+gets for free, but it is a different shape.
+
+And the cap is not what sets time-to-death; the per-request
+footprint is. This system self-throttles: as the ThreadPool
+queue grows, Kestrel's accept loop is competing for the same
+shrinking quota, so the rate at which new requests reach a
+handler collapses alongside the drain rate. Tightening
+`limits.cpu` slows accumulation about as much as it slows
+draining. Going from 500m to 100m barely moved the runway;
+going from 2 MiB to 8 MiB per request took it from minutes to
+under half a minute.
+
+This shape also breaks its own observability, harder than shape
+2 does. The capped pod never answered `/webstats` even once
+during the load, so every number above had to be read from the
+cgroup by a separate process. A pod too throttled to serve its
+own stats endpoint cannot serve a metrics scrape or a probe
+either.
+
+All three shapes end the same way on a graph: memory climbing
 into the limit. It looks like a leak, the usual fix is a
 bigger memory limit, and the actual cause is the CPU limit.
 Check `container_cpu_cfs_throttled_periods_total` before you
@@ -443,14 +505,16 @@ kubectl config use-context minikube
 ./scripts/run.sh
 ./scripts/oom.sh
 ./scripts/gc.sh
+./scripts/web.sh
 ./scripts/cleanup.sh
 ```
 
-`run.sh` is the latency/throttling lab. `oom.sh` and `gc.sh`
-are the two OOMKilled proofs (the backlog and the starved
-collector); each takes a few minutes and ends as soon as the
-capped pod dies. Run `cleanup.sh` between them: `gc.sh`
-insists on fresh pods.
+`run.sh` is the latency/throttling lab. `oom.sh`, `gc.sh` and
+`web.sh` are the three OOMKilled proofs (the backlog, the
+starved collector, and the in-flight request set); each ends as
+soon as the capped pod dies, `web.sh` in well under a minute of
+load. Run `cleanup.sh` between them: `gc.sh` insists on fresh
+pods.
 
 Needs `kubectl` and `python3`. First run downloads the .NET
 SDK image, which is multi-GB, so give it a minute. After that
@@ -471,9 +535,9 @@ Expect output like this as it runs:
 
 ## Repo layout
 
-- `app/` - the .NET test app (burst, mixed, enqueue, gcwork, and info endpoints)
+- `app/` - the .NET test app (burst, mixed, enqueue, gcwork, render, and info endpoints)
 - `k8s/` - manifests for the pods, the load job, the busy neighbor pod, and the stats probe
-- `scripts/` - `run.sh` drives the latency lab, `oom.sh` and `gc.sh` the OOMKilled proofs, `lib.sh` holds shared helpers
+- `scripts/` - `run.sh` drives the latency lab, `oom.sh`, `gc.sh` and `web.sh` the OOMKilled proofs, `lib.sh` holds shared helpers
 - `results/` - output of the last run, including `run.md`, `oom.md`, and raw JSONL
 - `assets/` - diagrams and charts used in this README
 - `docs/` - deep-dive reference chapters (theory, runtimes, databases, measuring, cost, rollout, objections)
