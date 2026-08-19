@@ -267,7 +267,7 @@ flight. This is also the shape where monitoring goes dark
 first: a pod too throttled to answer a stats scrape is a pod
 whose dashboards and probes are already lying.
 
-### Shape 3: a plain web API
+### Shape 3: API server
 
 No queue, no buffer, no background worker. Every request:
 
@@ -288,21 +288,22 @@ memory held        = requests in flight x memory per request
 The client decides the arrival rate. The code decides the memory
 per request. The only thing a CPU limit can change is the time
 per request: it makes every request slower. So more requests are
-in flight at once, and each one is holding its memory. Nothing
-stops the pile-up: web frameworks do not cap how many requests
-may run at once by default (Kestrel's `MaxConcurrentConnections`
-is `null`), and the `await` hands the thread back but keeps the
-buffer, so the thread pool does not cap it either.
+running at once, and each one is holding its memory. Nothing
+stops the pile-up: web frameworks (ASP.NET Core, Node, Go, and
+friends) do not cap how many requests may run at once, and the
+`await` hands the thread back but keeps the buffer, so the
+thread pool does not cap it either.
 
 The lab: 20 requests per second, each costing 40 ms of CPU,
 awaiting a 200 ms downstream call, and holding 8 MiB while it
-runs. That is ~800m of demand against a `limits.cpu: 100m` cap,
-with 512Mi of memory on both pods.
+runs. That needs ~800m of CPU against a `limits.cpu: 100m` cap -
+eight times more than the pod is allowed - with 512Mi of memory
+on both pods.
 
 Recorded run (`scripts/web.sh`): the capped pod was OOMKilled
-after 24 seconds of load (exit 137), throttled in 100% of CFS
-periods, and too starved to answer its own stats endpoint even
-once. The uncapped pod peaked at 11 requests in flight, held
+after 24 seconds of load (exit 137), throttled essentially 100%
+of the time, and too starved to answer its own stats endpoint
+even once. The uncapped pod peaked at 11 requests in flight, held
 40 MiB, and never restarted. Across runs the time to death
 varied (23-52s); which pod dies never did.
 
