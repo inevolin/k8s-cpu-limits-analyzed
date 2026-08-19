@@ -300,6 +300,8 @@ runs. That needs ~800m of CPU against a `limits.cpu: 100m` cap -
 eight times more than the pod is allowed - with 512Mi of memory
 on both pods.
 
+![Animation of two API pods taking the same 20 requests per second: on the pod capped at 100m CPU every request runs about eight times slower, so more and more requests are running at once, each holding 8 MiB, until memory hits the 512Mi limit and the pod is OOMKilled; the pod with no CPU limit finishes requests on time, peaks at 11 running at once, and its memory stays flat](assets/web-live.svg)
+
 Recorded run (`scripts/web.sh`): the capped pod was OOMKilled
 after 24 seconds of load (exit 137), throttled essentially 100%
 of the time, and too starved to answer its own stats endpoint
