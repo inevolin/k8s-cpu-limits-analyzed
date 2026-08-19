@@ -28,7 +28,8 @@ the pool was never the problem.
 
 ## We don't run consumers or queues, we run a plain HTTP API. Does any of this apply?
 
-Yes, and you do have a queue - four of them, none of which you wrote. Stock defaults, per layer:
+There are four queues in a default web stack, none of them written by the application. Stock
+defaults, per layer:
 
 | Layer | ASP.NET Core / Kestrel | FastAPI / uvicorn |
 |---|---|---|
@@ -42,7 +43,7 @@ None of that is needed for the failure, though. Even with every buffer bounded, 
 count x per-request footprint, and in flight = arrival rate x service time. A CPU limit cannot
 change the arrival rate (the client owns it) or the footprint (the code owns it), so it stretches
 service time and the in-flight count rises to match. `scripts/web.sh` and the README's "Shape 3"
-reproduce exactly that: a handler that frees every byte it allocates before it returns, OOMKilled in
+reproduce that: a handler that frees every byte it allocates before it returns, OOMKilled in
 20 seconds at a 100m cap, with an identical uncapped pod flat at 5 requests in flight.
 
 Two caveats specific to this shape:

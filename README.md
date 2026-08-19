@@ -267,10 +267,10 @@ flight. This is also the shape where monitoring goes dark
 first: a pod too throttled to answer a stats scrape is a pod
 whose dashboards and probes are already lying.
 
-### Shape 3: in-flight requests
+### Shape 3: Web API
 
-This is the shape with no queue in it anywhere, and it is the
-answer to "we don't run consumers, we run a plain HTTP API."
+This is an example of how an API server is prone to memory
+issues because of CPU limits. There is no queue anywhere in it.
 
 Every request allocates its working set (a decoded image, a
 deserialized result set, a report being assembled), awaits a
@@ -299,8 +299,7 @@ flight and 40 MiB for the entire run and never restarted.
 Seconds-to-death moves by a few either way between runs; which
 pod dies does not.
 
-Two things this lab got wrong before it got them right, both
-worth knowing if you reproduce it:
+Two implementation details decide whether this reproduces:
 
 The handler has to allocate *before* its first `await`.
 Allocate after it and the backlog lands in the ThreadPool queue
@@ -308,9 +307,9 @@ at a few hundred bytes per entry, the in-flight count tracks
 ThreadPool thread injection (roughly one thread per second)
 instead of the arrival deficit, and memory plateaus at threads
 x footprint. That is what the first run measured: in-flight
-pinned to thread count, 76 MiB held, no death. It is a real
-result, and it is what an app that streams rather than buffers
-gets for free, but it is a different shape.
+pinned to thread count, 76 MiB held, no death. That is a real
+result - it is what an app that streams rather than buffers
+gets - but it is a different shape.
 
 And the cap is not what sets time-to-death; the per-request
 footprint is. This system self-throttles: as the ThreadPool
@@ -322,10 +321,10 @@ draining. Going from 500m to 100m barely moved the runway;
 going from 2 MiB to 8 MiB per request took it from minutes to
 under half a minute.
 
-This shape also breaks its own observability, harder than shape
-2 does. The capped pod never answered `/webstats` even once
-during the load, so every number above had to be read from the
-cgroup by a separate process. A pod too throttled to serve its
+The capped pod also stops serving its own observability, more
+completely than in shape 2: it never answered `/webstats` once
+during the load, so every number above was read from the cgroup
+by a separately exec'd process. A pod too throttled to serve its
 own stats endpoint cannot serve a metrics scrape or a probe
 either.
 
