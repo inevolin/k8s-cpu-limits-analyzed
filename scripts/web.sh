@@ -8,9 +8,10 @@
 # downstream dependency, spends WEB_CPU_MS of CPU-time on it, and frees it
 # before returning. Nothing is retained: no request's memory outlives the
 # request, and both pods run byte-identical handler code with an identical
-# per-request footprint. The await is load-bearing - it releases the thread
-# while the buffer stays allocated, so the backlog is not silently bounded
-# by ThreadPool size the way a purely synchronous handler's would be.
+# per-request footprint. The await is what makes this shape: it releases the
+# thread while the buffer stays allocated, so the backlog is not silently
+# bounded by ThreadPool size the way a synchronous handler's backlog would
+# be.
 #
 # What differs is how many requests exist at once. Little's Law:
 #   in flight = arrival rate x service time
@@ -23,14 +24,14 @@
 #
 # This is shape 3. Shape 1 (scripts/oom.sh) is an app-level queue holding
 # memory; shape 2 (scripts/gc.sh) is garbage the collector cannot reclaim;
-# here the memory is live, legitimately in use, and belongs to requests the
-# pod simply has not been allowed to finish.
+# here the memory is live and belongs to requests the pod has not been
+# allowed to finish.
 #
 # Three design constraints that are easy to get wrong:
-# - The handler must allocate BEFORE its first await. Allocating after it
+# - The handler must allocate *before* its first await. Allocating after it
 #   puts the backlog in the ThreadPool queue at a few hundred bytes per
-#   entry, the in-flight count tracks ThreadPool thread growth (~1-2
-#   threads/s) instead of the arrival deficit, and memory plateaus at
+#   entry, the in-flight count tracks ThreadPool thread growth (order of
+#   a thread per second) instead of the arrival deficit, and memory plateaus at
 #   threads x footprint instead of running away. That is a real and useful
 #   result - it is what an app that streams instead of buffering gets - but
 #   it is not the shape under test here.
@@ -54,8 +55,9 @@
 # a handler collapses along with the drain rate. Tightening limits.cpu
 # therefore slows accumulation about as much as it slows draining and buys
 # little. Per-request footprint costs the pod no CPU at all, so it is the
-# lever that actually shortens the run: at the ~90 in-flight requests this
-# cap reaches within seconds, 8 MiB each is already past a 512Mi limit.
+# lever that actually shortens the run: with ~250 MiB of anon headroom
+# above the runtime's own footprint, 8 MiB per request puts the ceiling at
+# roughly 30 in flight, which the arrival deficit reaches in seconds.
 # (The measured arrival rate is also below WEB_RPS - the load pod has its
 # own 500m limit and one thread per in-flight request, so it degrades once
 # responses start hanging. That makes time-to-death conservative.)
@@ -121,6 +123,13 @@ kcq() {
   kubectl --context "$KCTX" -n "$NS" --request-timeout="${SAMPLE_TIMEOUT}s" "$@"
 }
 SAMPLE_TIMEOUT="${SAMPLE_TIMEOUT:-4}"
+# how often to probe /webstats, in seconds of wall clock
+WS_EVERY="${WS_EVERY:-5}"
+# cpu.stat gets its own, longer budget on a slower cadence: a fully
+# throttled pod can take far longer than SAMPLE_TIMEOUT to schedule a
+# forked `cat`, and losing this read costs the throttle evidence outright
+CG_TIMEOUT="${CG_TIMEOUT:-20}"
+CG_EVERY="${CG_EVERY:-10}"
 
 webstat() {
   # /webstats via the pod, tolerant of the pod being mid-OOM
@@ -129,6 +138,26 @@ webstat() {
   kcq exec "pod/${pod}" -- curl -fsS --max-time "$SAMPLE_TIMEOUT" \
     http://127.0.0.1:8080/webstats 2>/dev/null || echo ""
 }
+# cpu.stat via the short-timeout exec. lib.sh's cgstats() is unusable in
+# this loop for two reasons: it goes through `kc` (20s), which alone thins
+# the sample curve to a handful of points across the run, and it echoes
+# `nr_periods=0 nr_throttled=0 ...` on failure instead of returning empty,
+# so a timed-out read looks like a successful one and silently zeroes the
+# throttle evidence. Return empty on any failure and let the caller keep
+# the last good read.
+cgcpu() {
+  local pod raw np nt
+  pod="$(running_pod "$1")"
+  [ -n "$pod" ] || { echo ""; return 0; }
+  raw="$(kubectl --context "$KCTX" -n "$NS" --request-timeout="${CG_TIMEOUT}s" \
+    exec "pod/${pod}" -- cat /sys/fs/cgroup/cpu.stat 2>/dev/null || true)"
+  np="$(printf '%s\n' "$raw" | awk '/^nr_periods /{print $2; exit}')"
+  nt="$(printf '%s\n' "$raw" | awk '/^nr_throttled /{print $2; exit}')"
+  # a read that did not yield both counters is a failed read, not a zero one
+  [ -n "$np" ] && [ -n "$nt" ] || { echo ""; return 0; }
+  echo "nr_periods=${np} nr_throttled=${nt}"
+}
+
 cgmem() {
   # memory.current and memory.stat's `anon` straight from the cgroup. A
   # saturated pod may be too starved to answer its own /webstats (that is
@@ -148,7 +177,7 @@ cgmem() {
 # is load-phase only and does not include the in-pod dotnet compile at
 # startup (which is itself throttled under the 100m cap and would
 # otherwise inflate the number)
-BASE_CG_LIMIT="$(cgstats web-limit 2>/dev/null || true)"
+BASE_CG_LIMIT="$(cgcpu web-limit)"
 BASE_NP=0 BASE_NT=0
 if [ -n "$BASE_CG_LIMIT" ]; then
   BASE_NP="$(cg_field "$BASE_CG_LIMIT" nr_periods)"; BASE_NP="${BASE_NP:-0}"
@@ -170,12 +199,13 @@ LAST_WEB_LIMIT="" LAST_WEB_OPEN="" LAST_MEM_LIMIT="" LAST_MEM_OPEN=""
 # iteration and thins out the memory curve that matters. Give up on it
 # after two misses in a row and record when that happened.
 DARK_LIMIT=0 DARK_OPEN=0
-ITER=0
+WS_NEXT_LIMIT=0 WS_NEXT_OPEN=0
+CG_NEXT=0 CG_READS=0
+PEAK_ANON_LIMIT=0 PEAK_ANON_OPEN=0
 while [ "$SECONDS" -lt "$DEADLINE" ]; do
   T=$(( SECONDS - T0 ))
-  ITER=$(( ITER + 1 ))
 
-  # check termination BEFORE sampling: kubelet can restart a killed
+  # check termination *before* sampling: kubelet can restart a killed
   # container within seconds, and a sample taken after that restart would
   # read the fresh container's near-zero counters, silently deflating the
   # evidence instead of reflecting the pod that actually died.
@@ -201,26 +231,38 @@ while [ "$SECONDS" -lt "$DEADLINE" ]; do
     cur="$(printf '%s' "$mem" | awk '{print $1}')"
     anon="$(printf '%s' "$mem" | awk '{print $2}')"
     case "$app" in
-      web-limit) dark="$DARK_LIMIT" ;;
-      web-open)  dark="$DARK_OPEN" ;;
+      web-limit) dark="$DARK_LIMIT"; ws_next="$WS_NEXT_LIMIT"; peak="$PEAK_ANON_LIMIT" ;;
+      web-open)  dark="$DARK_OPEN";  ws_next="$WS_NEXT_OPEN";  peak="$PEAK_ANON_OPEN" ;;
     esac
     ws=""
     # every exec costs up to SAMPLE_TIMEOUT against a starved pod, and the
-    # memory curve is the evidence that matters; sample it every pass and
-    # /webstats only every third
-    if [ "$dark" -lt 2 ] && [ $(( (ITER - 1) % 3 )) -eq 0 ]; then
+    # memory curve is the evidence that matters; sample memory every pass
+    # and /webstats on a wall-clock cadence. Gating on iteration count
+    # instead would collapse to one probe per run as soon as a starved
+    # pod stretches each iteration out to several seconds.
+    if [ "$dark" -lt 2 ] && [ "$SECONDS" -ge "$ws_next" ]; then
       ws="$(webstat "$app")"
       if [ -n "$ws" ]; then dark=0; else dark=$(( dark + 1 )); fi
+      ws_next=$(( SECONDS + WS_EVERY ))
+    fi
+    # A sample whose anon has collapsed to a fraction of the running peak
+    # is the replacement container, not the pod under test: the kubelet
+    # publishes restartCount only after the new container is serving, so
+    # the restart guard above cannot catch it. Keep it out of the LAST_*
+    # values the report publishes; the raw line still goes to the JSONL.
+    live=1
+    if [ -n "$anon" ]; then
+      if [ "$anon" -lt $(( peak / 2 )) ]; then live=0; else peak="$anon"; fi
     fi
     case "$app" in
       web-limit)
-        DARK_LIMIT="$dark"
-        [ -n "$anon" ] && LAST_MEM_LIMIT="cur=${cur} anon=${anon}"
-        [ -n "$ws" ] && LAST_WEB_LIMIT="$ws" ;;
+        DARK_LIMIT="$dark"; WS_NEXT_LIMIT="$ws_next"; PEAK_ANON_LIMIT="$peak"
+        [ -n "$anon" ] && [ "$live" = "1" ] && LAST_MEM_LIMIT="cur=${cur} anon=${anon}"
+        [ -n "$ws" ] && [ "$live" = "1" ] && LAST_WEB_LIMIT="$ws" ;;
       web-open)
-        DARK_OPEN="$dark"
-        [ -n "$anon" ] && LAST_MEM_OPEN="cur=${cur} anon=${anon}"
-        [ -n "$ws" ] && LAST_WEB_OPEN="$ws" ;;
+        DARK_OPEN="$dark"; WS_NEXT_OPEN="$ws_next"; PEAK_ANON_OPEN="$peak"
+        [ -n "$anon" ] && [ "$live" = "1" ] && LAST_MEM_OPEN="cur=${cur} anon=${anon}"
+        [ -n "$ws" ] && [ "$live" = "1" ] && LAST_WEB_OPEN="$ws" ;;
     esac
     # Raw samples go in raw, including any taken after the kill. The kubelet
     # publishes restartCount and lastState *after* the replacement container
@@ -235,9 +277,10 @@ while [ "$SECONDS" -lt "$DEADLINE" ]; do
   # restart-guard cpu.stat too: after the kill, cgstats would read the
   # fresh container's counters (dominated by its startup compile) and
   # poison the load-phase throttle number
-  if [ "$(pod_restarts web-limit)" = "0" ]; then
-    cg="$(cgstats web-limit 2>/dev/null || true)"
-    [ -n "$cg" ] && LAST_CG_LIMIT="$cg"
+  if [ "$SECONDS" -ge "$CG_NEXT" ] && [ "$(pod_restarts web-limit)" = "0" ]; then
+    cg="$(cgcpu web-limit)"
+    [ -n "$cg" ] && LAST_CG_LIMIT="$cg" && CG_READS=$(( CG_READS + 1 ))
+    CG_NEXT=$(( SECONDS + CG_EVERY ))
   fi
 
   sleep 1
@@ -261,11 +304,15 @@ if [ -n "$LAST_CG_LIMIT" ]; then
   D_NP=$(( NP - BASE_NP )); D_NT=$(( NT - BASE_NT ))
   if [ "$D_NP" -gt 0 ] && [ "$D_NT" -ge 0 ]; then
     THR_PCT="$(ratio_pct "$D_NT" "$D_NP")"
-  else
-    # the pre-load baseline was lost or inconsistent; report the
-    # cumulative since-start ratio and say so rather than print nonsense
+  elif [ "$CG_READS" -eq 0 ]; then
+    # no cpu.stat read survived after the baseline: the pod was too
+    # throttled to schedule the exec at all, which is itself the finding.
+    # Report the since-start ratio and name what actually failed.
     THR_PCT="$(ratio_pct "$NT" "${NP:-1}")"
-    THR_NOTE=" (cumulative since container start; load-phase baseline was lost)"
+    THR_NOTE=" (cumulative since container start; every load-phase read timed out - the pod could not schedule a forked \`cat\`)"
+  else
+    THR_PCT="$(ratio_pct "$NT" "${NP:-1}")"
+    THR_NOTE=" (cumulative since container start; the pre-load baseline was lost)"
   fi
 fi
 
@@ -276,10 +323,21 @@ SUMMARY="$(python3 - "${RESULTS}/web.jsonl" <<'PY'
 import json, sys
 
 rows = []
+malformed = 0
 for line in open(sys.argv[1]):
     line = line.strip()
-    if line:
+    if not line:
+        continue
+    try:
         rows.append(json.loads(line))
+    except ValueError:
+        # a sample truncated mid-body by the exec timeout. Losing one
+        # sample is survivable; losing the whole report to a traceback
+        # after the run has already happened is not.
+        malformed += 1
+
+if malformed:
+    print(f"note: {malformed} malformed sample line(s) skipped (exec timeout mid-read)")
 
 def mib(v):
     try:
@@ -307,9 +365,13 @@ for app in ("web-limit", "web-open"):
         kept.append((t, v))
 
     if len(kept) >= 2:
-        peak = max(v for _, v in kept)
-        print(f"{app}: anon memory {kept[0][1]:.0f} MiB -> {kept[-1][1]:.0f} MiB "
-              f"over {kept[-1][0] - kept[0][0]}s (peak {peak:.0f} MiB)")
+        pt, peak = max(kept, key=lambda kv: kv[1])
+        # headline the peak, not the last sample. The replacement container
+        # starts its own compile immediately, so a post-restart reading can
+        # land above half the peak and survive the drop filter; the climb
+        # to the peak is what the kernel acted on and is artifact-free.
+        print(f"{app}: anon memory {kept[0][1]:.0f} MiB at t={kept[0][0]}s "
+              f"-> peak {peak:.0f} MiB at t={pt}s")
     elif kept:
         print(f"{app}: anon memory {kept[0][1]:.0f} MiB at t={kept[0][0]}s (single usable sample)")
     if dropped:
@@ -324,7 +386,7 @@ for app in ("web-limit", "web-open"):
     if with_stats:
         last = with_stats[-1]["stats"]
         print(f"{app}: last /webstats at t={with_stats[-1]['t']}s - in flight {last['inflight']}, "
-              f"peak {last['peakInflight']}, served {last['served']}, "
+              f"peak {last['peakInflight']}, completed {last['completed']}, "
               f"holding {last['heldBytes']/2**20:.0f} MiB, "
               f"threadPoolThreads {last['threadPoolThreads']}, "
               f"queued work items {last['pendingWorkItems']}")
@@ -342,24 +404,25 @@ CAP="$(kc get deploy web-limit \
 
 WHEN="$(date -u '+%Y-%m-%d %H:%M UTC')"
 write_section "${RESULTS}/oom.md" web <<EOF
-## In-flight run (scripts/web.sh)
+## Web API run (scripts/web.sh)
 
 ${WHEN}. context \`${KCTX}\`, namespace \`${NS}\`.
 Same app, same 512Mi memory limit, same ${WEB_RPS} rps of HTTP requests
-(${WEB_CPU_MS}ms CPU each, ${WEB_IO_MS}ms awaited downstream call each,
+(${WEB_CPU_MS}ms CPU and a ${WEB_IO_MS}ms awaited downstream call each,
 ${WEB_BYTES} bytes of working memory allocated and freed inside the
 request). Demand ~${DEMAND_M}m. Only delta: \`limits.cpu\`.
 
 No queue, no buffer, no background worker: the handler frees every byte it
-allocates before it returns. The memory that kills the capped pod is the
-set of requests it has not been allowed to finish.
+allocates before it returns. The memory that kills the capped pod belongs
+to requests it has not been allowed to finish.
 
 Note: both pods run \`dotnet run app.cs\`, which compiles on every start
-inside the SDK image. The page cache from that compile counts against
-\`memory.max\` alongside the in-flight set, so part of the capped pod's
-headroom before OOMKilled is SDK-image cache; the direction of the result
-(only the capped pod dies) does not depend on it, but treat the exact
-seconds-to-death as specific to this image, not a universal constant.
+inside the SDK image. That compile inflates \`memory.current\` with several
+hundred MiB of reclaimable page cache, which the kernel evicts under
+pressure rather than OOMKilling for - the figures above therefore track
+\`anon\`. What the compile does cost is anon baseline and CPU, both of which
+are specific to this image, so treat the exact seconds-to-death as a
+property of this setup rather than a universal constant.
 
 | | restarts | last termination | throttle during load |
 |---|---|---|---|

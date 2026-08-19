@@ -43,7 +43,11 @@ new Random(1).NextBytes(oomTemplate);
 // stretching service time. Nothing in ASP.NET Core bounds it by default:
 // Kestrel's MaxConcurrentConnections is null (unlimited) and there is no
 // request-concurrency cap unless the app adds rate limiting itself.
-long webInflight = 0, webPeakInflight = 0, webServed = 0, webHeldBytes = 0;
+// webCompleted counts handlers that ran to completion, faulted ones
+// included: the increment is in the finally. It is not a count of
+// responses delivered - a client that timed out long ago still has its
+// handler running here, which is the point of the shape.
+long webInflight = 0, webPeakInflight = 0, webCompleted = 0, webHeldBytes = 0;
 
 app.MapGet("/healthz", () => "ok");
 
@@ -279,7 +283,7 @@ app.MapGet("/cgstats", () =>
 app.MapGet("/render", async (int? bytes, int? cpuMs, int? ioMs, bool? native) =>
 {
     // One ordinary async request handler, shaped like a real one: build the
-    // working set (a decoded image, a deserialized result set, a response
+    // working set (a decoded image, a deserialized result set, a report
     // being assembled), await a downstream dependency, then do the CPU work
     // on it and free it. Both pods run byte-identical code with an
     // identical per-request footprint. A CPU limit cannot change the
@@ -287,8 +291,8 @@ app.MapGet("/render", async (int? bytes, int? cpuMs, int? ioMs, bool? native) =>
     // client), so it changes service time - and in-flight count rises to
     // match, because in flight = arrival rate x service time.
     //
-    // The await is the whole point. It releases the thread while the buffer
-    // stays allocated, so the pile-up is NOT bounded by ThreadPool size:
+    // The await is what makes this shape: it releases the thread while the buffer
+    // stays allocated, so the pile-up is *not* bounded by ThreadPool size:
     // the continuation waits in the ThreadPool queue still holding its
     // memory. Allocating after the await instead would put the backlog in
     // the queue as a few hundred bytes per entry and nothing would grow -
@@ -349,7 +353,7 @@ app.MapGet("/render", async (int? bytes, int? cpuMs, int? ioMs, bool? native) =>
         GC.KeepAlive(managed);
         Interlocked.Add(ref webHeldBytes, -size);
         Interlocked.Decrement(ref webInflight);
-        Interlocked.Increment(ref webServed);
+        Interlocked.Increment(ref webCompleted);
     }
 });
 
@@ -358,7 +362,7 @@ app.MapGet("/webstats", () =>
     var json = "{"
         + $"\"inflight\":{Interlocked.Read(ref webInflight)},"
         + $"\"peakInflight\":{Interlocked.Read(ref webPeakInflight)},"
-        + $"\"served\":{Interlocked.Read(ref webServed)},"
+        + $"\"completed\":{Interlocked.Read(ref webCompleted)},"
         + $"\"heldBytes\":{Interlocked.Read(ref webHeldBytes)},"
         + $"\"threadPoolThreads\":{ThreadPool.ThreadCount},"
         + $"\"pendingWorkItems\":{ThreadPool.PendingWorkItemCount},"
@@ -437,8 +441,8 @@ static double Spin(double ms)
     return sw.Elapsed.TotalMilliseconds;
 }
 
-// memory.current includes reclaimable page cache; `anon` is the part that
-// actually forces the kernel's hand. The SDK image's in-pod compile leaves
+// memory.current includes reclaimable page cache; `anon` is the part the
+// kernel cannot reclaim. The SDK image's in-pod compile leaves
 // several hundred MiB of file cache behind, so reporting only
 // memory.current would bury the in-flight set under startup noise.
 static string CgStatField(string key)

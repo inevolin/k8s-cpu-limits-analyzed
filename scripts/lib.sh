@@ -161,7 +161,7 @@ try:
 except FileNotFoundError:
     text = ("# oom runs\n\nOne file, three experiments. Each section is rewritten by its own\n"
             "script: scripts/oom.sh owns the backlog section, scripts/gc.sh owns\n"
-            "the gc section, scripts/web.sh owns the in-flight section.\n")
+            "the gc section, scripts/web.sh owns the web section.\n")
 pat = re.compile(re.escape(begin) + r".*?" + re.escape(end), re.S)
 if pat.search(text):
     text = pat.sub(lambda m: block, text)
